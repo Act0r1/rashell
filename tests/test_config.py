@@ -12,7 +12,7 @@ class ConfigTest(unittest.TestCase):
         config = json.loads(CONFIG_PATH.read_text())
         self.assertEqual(set(config), {"version", "theme", "wallpaper", "bar"})
         self.assertEqual(config["version"], 1)
-        self.assertIn(config["theme"], {"ember", "raven", "jade"})
+        self.assertIn(config["theme"], {"oilslick", "muninn", "nevermore", "talon", "ember", "raven", "jade"})
         self.assertTrue(config["wallpaper"])
         self.assertEqual(set(config["bar"]), {"left", "center", "right"})
 

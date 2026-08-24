@@ -12,7 +12,8 @@ A personal Quickshell desktop shell for Hyprland, built around the controls used
 - Control center with Wi-Fi, Bluetooth, wallpaper access, capture, audio, system status, lock, suspend, and confirmed power actions
 - Wallpaper ownership, calendar, session controls, and Hyprland workspace switching
 - Last-known-good JSON configuration reload
-- Built-in `ember`, `raven`, and `jade` themes
+- Theme concepts from `rashell-themes.html`: `oilslick`, `muninn`, `nevermore`, and `talon`
+- Legacy `ember`, `raven`, and `jade` themes remain available
 
 The documents under [`docs/architecture`](docs/architecture/) describe the original minimal baseline. The current shell intentionally supersedes that boundary with a fixed set of first-party daily-use features.
 
@@ -26,23 +27,38 @@ The documents under [`docs/architecture`](docs/architecture/) describe the origi
 |---|---|
 | ![Audio](docs/screenshots/pass2/audio.webp) | ![Calendar](docs/screenshots/pass2/calendar.webp) |
 
-## Run
+### Themes
+
+| Oil Slick | Muninn | Nevermore | Talon |
+|---|---|---|---|
+| ![Oil Slick](docs/screenshots/themes/oilslick.webp) | ![Muninn](docs/screenshots/themes/muninn.webp) | ![Nevermore](docs/screenshots/themes/nevermore.webp) | ![Talon](docs/screenshots/themes/talon.webp) |
+
+## Run and remove
 
 ```bash
-quickshell -p /home/yeager/Personal/rashell
+just start       # select and start Rashell, stopping Noctalia
+just stop        # stop Rashell and restore Noctalia V5
+just uninstall   # restore Noctalia and remove the Quickshell symlink
+just install     # recreate the safe Quickshell symlink
 ```
 
-This machine currently uses the compatible user-local runtime:
-
-```bash
-~/.local/opt/rashell-runtime/quickshell -c rashell -d
-```
+`just run`, `just noctalia`, and `just remove` are equivalent convenience recipes. The recipes use the compatible user-local Quickshell runtime by default; override it with `RASHELL_QUICKSHELL` when needed.
 
 Rashell requires Quickshell 0.3.1 or newer, Hyprland, PipeWire, NetworkManager, BlueZ, `jq`, `cliphist`, `grim`, and `wl-copy`. The token and update widgets use the existing local token-meter helper and `checkupdates`.
 
 ## Configuration
 
-Edit `config.json` or provide an absolute path with `RASHELL_CONFIG`. Theme names are `ember`, `raven`, and `jade`.
+Edit `config.json` or provide an absolute path with `RASHELL_CONFIG`. `muninn` is the default old-gold identity.
+
+```bash
+just themes
+just theme oilslick
+just theme muninn
+just theme nevermore
+just theme talon
+```
+
+Theme changes hot-reload while Rashell is running. `ember`, `raven`, and `jade` remain accepted for compatibility.
 
 ## IPC
 

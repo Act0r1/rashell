@@ -19,7 +19,7 @@ def contrast(left: str, right: str) -> float:
 def palettes() -> dict[str, dict[str, str]]:
     source = THEME_PATH.read_text()
     result: dict[str, dict[str, str]] = {}
-    for name in ("ember", "raven", "jade"):
+    for name in ("oilslick", "muninn", "nevermore", "talon", "ember", "raven", "jade"):
         match = re.search(rf"{name}: \{{(.*?)\n        \}}", source, re.DOTALL)
         if match is None:
             raise AssertionError(f"missing {name} palette")

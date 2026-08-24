@@ -7,7 +7,7 @@ Scope {
 
     readonly property var defaults: ({
         version: 1,
-        theme: "ember",
+        theme: "muninn",
         wallpaper: "~/Pictures/Wallpapers/bisbiswas-a-summer-evening.png",
         bar: {
             left: ["rashell.workspaces"],
@@ -50,7 +50,7 @@ Scope {
         }
         if (!isPlainObject(candidate) || !sameKeys(candidate, ["version", "theme", "wallpaper", "bar"])) return "invalid top-level fields"
         if (candidate.version !== 1) return "unsupported config version"
-        if (["ember", "raven", "jade"].indexOf(candidate.theme) === -1) return "unknown theme"
+        if (["oilslick", "muninn", "nevermore", "talon", "ember", "raven", "jade"].indexOf(candidate.theme) === -1) return "unknown theme"
         if (typeof candidate.wallpaper !== "string" || candidate.wallpaper.trim() === "") return "invalid wallpaper"
         if (!isPlainObject(candidate.bar) || !sameKeys(candidate.bar, ["left", "center", "right"])) return "invalid bar fields"
 
