@@ -24,7 +24,8 @@ Item {
     }
 
     function focusWorkspace(workspaceId) {
-        Quickshell.execDetached(["hyprctl", "dispatch", "workspace", String(workspaceId)])
+        const command = "hl.dsp.focus({ workspace = \"" + workspaceId + "\" })"
+        Quickshell.execDetached(["hyprctl", "dispatch", command])
     }
 
     Row {

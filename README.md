@@ -8,7 +8,7 @@ A personal Quickshell desktop shell inspired by ravens.
 - Amber-on-black visual system
 - Manifest-based built-in and user plugins
 - Hyprland workspaces
-- Clock
+- Clock and calendar
 - PipeWire volume and direct output/input device selection
 
 ## Run

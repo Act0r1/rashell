@@ -3,7 +3,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import Quickshell
-import Quickshell.Hyprland
 import Quickshell.Services.Pipewire
 import qs.core
 
@@ -228,13 +227,6 @@ Item {
 
     PwObjectTracker {
         objects: root.nodes
-    }
-
-    HyprlandFocusGrab {
-        active: popup.visible
-        windows: root.anchorItem && root.anchorItem.QsWindow.window
-            ? [popup, root.anchorItem.QsWindow.window] : [popup]
-        onCleared: root.open = false
     }
 
     PopupWindow {
