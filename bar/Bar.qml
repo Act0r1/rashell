@@ -12,6 +12,12 @@ Item {
     required property var workspaceState
     required property var clockState
     required property var audioState
+    required property var mediaState
+    required property var systemState
+    required property var keyboardState
+    required property var controlState
+    required property var tokenState
+    required property var notificationState
     required property var coordinator
     required property var osd
     required property var feedback
@@ -24,11 +30,17 @@ Item {
         required property var workspaceState
         required property var clockState
         required property var audioState
+        required property var mediaState
+        required property var systemState
+        required property var keyboardState
+        required property var controlState
+        required property var tokenState
+        required property var notificationState
         required property var coordinator
         required property var osd
         required property var feedback
 
-        spacing: Theme.spaceSm
+        spacing: 3
 
         Repeater {
             model: moduleRow.moduleIds
@@ -40,6 +52,12 @@ Item {
                 workspaceState: moduleRow.workspaceState
                 clockState: moduleRow.clockState
                 audioState: moduleRow.audioState
+                mediaState: moduleRow.mediaState
+                systemState: moduleRow.systemState
+                keyboardState: moduleRow.keyboardState
+                controlState: moduleRow.controlState
+                tokenState: moduleRow.tokenState
+                notificationState: moduleRow.notificationState
                 coordinator: moduleRow.coordinator
                 osd: moduleRow.osd
                 feedback: moduleRow.feedback
@@ -60,39 +78,33 @@ Item {
                 color: "transparent"
                 exclusionMode: ExclusionMode.Auto
 
-                anchors {
-                    top: true
-                    left: true
-                    right: true
-                }
-
+                anchors { top: true; left: true; right: true }
                 WlrLayershell.namespace: "rashell-bar"
                 WlrLayershell.layer: WlrLayer.Top
 
                 Rectangle {
-                    anchors {
-                        fill: parent
-                        topMargin: Theme.edgeMargin
-                        leftMargin: Theme.barHorizontalMargin
-                        rightMargin: Theme.barHorizontalMargin
-                        bottomMargin: Theme.edgeMargin
-                    }
+                    anchors.fill: parent
+                    anchors.margins: Theme.edgeMargin
                     color: Theme.surface
                     border.color: Theme.border
                     border.width: Theme.borderWidth
                     radius: Theme.radius
 
                     ModuleRow {
-                        anchors {
-                            left: parent.left
-                            leftMargin: Theme.spaceLg
-                            verticalCenter: parent.verticalCenter
-                        }
+                        anchors.left: parent.left
+                        anchors.leftMargin: 8
+                        anchors.verticalCenter: parent.verticalCenter
                         moduleIds: root.configStore.leftModules
                         outputName: barWindow.modelData.name
                         workspaceState: root.workspaceState
                         clockState: root.clockState
                         audioState: root.audioState
+                        mediaState: root.mediaState
+                        systemState: root.systemState
+                        keyboardState: root.keyboardState
+                        controlState: root.controlState
+                        tokenState: root.tokenState
+                        notificationState: root.notificationState
                         coordinator: root.coordinator
                         osd: root.osd
                         feedback: root.feedback
@@ -105,22 +117,32 @@ Item {
                         workspaceState: root.workspaceState
                         clockState: root.clockState
                         audioState: root.audioState
+                        mediaState: root.mediaState
+                        systemState: root.systemState
+                        keyboardState: root.keyboardState
+                        controlState: root.controlState
+                        tokenState: root.tokenState
+                        notificationState: root.notificationState
                         coordinator: root.coordinator
                         osd: root.osd
                         feedback: root.feedback
                     }
 
                     ModuleRow {
-                        anchors {
-                            right: parent.right
-                            rightMargin: Theme.spaceLg
-                            verticalCenter: parent.verticalCenter
-                        }
+                        anchors.right: parent.right
+                        anchors.rightMargin: 8
+                        anchors.verticalCenter: parent.verticalCenter
                         moduleIds: root.configStore.rightModules
                         outputName: barWindow.modelData.name
                         workspaceState: root.workspaceState
                         clockState: root.clockState
                         audioState: root.audioState
+                        mediaState: root.mediaState
+                        systemState: root.systemState
+                        keyboardState: root.keyboardState
+                        controlState: root.controlState
+                        tokenState: root.tokenState
+                        notificationState: root.notificationState
                         coordinator: root.coordinator
                         osd: root.osd
                         feedback: root.feedback

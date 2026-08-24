@@ -1,15 +1,25 @@
 {
   "version": 1,
-  "theme": "ember",
+  "theme": "raven",
+  "wallpaper": "~/Pictures/Wallpapers/bisbiswas-a-summer-evening.png",
   "bar": {
     "left": [
       "rashell.workspaces"
     ],
     "center": [
-      "rashell.clock"
+      "rashell.clock",
+      "rashell.media",
+      "rashell.screenshot"
     ],
     "right": [
-      "rashell.audio"
+      "rashell.keyboard",
+      "rashell.tray",
+      "rashell.notifications",
+      "rashell.system",
+      "rashell.audio",
+      "rashell.tokens",
+      "rashell.control",
+      "rashell.updates"
     ]
   }
 }

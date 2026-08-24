@@ -1,26 +1,30 @@
 # Rashell
 
-A personal Quickshell desktop shell inspired by ravens.
+A personal Quickshell desktop shell for Hyprland, built around the controls used on this machine.
 
-## First coherent version
+## Current shell
 
-- One three-zone bar per output
-- Hyprland workspaces `1…6`
-- Centered clock and month-reference calendar
-- Shared PipeWire output/input controls with direct device selection
-- One coordinated panel host
-- Fixed IPC for panels and output audio
-- Volume OSD and failure feedback overlay
-- Last-known-good JSON config reload
-- Three built-in dark themes: `ember`, `raven`, and `jade`
+- Full-width framed bar with workspaces, clock, MPRIS media, screenshot, keyboard layout, system tray, notifications, CPU, PipeWire volume, token usage, control center, and update status
+- Searchable application launcher with clipboard history
+- Notification daemon, popup, bounded history, and do-not-disturb mode
+- PipeWire output/input controls with direct device selection and volume OSD
+- Media panel with artwork, seek, and playback controls
+- Control center with Wi-Fi, Bluetooth, wallpaper access, capture, audio, system status, lock, suspend, and confirmed power actions
+- Wallpaper ownership, calendar, session controls, and Hyprland workspace switching
+- Last-known-good JSON configuration reload
+- Built-in `ember`, `raven`, and `jade` themes
 
-The architecture and acceptance boundary are documented in [`docs/architecture/rashell-v1.md`](docs/architecture/rashell-v1.md).
+The documents under [`docs/architecture`](docs/architecture/) describe the original minimal baseline. The current shell intentionally supersedes that boundary with a fixed set of first-party daily-use features.
 
-## Themes
+## Screenshots
 
-| Ember | Raven | Jade |
+| Desktop | Launcher | Control center |
 |---|---|---|
-| ![Ember](docs/screenshots/rashell-ember.webp) | ![Raven](docs/screenshots/rashell-raven.webp) | ![Jade](docs/screenshots/rashell-jade.webp) |
+| ![Desktop](docs/screenshots/pass2/desktop.webp) | ![Launcher](docs/screenshots/pass2/launcher.webp) | ![Control center](docs/screenshots/pass2/control.webp) |
+
+| Audio | Calendar |
+|---|---|
+| ![Audio](docs/screenshots/pass2/audio.webp) | ![Calendar](docs/screenshots/pass2/calendar.webp) |
 
 ## Run
 
@@ -28,11 +32,26 @@ The architecture and acceptance boundary are documented in [`docs/architecture/r
 quickshell -p /home/yeager/Personal/rashell
 ```
 
-Rashell requires Quickshell 0.3.1 or newer, Hyprland, and PipeWire.
+This machine currently uses the compatible user-local runtime:
+
+```bash
+~/.local/opt/rashell-runtime/quickshell -c rashell -d
+```
+
+Rashell requires Quickshell 0.3.1 or newer, Hyprland, PipeWire, NetworkManager, BlueZ, `jq`, `cliphist`, `grim`, and `wl-copy`. The token and update widgets use the existing local token-meter helper and `checkupdates`.
 
 ## Configuration
 
 Edit `config.json` or provide an absolute path with `RASHELL_CONFIG`. Theme names are `ember`, `raven`, and `jade`.
+
+## IPC
+
+```bash
+quickshell -c rashell ipc call rashell launcherToggle
+quickshell -c rashell ipc call rashell controlCenterToggle
+quickshell -c rashell ipc call rashell audioPanelToggle
+quickshell -c rashell ipc call rashell calendarPanelToggle
+```
 
 ## Test
 
@@ -40,3 +59,5 @@ Edit `config.json` or provide an absolute path with `RASHELL_CONFIG`. Theme name
 python -m unittest discover -s tests -p 'test_*.py' -v
 tests/smoke.sh
 ```
+
+Noctalia-derived interaction patterns are acknowledged in [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).

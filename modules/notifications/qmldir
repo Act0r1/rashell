@@ -1,0 +1,5 @@
+module qs.modules.notifications
+NotificationState 1.0 NotificationState.qml
+NotificationBar 1.0 NotificationBar.qml
+NotificationPanel 1.0 NotificationPanel.qml
+NotificationPopup 1.0 NotificationPopup.qml

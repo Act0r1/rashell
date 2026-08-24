@@ -8,10 +8,11 @@ Scope {
     readonly property var defaults: ({
         version: 1,
         theme: "ember",
+        wallpaper: "~/Pictures/Wallpapers/bisbiswas-a-summer-evening.png",
         bar: {
             left: ["rashell.workspaces"],
-            center: ["rashell.clock"],
-            right: ["rashell.audio"]
+            center: ["rashell.clock", "rashell.media", "rashell.screenshot"],
+            right: ["rashell.keyboard", "rashell.tray", "rashell.notifications", "rashell.system", "rashell.audio", "rashell.tokens", "rashell.control", "rashell.updates"]
         }
     })
 
@@ -22,6 +23,7 @@ Scope {
     property bool initialized: false
 
     readonly property string theme: effective.theme
+    readonly property string wallpaper: effective.wallpaper
     readonly property var leftModules: effective.bar.left
     readonly property var centerModules: effective.bar.center
     readonly property var rightModules: effective.bar.right
@@ -43,12 +45,20 @@ Scope {
     }
 
     function validate(candidate) {
-        if (!isPlainObject(candidate) || !sameKeys(candidate, ["version", "theme", "bar"])) return "invalid top-level fields"
+        if (isPlainObject(candidate) && sameKeys(candidate, ["version", "theme", "bar"])) {
+            candidate.wallpaper = defaults.wallpaper
+        }
+        if (!isPlainObject(candidate) || !sameKeys(candidate, ["version", "theme", "wallpaper", "bar"])) return "invalid top-level fields"
         if (candidate.version !== 1) return "unsupported config version"
         if (["ember", "raven", "jade"].indexOf(candidate.theme) === -1) return "unknown theme"
+        if (typeof candidate.wallpaper !== "string" || candidate.wallpaper.trim() === "") return "invalid wallpaper"
         if (!isPlainObject(candidate.bar) || !sameKeys(candidate.bar, ["left", "center", "right"])) return "invalid bar fields"
 
-        const allowed = ["rashell.workspaces", "rashell.clock", "rashell.audio"]
+        const allowed = [
+            "rashell.workspaces", "rashell.clock", "rashell.audio", "rashell.media",
+            "rashell.screenshot", "rashell.keyboard", "rashell.tray", "rashell.system",
+            "rashell.control", "rashell.tokens", "rashell.notifications", "rashell.updates"
+        ]
         const zones = [candidate.bar.left, candidate.bar.center, candidate.bar.right]
         const seen = []
 

@@ -1,0 +1,4 @@
+module qs.modules.media
+MediaState 1.0 MediaState.qml
+MediaBar 1.0 MediaBar.qml
+MediaPanel 1.0 MediaPanel.qml

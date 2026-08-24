@@ -80,8 +80,8 @@ FocusScope {
                 right: parent.right
                 verticalCenter: slider.verticalCenter
             }
-            width: 58
-            text: volumeRow.muted ? "OFF" : "ON"
+            width: 82
+            text: volumeRow.muted ? "UNMUTE" : "MUTE"
             danger: volumeRow.muted
             selected: volumeRow.muted
             accessibleName: (volumeRow.inputMode ? "Input" : "Output") + (volumeRow.muted ? " muted" : " unmuted")
@@ -142,13 +142,13 @@ FocusScope {
             spacing: Theme.spaceLg
             visible: root.audioState && root.audioState.status === "ready"
 
+            SectionLabel { text: "OUTPUT" }
+
             VolumeRow {
                 width: parent.width
                 state: root.audioState
                 inputMode: false
             }
-
-            SectionLabel { text: "OUTPUT" }
 
             Column {
                 width: parent.width
@@ -162,7 +162,8 @@ FocusScope {
                         width: parent.width
                         height: Theme.rowHeight
                         selected: root.audioState.output !== null && modelData.id === root.audioState.output.id
-                        text: (selected ? "> " : "  ") + root.audioState.nodeLabel(modelData)
+                        subtleSelected: true
+                        text: (selected ? "✓ " : "  ") + root.audioState.nodeLabel(modelData)
                             + (selected ? "    IN USE" : "")
                         accessibleName: root.audioState.nodeLabel(modelData) + (selected ? ", in use" : "")
                         onClicked: root.audioState.selectOutput(modelData)
@@ -174,6 +175,8 @@ FocusScope {
                 width: parent.width
                 spacing: Theme.spaceLg
                 visible: root.audioState && root.audioState.inputs.length > 0
+
+                SectionLabel { text: "INPUT" }
 
                 VolumeRow {
                     width: parent.width
@@ -190,8 +193,6 @@ FocusScope {
                     font.pixelSize: Theme.fontBody
                 }
 
-                SectionLabel { text: "INPUT" }
-
                 Column {
                     width: parent.width
                     spacing: Theme.spaceXs
@@ -204,7 +205,8 @@ FocusScope {
                             width: parent.width
                             height: Theme.rowHeight
                             selected: root.audioState.input !== null && modelData.id === root.audioState.input.id
-                            text: (selected ? "> " : "  ") + root.audioState.nodeLabel(modelData)
+                            subtleSelected: true
+                            text: (selected ? "✓ " : "  ") + root.audioState.nodeLabel(modelData)
                                 + (selected ? "    IN USE" : "")
                             accessibleName: root.audioState.nodeLabel(modelData) + (selected ? ", in use" : "")
                             onClicked: root.audioState.selectInput(modelData)

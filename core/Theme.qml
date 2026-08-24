@@ -9,42 +9,42 @@ QtObject {
 
     readonly property var palettes: ({
         ember: {
-            background: "#080806",
-            surface: "#0d0c08",
-            surfaceRaised: "#171309",
-            accent: "#ffbf18",
-            accentMuted: "#a48734",
-            text: "#f2e6bf",
-            textMuted: "#b6a878",
-            textDisabled: "#756a49",
-            border: "#3d3212",
-            borderInteractive: "#735f22",
-            danger: "#e86a52"
+            background: "#0e0e13",
+            surface: "#17171f",
+            surfaceRaised: "#22222d",
+            accent: "#ffbd5a",
+            accentMuted: "#ad8046",
+            text: "#f2ecdf",
+            textMuted: "#bcb4a6",
+            textDisabled: "#777168",
+            border: "#32303a",
+            borderInteractive: "#7a6a55",
+            danger: "#ef6f6c"
         },
         raven: {
-            background: "#08090d",
-            surface: "#0d1017",
-            surfaceRaised: "#151a25",
-            accent: "#9aabff",
-            accentMuted: "#7182c7",
-            text: "#e4e9f7",
-            textMuted: "#aab4cf",
-            textDisabled: "#69738c",
-            border: "#293451",
-            borderInteractive: "#586b9b",
+            background: "#0d0e16",
+            surface: "#171824",
+            surfaceRaised: "#222438",
+            accent: "#a79aff",
+            accentMuted: "#756eb8",
+            text: "#ebe9ff",
+            textMuted: "#b6b3ce",
+            textDisabled: "#74728a",
+            border: "#303247",
+            borderInteractive: "#686b94",
             danger: "#f07178"
         },
         jade: {
-            background: "#060a08",
-            surface: "#0a100c",
-            surfaceRaised: "#101a14",
-            accent: "#63d995",
-            accentMuted: "#459b6a",
-            text: "#dceee3",
-            textMuted: "#9fbbaa",
-            textDisabled: "#617b6b",
-            border: "#1f3d2c",
-            borderInteractive: "#427a58",
+            background: "#0c110e",
+            surface: "#151d18",
+            surfaceRaised: "#202c25",
+            accent: "#73dfa1",
+            accentMuted: "#4f9d71",
+            text: "#e2f2e8",
+            textMuted: "#a9c1b2",
+            textDisabled: "#6c7e72",
+            border: "#2b3d31",
+            borderInteractive: "#4f745d",
             danger: "#f07167"
         }
     })
@@ -65,10 +65,10 @@ QtObject {
     readonly property color danger: palette.danger
     readonly property color textOnDanger: palette.background
 
-    readonly property string fontFamily: "monospace"
-    readonly property int fontSmall: 11
-    readonly property int fontBody: 13
-    readonly property int fontTitle: 15
+    readonly property string fontFamily: "ComicShannsMono Nerd Font"
+    readonly property int fontSmall: 12
+    readonly property int fontBody: 14
+    readonly property int fontTitle: 16
 
     readonly property int spaceXs: 2
     readonly property int spaceSm: 4
@@ -76,15 +76,15 @@ QtObject {
     readonly property int spaceLg: 12
     readonly property int spaceXl: 16
 
-    readonly property int barHeight: 44
-    readonly property int edgeMargin: 12
-    readonly property int barHorizontalMargin: 36
-    readonly property int panelGap: 10
+    readonly property int barHeight: 40
+    readonly property int edgeMargin: 4
+    readonly property int barHorizontalMargin: 4
+    readonly property int panelGap: 8
     readonly property int panelPadding: 16
-    readonly property int controlHeight: 34
-    readonly property int compactControlSize: 28
+    readonly property int controlHeight: 32
+    readonly property int compactControlSize: 30
     readonly property int rowHeight: 40
-    readonly property int radius: 2
+    readonly property int radius: 10
     readonly property int borderWidth: 1
     readonly property int focusWidth: 2
     readonly property int sliderTrackHeight: 6

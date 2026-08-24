@@ -26,7 +26,8 @@ Item {
     Row {
         id: row
         visible: root.state.available
-        spacing: Theme.spaceSm
+        spacing: 3
+        anchors.verticalCenter: parent.verticalCenter
 
         Repeater {
             model: root.state.ids
@@ -38,14 +39,14 @@ Item {
                 readonly property bool current: root.state.activeWorkspaceId(root.outputName) === modelData
                 readonly property bool occupied: root.state.occupied(modelData)
 
-                width: 32
-                height: Theme.controlHeight
+                width: current ? 30 : 22
+                height: 22
                 hoverEnabled: true
                 Accessible.name: "Workspace " + modelData + (current ? ", active" : occupied ? ", occupied" : ", empty")
                 Accessible.role: Accessible.Button
 
                 contentItem: Text {
-                    text: button.modelData + (button.occupied && !button.current ? "+" : "")
+                    text: button.modelData
                     color: button.current ? Theme.textOnAccent
                         : button.occupied ? Theme.text : Theme.textDisabled
                     font.family: Theme.fontFamily
@@ -58,9 +59,9 @@ Item {
                 background: Rectangle {
                     color: button.current ? Theme.accent
                         : button.hovered || button.down ? Theme.surfaceRaised : "transparent"
-                    border.color: button.current ? Theme.accent : Theme.borderInteractive
+                    border.color: button.current ? Theme.accent : button.occupied ? Theme.borderInteractive : Theme.border
                     border.width: Theme.borderWidth
-                    radius: Theme.radius
+                    radius: height / 2
                 }
 
                 onClicked: root.state.activate(modelData)

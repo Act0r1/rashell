@@ -1,0 +1,14 @@
+module qs.modules.system
+SystemState 1.0 SystemState.qml
+KeyboardState 1.0 KeyboardState.qml
+ControlState 1.0 ControlState.qml
+TokenState 1.0 TokenState.qml
+SystemBar 1.0 SystemBar.qml
+UpdatesBar 1.0 UpdatesBar.qml
+ScreenshotBar 1.0 ScreenshotBar.qml
+KeyboardBar 1.0 KeyboardBar.qml
+TrayBar 1.0 TrayBar.qml
+ControlBar 1.0 ControlBar.qml
+ControlPanel 1.0 ControlPanel.qml
+TokenBar 1.0 TokenBar.qml
+TokenPanel 1.0 TokenPanel.qml

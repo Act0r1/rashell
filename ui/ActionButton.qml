@@ -6,6 +6,7 @@ Button {
     id: control
 
     property bool selected: false
+    property bool subtleSelected: false
     property bool danger: false
     property string accessibleName: text
 
@@ -17,7 +18,8 @@ Button {
 
     contentItem: Text {
         text: control.text
-        color: control.selected ? Theme.textOnAccent
+        color: control.selected && !control.subtleSelected ? Theme.textOnAccent
+            : control.selected ? Theme.accent
             : control.danger ? Theme.danger : control.enabled ? Theme.text : Theme.textDisabled
         font.family: Theme.fontFamily
         font.pixelSize: Theme.fontBody
@@ -30,8 +32,8 @@ Button {
     }
 
     background: Rectangle {
-        color: control.selected ? Theme.accent
-            : control.down || control.hovered ? Theme.surfaceRaised : "transparent"
+        color: control.selected && !control.subtleSelected ? Theme.accent
+            : control.selected || control.down || control.hovered ? Theme.surfaceRaised : "transparent"
         border.color: control.activeFocus ? Theme.focus
             : control.selected ? Theme.accent
             : control.danger ? Theme.danger : Theme.borderInteractive

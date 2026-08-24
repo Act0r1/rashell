@@ -6,6 +6,10 @@ import qs.bar
 import qs.modules.workspaces
 import qs.modules.clock
 import qs.modules.audio
+import qs.modules.media
+import qs.modules.system
+import qs.modules.launcher
+import qs.modules.notifications
 import qs.overlays
 
 ShellRoot {
@@ -31,6 +35,10 @@ ShellRoot {
         }
     }
 
+    Wallpaper {
+        sourcePath: configStore.wallpaper
+    }
+
     Binding {
         target: Theme
         property: "activeName"
@@ -47,6 +55,39 @@ ShellRoot {
 
     AudioState {
         id: audioState
+    }
+
+    MediaState {
+        id: mediaState
+    }
+
+    SystemState {
+        id: systemState
+    }
+
+    KeyboardState {
+        id: keyboardState
+    }
+
+    ControlState {
+        id: controlState
+    }
+
+    TokenState {
+        id: tokenState
+    }
+
+    NotificationState {
+        id: notificationState
+    }
+
+    NotificationPopup {
+        notificationState: notificationState
+    }
+
+    Launcher {
+        id: launcher
+        coordinator: panelCoordinator
     }
 
     PanelCoordinator {
@@ -74,6 +115,12 @@ ShellRoot {
         workspaceState: workspaceState
         clockState: clockState
         audioState: audioState
+        mediaState: mediaState
+        systemState: systemState
+        keyboardState: keyboardState
+        controlState: controlState
+        tokenState: tokenState
+        notificationState: notificationState
         coordinator: panelCoordinator
         osd: volumeOsd
         feedback: feedback
@@ -81,6 +128,34 @@ ShellRoot {
 
     IpcHandler {
         target: "rashell"
+
+        function launcherToggle(): string {
+            launcher.toggle()
+            return "ok"
+        }
+
+        function controlCenterToggle(): string {
+            const opened = panelCoordinator.toggleRegistered(
+                "control",
+                Quickshell.shellDir + "/modules/system/ControlPanel.qml",
+                {
+                    coordinator: panelCoordinator,
+                    audioState: audioState,
+                    systemState: systemState,
+                    controlState: controlState
+                }
+            )
+            return opened ? "ok" : "control anchor unavailable"
+        }
+
+        function mediaPanelToggle(): string {
+            const opened = panelCoordinator.toggleRegistered(
+                "media",
+                Quickshell.shellDir + "/modules/media/MediaPanel.qml",
+                { coordinator: panelCoordinator, mediaState: mediaState }
+            )
+            return opened ? "ok" : "media anchor unavailable"
+        }
 
         function audioPanelToggle(): string {
             if (!shell.moduleEnabled("rashell.audio")) {
