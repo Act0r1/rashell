@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "bar": {
+    "left": ["rashell.workspaces"],
+    "center": ["rashell.clock"],
+    "right": ["rashell.audio"]
+  }
+}

@@ -1,0 +1,3 @@
+module qs.core
+singleton Theme 1.0 Theme.qml
+PluginRegistry 1.0 PluginRegistry.qml
