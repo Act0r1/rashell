@@ -1,3 +1,4 @@
 module qs.core
 singleton Theme 1.0 Theme.qml
-PluginRegistry 1.0 PluginRegistry.qml
+ConfigStore 1.0 ConfigStore.qml
+PanelCoordinator 1.0 PanelCoordinator.qml

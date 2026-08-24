@@ -1,0 +1,3 @@
+module qs.overlays
+VolumeOsd 1.0 VolumeOsd.qml
+FeedbackOverlay 1.0 FeedbackOverlay.qml

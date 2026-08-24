@@ -1,0 +1,4 @@
+module qs.modules.clock
+ClockState 1.0 ClockState.qml
+ClockBar 1.0 ClockBar.qml
+CalendarPanel 1.0 CalendarPanel.qml

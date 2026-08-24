@@ -8,26 +8,41 @@ import qs.core
 Item {
     id: root
 
-    required property var pluginRegistry
-    property var leftPlugins: []
-    property var centerPlugins: []
-    property var rightPlugins: []
+    required property var configStore
+    required property var workspaceState
+    required property var clockState
+    required property var audioState
+    required property var coordinator
+    required property var osd
+    required property var feedback
 
-    component PluginRow: Row {
-        id: pluginRow
+    component ModuleRow: Row {
+        id: moduleRow
 
-        required property var pluginIds
-        required property var registry
+        required property var moduleIds
+        required property string outputName
+        required property var workspaceState
+        required property var clockState
+        required property var audioState
+        required property var coordinator
+        required property var osd
+        required property var feedback
 
-        spacing: 4
+        spacing: Theme.spaceSm
 
         Repeater {
-            model: pluginRow.pluginIds
+            model: moduleRow.moduleIds
 
-            PluginSlot {
+            ModuleSlot {
                 required property string modelData
-                pluginId: modelData
-                pluginRegistry: pluginRow.registry
+                moduleId: modelData
+                outputName: moduleRow.outputName
+                workspaceState: moduleRow.workspaceState
+                clockState: moduleRow.clockState
+                audioState: moduleRow.audioState
+                coordinator: moduleRow.coordinator
+                osd: moduleRow.osd
+                feedback: moduleRow.feedback
             }
         }
     }
@@ -58,39 +73,57 @@ Item {
                     anchors {
                         fill: parent
                         topMargin: Theme.edgeMargin
-                        leftMargin: Theme.edgeMargin * 3
-                        rightMargin: Theme.edgeMargin * 3
+                        leftMargin: Theme.barHorizontalMargin
+                        rightMargin: Theme.barHorizontalMargin
                         bottomMargin: Theme.edgeMargin
                     }
                     color: Theme.surface
                     border.color: Theme.border
-                    border.width: 1
+                    border.width: Theme.borderWidth
                     radius: Theme.radius
 
-                    PluginRow {
+                    ModuleRow {
                         anchors {
                             left: parent.left
-                            leftMargin: 12
+                            leftMargin: Theme.spaceLg
                             verticalCenter: parent.verticalCenter
                         }
-                        pluginIds: root.leftPlugins
-                        registry: root.pluginRegistry
+                        moduleIds: root.configStore.leftModules
+                        outputName: barWindow.modelData.name
+                        workspaceState: root.workspaceState
+                        clockState: root.clockState
+                        audioState: root.audioState
+                        coordinator: root.coordinator
+                        osd: root.osd
+                        feedback: root.feedback
                     }
 
-                    PluginRow {
+                    ModuleRow {
                         anchors.centerIn: parent
-                        pluginIds: root.centerPlugins
-                        registry: root.pluginRegistry
+                        moduleIds: root.configStore.centerModules
+                        outputName: barWindow.modelData.name
+                        workspaceState: root.workspaceState
+                        clockState: root.clockState
+                        audioState: root.audioState
+                        coordinator: root.coordinator
+                        osd: root.osd
+                        feedback: root.feedback
                     }
 
-                    PluginRow {
+                    ModuleRow {
                         anchors {
                             right: parent.right
-                            rightMargin: 12
+                            rightMargin: Theme.spaceLg
                             verticalCenter: parent.verticalCenter
                         }
-                        pluginIds: root.rightPlugins
-                        registry: root.pluginRegistry
+                        moduleIds: root.configStore.rightModules
+                        outputName: barWindow.modelData.name
+                        workspaceState: root.workspaceState
+                        clockState: root.clockState
+                        audioState: root.audioState
+                        coordinator: root.coordinator
+                        osd: root.osd
+                        feedback: root.feedback
                     }
                 }
             }

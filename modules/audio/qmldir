@@ -1,0 +1,4 @@
+module qs.modules.audio
+AudioState 1.0 AudioState.qml
+AudioBar 1.0 AudioBar.qml
+AudioPanel 1.0 AudioPanel.qml

@@ -1,8 +1,15 @@
 {
   "version": 1,
+  "theme": "ember",
   "bar": {
-    "left": ["rashell.workspaces"],
-    "center": ["rashell.clock"],
-    "right": ["rashell.audio"]
+    "left": [
+      "rashell.workspaces"
+    ],
+    "center": [
+      "rashell.clock"
+    ],
+    "right": [
+      "rashell.audio"
+    ]
   }
 }
