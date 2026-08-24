@@ -21,6 +21,7 @@ Item {
     required property var controlState
     required property var tokenState
     required property var notificationState
+    required property var configStore
     required property var coordinator
     required property var osd
     required property var feedback
@@ -100,6 +101,8 @@ Item {
             audioState: root.audioState
             systemState: root.systemState
             controlState: root.controlState
+            notificationState: root.notificationState
+            configStore: root.configStore
             outputName: root.outputName
         }
     }

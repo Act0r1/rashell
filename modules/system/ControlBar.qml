@@ -9,6 +9,8 @@ Item {
     required property var audioState
     required property var systemState
     required property var controlState
+    required property var notificationState
+    required property var configStore
     required property string outputName
     implicitWidth: Theme.compactControlSize
     implicitHeight: Theme.controlHeight
@@ -47,7 +49,9 @@ Item {
                 coordinator: root.coordinator,
                 audioState: root.audioState,
                 systemState: root.systemState,
-                controlState: root.controlState
+                controlState: root.controlState,
+                notificationState: root.notificationState,
+                configStore: root.configStore
             }
         )
     }

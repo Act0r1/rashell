@@ -39,12 +39,9 @@ Scope {
         return result
     }
 
-    readonly property bool outputUsable: output !== null && outputs.indexOf(output) !== -1 && output.ready && output.audio
-    readonly property bool inputUsable: input !== null && inputs.indexOf(input) !== -1 && input.ready && input.audio
-    readonly property string status: !everReady && !ready ? "loading"
-        : !ready ? "disconnected"
-        : outputs.length === 0 ? "no-output"
-        : !outputUsable ? "loading" : "ready"
+    readonly property bool outputUsable: output !== null && output.ready && output.audio
+    readonly property bool inputUsable: input !== null && input.ready && input.audio
+    readonly property string availability: outputUsable ? "ready" : "loading"
     readonly property real outputVolume: outputUsable ? output.audio.volume : 0
     readonly property bool outputMuted: outputUsable ? output.audio.muted : false
     readonly property real inputVolume: inputUsable ? input.audio.volume : 0

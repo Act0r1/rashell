@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Dialogs
 import Quickshell
 import qs.core
 import qs.ui
@@ -9,7 +10,9 @@ FocusScope {
     required property var audioState
     required property var systemState
     required property var controlState
-    implicitWidth: 420
+    required property var notificationState
+    required property var configStore
+    implicitWidth: 460
     implicitHeight: panel.implicitHeight
     property string armedAction: ""
 
@@ -34,6 +37,17 @@ FocusScope {
         onActivated: root.coordinator.close("escape")
     }
 
+    FileDialog {
+        id: wallpaperDialog
+        title: "Choose wallpaper"
+        currentFolder: "file://" + Quickshell.env("HOME") + "/Pictures/Wallpapers"
+        nameFilters: ["Images (*.png *.jpg *.jpeg *.webp)"]
+        onAccepted: {
+            const selected = decodeURIComponent(String(selectedFile).replace(/^file:\/\//, ""))
+            root.configStore.setWallpaper(selected)
+        }
+    }
+
     PanelFrame {
         id: panel
         width: parent.width
@@ -49,9 +63,9 @@ FocusScope {
                 spacing: Theme.spaceMd
 
                 Rectangle {
-                    width: 48
-                    height: 48
-                    radius: 24
+                    width: 46
+                    height: 46
+                    radius: Theme.radius
                     color: Theme.accent
                     Text {
                         anchors.centerIn: parent
@@ -65,6 +79,7 @@ FocusScope {
 
                 Column {
                     anchors.verticalCenter: parent.verticalCenter
+                    width: parent.width - 54
                     Text {
                         text: "Insaf"
                         color: Theme.text
@@ -73,12 +88,21 @@ FocusScope {
                         font.bold: true
                     }
                     Text {
-                        text: "CPU " + root.systemState.cpuPercent + "%  ·  RAM " + root.systemState.memoryPercent + "%"
+                        text: "CPU " + root.systemState.cpuPercent + "%  ·  RAM " + root.systemState.memoryPercent
+                            + "%  ·  " + root.systemState.updates + " updates  ·  " + root.configStore.theme
                         color: Theme.textMuted
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSmall
                     }
                 }
+            }
+
+            Text {
+                text: "CONNECTIVITY"
+                color: Theme.accent
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSmall
+                font.bold: true
             }
 
             Grid {
@@ -89,6 +113,7 @@ FocusScope {
                 ActionButton {
                     width: (parent.width - parent.spacing) / 2
                     text: (root.controlState.networkEnabled ? "󰤨  Wi-Fi on" : "󰤭  Wi-Fi off")
+                        + (root.controlState.networkName === "Not connected" ? "" : " · " + root.controlState.networkName)
                     selected: root.controlState.networkEnabled
                     accessibleName: "Toggle Wi-Fi"
                     onClicked: root.controlState.toggleNetwork()
@@ -96,62 +121,185 @@ FocusScope {
                 ActionButton {
                     width: (parent.width - parent.spacing) / 2
                     text: (root.controlState.bluetoothEnabled ? "󰂯  Bluetooth on" : "󰂲  Bluetooth off")
+                        + (root.controlState.bluetoothDevice === "No connected device" ? "" : " · " + root.controlState.bluetoothDevice)
                     selected: root.controlState.bluetoothEnabled
                     accessibleName: "Toggle Bluetooth"
                     onClicked: root.controlState.toggleBluetooth()
                 }
                 ActionButton {
                     width: (parent.width - parent.spacing) / 2
-                    text: "󰸉  Wallpapers"
-                    accessibleName: "Open wallpapers"
-                    onClicked: Quickshell.execDetached(["xdg-open", Quickshell.env("HOME") + "/Pictures/Wallpapers"])
+                    text: "󰛳  Network settings"
+                    accessibleName: "Open network settings"
+                    onClicked: root.controlState.openNetworkSettings()
                 }
                 ActionButton {
                     width: (parent.width - parent.spacing) / 2
-                    text: "󰄀  Screenshot"
-                    accessibleName: "Take screenshot"
-                    onClicked: Quickshell.execDetached(["sh", "-c", "mkdir -p \"$HOME/Pictures/Screenshots\"; f=\"$HOME/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png\"; grim \"$f\" && wl-copy < \"$f\""])
+                    text: root.notificationState.doNotDisturb ? "󰂛  DND on" : "󰂚  DND off"
+                    selected: root.notificationState.doNotDisturb
+                    accessibleName: "Toggle do not disturb"
+                    onClicked: root.notificationState.doNotDisturb = !root.notificationState.doNotDisturb
                 }
             }
 
             Rectangle { width: parent.width; height: 1; color: Theme.border }
 
             Text {
+                text: "AUDIO"
+                color: Theme.accent
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSmall
+                font.bold: true
+            }
+
+            Text {
+                width: parent.width
                 text: root.audioState.outputUsable
-                    ? "󰕾  " + String(root.audioState.output.description || root.audioState.output.name || "Output")
-                        + "  ·  " + Math.round(root.audioState.outputVolume * 100) + "%"
-                    : "󰖁  Audio unavailable"
+                    ? "󰕾  " + root.audioState.nodeLabel(root.audioState.output) + "  ·  " + Math.round(root.audioState.outputVolume * 100) + "%"
+                    : "󰖁  Audio output unavailable"
                 color: Theme.text
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontBody
-                font.bold: true
+                elide: Text.ElideRight
             }
 
             Row {
                 width: parent.width
+                height: Theme.controlHeight
                 spacing: Theme.spaceMd
-
                 ActionButton {
-                    width: 58
+                    width: 46
                     text: root.audioState.outputMuted ? "󰝟" : "󰕾"
                     accessibleName: "Toggle output mute"
                     enabled: root.audioState.outputUsable
                     onClicked: root.audioState.toggleOutputMute()
                 }
+                LevelSlider {
+                    width: parent.width - 46 - parent.spacing
+                    height: parent.height
+                    enabled: root.audioState.outputUsable
+                    value: root.audioState.outputVolume
+                    accessibleName: "Output volume"
+                    onMoved: root.audioState.setOutputVolume(value)
+                }
+            }
+
+            Text {
+                width: parent.width
+                text: root.audioState.inputUsable
+                    ? "󰍬  " + root.audioState.nodeLabel(root.audioState.input) + "  ·  " + Math.round(root.audioState.inputVolume * 100) + "%"
+                    : "󰍭  Microphone unavailable"
+                color: Theme.textMuted
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSmall
+                elide: Text.ElideRight
+            }
+
+            Row {
+                width: parent.width
+                height: Theme.controlHeight
+                spacing: Theme.spaceMd
                 ActionButton {
-                    width: parent.width - 58 - parent.spacing
-                    text: "Open audio devices"
-                    accessibleName: "Open audio panel"
-                    onClicked: {
-                        root.coordinator.close("switch")
-                        Qt.callLater(function() {
-                            root.coordinator.toggleRegistered(
-                                "audio",
-                                Quickshell.shellDir + "/modules/audio/AudioPanel.qml",
-                                { coordinator: root.coordinator, audioState: root.audioState }
-                            )
-                        })
+                    width: 46
+                    text: root.audioState.inputMuted ? "󰍭" : "󰍬"
+                    accessibleName: "Toggle microphone mute"
+                    enabled: root.audioState.inputUsable
+                    onClicked: root.audioState.toggleInputMute()
+                }
+                LevelSlider {
+                    width: parent.width - 46 - parent.spacing
+                    height: parent.height
+                    enabled: root.audioState.inputUsable
+                    value: root.audioState.inputVolume
+                    accessibleName: "Microphone volume"
+                    onMoved: root.audioState.setInputVolume(value)
+                }
+            }
+
+            ActionButton {
+                width: parent.width
+                text: "Open input and output devices"
+                accessibleName: "Open audio devices"
+                onClicked: {
+                    root.coordinator.close("switch")
+                    Qt.callLater(function() {
+                        root.coordinator.toggleRegistered(
+                            "audio",
+                            Quickshell.shellDir + "/modules/audio/AudioPanel.qml",
+                            { coordinator: root.coordinator, audioState: root.audioState }
+                        )
+                    })
+                }
+            }
+
+            Rectangle { width: parent.width; height: 1; color: Theme.border }
+
+            Column {
+                width: parent.width
+                visible: root.controlState.brightness >= 0
+                spacing: Theme.spaceSm
+                Text {
+                    text: "BRIGHTNESS  ·  " + Math.round(root.controlState.brightness * 100) + "%"
+                    color: Theme.accent
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSmall
+                    font.bold: true
+                }
+                LevelSlider {
+                    width: parent.width
+                    height: Theme.controlHeight
+                    from: 0.01
+                    to: 1
+                    value: root.controlState.brightness
+                    accessibleName: "Display brightness"
+                    onMoved: root.controlState.setBrightness(value)
+                }
+            }
+
+            Text {
+                text: "THEME"
+                color: Theme.accent
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSmall
+                font.bold: true
+            }
+
+            Row {
+                width: parent.width
+                spacing: Theme.spaceSm
+                Repeater {
+                    model: ["oilslick", "muninn", "nevermore", "talon"]
+                    ActionButton {
+                        required property string modelData
+                        width: (parent.width - parent.spacing * 3) / 4
+                        text: modelData
+                        selected: root.configStore.theme === modelData
+                        accessibleName: "Use " + modelData + " theme"
+                        onClicked: root.configStore.setTheme(modelData)
                     }
+                }
+            }
+
+            Grid {
+                width: parent.width
+                columns: 3
+                spacing: Theme.spaceMd
+                ActionButton {
+                    width: (parent.width - parent.spacing * 2) / 3
+                    text: "󰸉  Wallpaper"
+                    accessibleName: "Choose wallpaper"
+                    onClicked: wallpaperDialog.open()
+                }
+                ActionButton {
+                    width: (parent.width - parent.spacing * 2) / 3
+                    text: "󰄀  Screenshot"
+                    accessibleName: "Take screenshot"
+                    onClicked: Quickshell.execDetached(["sh", "-c", "mkdir -p \"$HOME/Pictures/Screenshots\"; f=\"$HOME/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png\"; grim \"$f\" && wl-copy < \"$f\""])
+                }
+                ActionButton {
+                    width: (parent.width - parent.spacing * 2) / 3
+                    text: "󰏔  Update " + root.systemState.updates
+                    accessibleName: "Open system updater"
+                    onClicked: Quickshell.execDetached(["ghostty", "-e", "bash", "-lc", "yay; flatpak update; read -n 1 -p 'Press any key to close'"])
                 }
             }
 
@@ -165,20 +313,13 @@ FocusScope {
                     width: (parent.width - parent.spacing * 3) / 4
                     text: "󰌾"
                     accessibleName: "Lock"
-                    onClicked: Quickshell.execDetached([
-                        "swaylock", "-f", "-i",
-                        Quickshell.env("HOME") + "/Pictures/Wallpapers/bisbiswas-a-summer-evening.png",
-                        "-s", "fill"
-                    ])
+                    onClicked: Quickshell.execDetached(["swaylock", "-f", "-i", root.configStore.wallpaperPath, "-s", "fill"])
                 }
                 ActionButton {
                     width: (parent.width - parent.spacing * 3) / 4
                     text: "󰤄"
                     accessibleName: "Suspend"
-                    onClicked: Quickshell.execDetached([
-                        "sh", "-c",
-                        "swaylock -f -i \"$HOME/Pictures/Wallpapers/bisbiswas-a-summer-evening.png\" -s fill & sleep 0.5; systemctl suspend"
-                    ])
+                    onClicked: Quickshell.execDetached(["sh", "-c", "swaylock -f -i " + JSON.stringify(root.configStore.wallpaperPath) + " -s fill & sleep 0.5; systemctl suspend"])
                 }
                 ActionButton {
                     width: (parent.width - parent.spacing * 3) / 4

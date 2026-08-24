@@ -24,7 +24,7 @@ Item {
             id: clockLabel
             text: Qt.formatDateTime(root.state.now, "HH:mm:ss ddd, MMM dd")
             color: Theme.text
-            font.family: Theme.displayFontFamily
+            font.family: Theme.fontFamily
             font.pixelSize: Theme.fontBody
             font.bold: true
             horizontalAlignment: Text.AlignHCenter

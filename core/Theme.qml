@@ -124,8 +124,7 @@ QtObject {
     readonly property color danger: palette.danger
     readonly property color textOnDanger: palette.background
 
-    readonly property string fontFamily: activeName === "talon" ? "Inter" : "ComicShannsMono Nerd Font"
-    readonly property string displayFontFamily: activeName === "muninn" || activeName === "nevermore" ? "serif" : fontFamily
+    readonly property string fontFamily: "ComicShannsMono Nerd Font"
     readonly property int fontSmall: 12
     readonly property int fontBody: 14
     readonly property int fontTitle: 16
@@ -136,7 +135,8 @@ QtObject {
     readonly property int spaceLg: 12
     readonly property int spaceXl: 16
 
-    readonly property int barHeight: activeName === "oilslick" || activeName === "nevermore" ? 44 : 40
+    readonly property int barHeight: activeName === "talon" ? controlHeight
+        : activeName === "oilslick" || activeName === "nevermore" ? 44 : 40
     readonly property int edgeMargin: activeName === "nevermore" ? 8 : activeName === "ember" || activeName === "raven" || activeName === "jade" ? 4 : 0
     readonly property int barHorizontalMargin: edgeMargin
     readonly property int panelGap: 8

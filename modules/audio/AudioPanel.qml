@@ -105,7 +105,7 @@ FocusScope {
         onCloseRequested: if (root.coordinator) root.coordinator.close("close-control")
 
         Text {
-            visible: root.audioState && root.audioState.status === "loading"
+            visible: root.audioState && root.audioState.availability === "loading"
             text: "Connecting to PipeWire..."
             color: Theme.textMuted
             font.family: Theme.fontFamily
@@ -113,7 +113,7 @@ FocusScope {
         }
 
         Text {
-            visible: root.audioState && root.audioState.status === "disconnected"
+            visible: root.audioState && root.audioState.availability === "disconnected"
             text: "PipeWire disconnected. Waiting to reconnect."
             color: Theme.danger
             font.family: Theme.fontFamily
@@ -124,7 +124,7 @@ FocusScope {
         Column {
             width: parent.width
             spacing: Theme.spaceLg
-            visible: root.audioState && root.audioState.status === "no-output"
+            visible: root.audioState && root.audioState.availability === "no-output"
 
             SectionLabel { text: "OUTPUT" }
 
@@ -140,7 +140,7 @@ FocusScope {
             id: controls
             width: parent.width
             spacing: Theme.spaceLg
-            visible: root.audioState && root.audioState.status === "ready"
+            visible: root.audioState && root.audioState.availability === "ready"
 
             SectionLabel { text: "OUTPUT" }
 

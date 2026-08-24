@@ -12,34 +12,37 @@ Item {
     required property var feedback
     required property string outputName
 
-    implicitWidth: 96
+    implicitWidth: audioContent.implicitWidth + 16
     implicitHeight: Theme.controlHeight
 
     Button {
         id: button
         anchors.fill: parent
         hoverEnabled: true
-        Accessible.name: root.state.status === "ready"
+        Accessible.name: root.state.availability === "ready"
             ? (root.state.outputMuted ? "Audio muted" : "Audio volume " + Math.round(root.state.outputVolume * 100) + " percent")
-            : "Audio " + root.state.status
+            : "Audio " + root.state.availability
         Accessible.role: Accessible.Button
 
         contentItem: Row {
+            id: audioContent
             spacing: Theme.spaceMd
 
             Text {
-                text: root.state.status === "loading" ? "AUDIO ..."
-                    : root.state.status !== "ready" ? "AUDIO !"
+                anchors.verticalCenter: parent.verticalCenter
+                text: root.state.availability === "loading" ? "AUDIO ..."
+                    : root.state.availability !== "ready" ? "AUDIO !"
                     : root.state.outputMuted ? "MUTE" : "VOL"
                 color: root.state.outputMuted ? Theme.danger
-                    : root.state.status === "ready" ? Theme.accentMuted : Theme.textMuted
+                    : root.state.availability === "ready" ? Theme.accentMuted : Theme.textMuted
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSmall
                 font.bold: true
             }
 
             Text {
-                visible: root.state.status === "ready"
+                anchors.verticalCenter: parent.verticalCenter
+                visible: root.state.availability === "ready"
                 text: Math.round(root.state.outputVolume * 100) + "%"
                 color: Theme.text
                 font.family: Theme.fontFamily

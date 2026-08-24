@@ -1,3 +1,5 @@
+//@ pragma UseQApplication
+
 import QtQuick
 import Quickshell
 import Quickshell.Io
@@ -142,7 +144,9 @@ ShellRoot {
                     coordinator: panelCoordinator,
                     audioState: audioState,
                     systemState: systemState,
-                    controlState: controlState
+                    controlState: controlState,
+                    notificationState: notificationState,
+                    configStore: configStore
                 }
             )
             return opened ? "ok" : "control anchor unavailable"

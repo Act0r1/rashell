@@ -39,6 +39,7 @@ Item {
         required property var coordinator
         required property var osd
         required property var feedback
+        required property var configStore
 
         spacing: 3
 
@@ -61,6 +62,7 @@ Item {
                 coordinator: moduleRow.coordinator
                 osd: moduleRow.osd
                 feedback: moduleRow.feedback
+                configStore: moduleRow.configStore
             }
         }
     }
@@ -95,6 +97,7 @@ Item {
                         anchors.leftMargin: 8
                         anchors.verticalCenter: parent.verticalCenter
                         moduleIds: root.configStore.leftModules
+                        configStore: root.configStore
                         outputName: barWindow.modelData.name
                         workspaceState: root.workspaceState
                         clockState: root.clockState
@@ -113,6 +116,7 @@ Item {
                     ModuleRow {
                         anchors.centerIn: parent
                         moduleIds: root.configStore.centerModules
+                        configStore: root.configStore
                         outputName: barWindow.modelData.name
                         workspaceState: root.workspaceState
                         clockState: root.clockState
@@ -133,6 +137,7 @@ Item {
                         anchors.rightMargin: 8
                         anchors.verticalCenter: parent.verticalCenter
                         moduleIds: root.configStore.rightModules
+                        configStore: root.configStore
                         outputName: barWindow.modelData.name
                         workspaceState: root.workspaceState
                         clockState: root.clockState

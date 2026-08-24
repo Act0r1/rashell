@@ -24,6 +24,8 @@ Scope {
 
     readonly property string theme: effective.theme
     readonly property string wallpaper: effective.wallpaper
+    readonly property string wallpaperPath: wallpaper.indexOf("~/") === 0
+        ? Quickshell.env("HOME") + wallpaper.slice(1) : wallpaper
     readonly property var leftModules: effective.bar.left
     readonly property var centerModules: effective.bar.center
     readonly property var rightModules: effective.bar.right
@@ -93,6 +95,28 @@ Scope {
         selectedPath = path
         probingXdg = isXdgProbe
         configFile.path = path
+    }
+
+    function save(next) {
+        const error = validate(next)
+        if (error !== "") {
+            configError("Config update rejected: " + error)
+            return false
+        }
+        configFile.setText(JSON.stringify(next, null, 2) + "\n")
+        return true
+    }
+
+    function setTheme(name) {
+        const next = JSON.parse(JSON.stringify(effective))
+        next.theme = String(name)
+        return save(next)
+    }
+
+    function setWallpaper(path) {
+        const next = JSON.parse(JSON.stringify(effective))
+        next.wallpaper = String(path)
+        return save(next)
     }
 
     function initialize() {
