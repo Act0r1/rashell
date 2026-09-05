@@ -272,6 +272,7 @@ Scope {
                                         visible: root.configStore.theme === choice.modelData.id
                                         text: "✓"
                                         color: Theme.accent
+                                        font.family: Theme.fontFamily
                                         font.pixelSize: 14
                                     }
                                 }

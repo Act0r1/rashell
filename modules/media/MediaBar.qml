@@ -29,7 +29,7 @@ Item {
                 text: root.state.playing ? "󰏤" : "󰐊"
                 color: Theme.accent
                 font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontBody
+                font.pixelSize: Theme.fontTitle
             }
 
             Text {
@@ -40,7 +40,8 @@ Item {
                 elide: Text.ElideRight
                 maximumLineCount: 1
                 font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSmall
+                font.pixelSize: Theme.fontBody
+                font.bold: true
             }
         }
 
