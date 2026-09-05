@@ -154,209 +154,209 @@ Scope {
                     ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
 
                     GridLayout {
-                    id: bodyGrid
-                    width: bodyScroll.width - 8
-                    height: Math.max(bodyScroll.height, implicitHeight)
-                    columns: content.compact ? 1 : 2
-                    rowSpacing: 16
-                    columnSpacing: 26
+                        id: bodyGrid
+                        width: bodyScroll.width - 8
+                        height: Math.max(bodyScroll.height, implicitHeight)
+                        columns: content.compact ? 1 : 2
+                        rowSpacing: 16
+                        columnSpacing: 26
 
-                    ColumnLayout {
-                        Layout.preferredWidth: content.compact ? -1 : 260
-                        Layout.fillWidth: content.compact
-                        Layout.fillHeight: !content.compact
-                        spacing: 12
-
-                        TextField {
-                            id: search
-                            objectName: "appearanceSearch"
-                            Layout.fillWidth: true
-                            Layout.preferredHeight: 40
-                            placeholderText: "Search themes…"
-                            color: Theme.text
-                            placeholderTextColor: Theme.textMuted
-                            selectionColor: Theme.accent
-                            selectedTextColor: Theme.textOnAccent
-                            font { family: Theme.fontFamily; pixelSize: Theme.fontBody }
-                            leftPadding: 12
-                            rightPadding: 12
-                            Accessible.name: "Search themes"
-                            onTextChanged: root.query = text
-                            onAccepted: root.applySelected()
-                            background: Rectangle {
-                                color: Theme.surface
-                                radius: 8
-                                border.color: search.activeFocus ? Theme.accent : Theme.borderInteractive
-                                border.width: 1
-                            }
-                        }
-
-                        RowLayout {
-                            Layout.fillWidth: true
-                            spacing: 6
-                            Repeater {
-                                model: ["all", "dark", "light"]
-                                ActionButton {
-                                    required property string modelData
-                                    Layout.fillWidth: true
-                                    text: modelData.charAt(0).toUpperCase() + modelData.slice(1)
-                                    selected: root.kind === modelData
-                                    subtleSelected: true
-                                    onClicked: root.kind = modelData
-                                }
-                            }
-                        }
-
-                        ListView {
-                            id: catalog
-                            objectName: "appearanceCatalog"
-                            Layout.fillWidth: true
+                        ColumnLayout {
+                            Layout.preferredWidth: content.compact ? -1 : 260
+                            Layout.fillWidth: content.compact
                             Layout.fillHeight: !content.compact
-                            Layout.preferredHeight: content.compact ? 72 : -1
-                            clip: true
-                            spacing: 6
-                            orientation: content.compact ? ListView.Horizontal : ListView.Vertical
-                            model: root.filteredThemes
-                            currentIndex: root.filteredThemes.findIndex(function(theme) { return theme.id === root.selectedId })
-                            boundsBehavior: Flickable.StopAtBounds
-                            ScrollBar.vertical: ScrollBar { policy: content.compact ? ScrollBar.AlwaysOff : ScrollBar.AsNeeded }
-                            ScrollBar.horizontal: ScrollBar { policy: content.compact ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff }
+                            spacing: 12
 
-                            delegate: Button {
-                                id: choice
-                                required property var modelData
-                                required property int index
-                                width: content.compact ? 190 : catalog.width - 12
-                                height: 56
-                                hoverEnabled: true
+                            TextField {
+                                id: search
+                                objectName: "appearanceSearch"
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 40
+                                placeholderText: "Search themes…"
+                                color: Theme.text
+                                placeholderTextColor: Theme.textMuted
+                                selectionColor: Theme.accent
+                                selectedTextColor: Theme.textOnAccent
+                                font { family: Theme.fontFamily; pixelSize: Theme.fontBody }
                                 leftPadding: 12
                                 rightPadding: 12
-                                Accessible.name: modelData.name + (root.configStore.theme === modelData.id ? ", current theme" : "")
-                                onClicked: root.selectAt(index)
-                                onActiveFocusChanged: if (activeFocus) root.selectAt(index)
-                                Keys.onReturnPressed: root.applySelected()
-                                Keys.onEnterPressed: root.applySelected()
-
+                                Accessible.name: "Search themes"
+                                onTextChanged: root.query = text
+                                onAccepted: root.applySelected()
                                 background: Rectangle {
-                                    color: root.selectedId === choice.modelData.id || choice.hovered ? Theme.surfaceRaised : Theme.surface
+                                    color: Theme.surface
                                     radius: 8
-                                    border.color: choice.activeFocus ? Theme.focus : root.selectedId === choice.modelData.id ? Theme.accent : Theme.border
-                                    border.width: choice.activeFocus ? 2 : 1
+                                    border.color: search.activeFocus ? Theme.accent : Theme.borderInteractive
+                                    border.width: 1
                                 }
+                            }
 
-                                contentItem: RowLayout {
-                                    spacing: 12
-                                    Rectangle {
-                                        Layout.preferredWidth: 30
-                                        Layout.preferredHeight: 30
-                                        radius: 6
-                                        color: choice.modelData.palette.background
-                                        border.color: choice.modelData.palette.borderInteractive
-                                        border.width: 1
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: 6
+                                Repeater {
+                                    model: ["all", "dark", "light"]
+                                    ActionButton {
+                                        required property string modelData
+                                        Layout.fillWidth: true
+                                        text: modelData.charAt(0).toUpperCase() + modelData.slice(1)
+                                        selected: root.kind === modelData
+                                        subtleSelected: true
+                                        onClicked: root.kind = modelData
+                                    }
+                                }
+                            }
+
+                            ListView {
+                                id: catalog
+                                objectName: "appearanceCatalog"
+                                Layout.fillWidth: true
+                                Layout.fillHeight: !content.compact
+                                Layout.preferredHeight: content.compact ? 72 : -1
+                                clip: true
+                                spacing: 6
+                                orientation: content.compact ? ListView.Horizontal : ListView.Vertical
+                                model: root.filteredThemes
+                                currentIndex: root.filteredThemes.findIndex(function(theme) { return theme.id === root.selectedId })
+                                boundsBehavior: Flickable.StopAtBounds
+                                ScrollBar.vertical: ScrollBar { policy: content.compact ? ScrollBar.AlwaysOff : ScrollBar.AsNeeded }
+                                ScrollBar.horizontal: ScrollBar { policy: content.compact ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff }
+
+                                delegate: Button {
+                                    id: choice
+                                    required property var modelData
+                                    required property int index
+                                    width: content.compact ? 190 : catalog.width - 12
+                                    height: 56
+                                    hoverEnabled: true
+                                    leftPadding: 12
+                                    rightPadding: 12
+                                    Accessible.name: modelData.name + (root.configStore.theme === modelData.id ? ", current theme" : "")
+                                    onClicked: root.selectAt(index)
+                                    onActiveFocusChanged: if (activeFocus) root.selectAt(index)
+                                    Keys.onReturnPressed: root.applySelected()
+                                    Keys.onEnterPressed: root.applySelected()
+
+                                    background: Rectangle {
+                                        color: root.selectedId === choice.modelData.id || choice.hovered ? Theme.surfaceRaised : Theme.surface
+                                        radius: 8
+                                        border.color: choice.activeFocus ? Theme.focus : root.selectedId === choice.modelData.id ? Theme.accent : Theme.border
+                                        border.width: choice.activeFocus ? 2 : 1
+                                    }
+
+                                    contentItem: RowLayout {
+                                        spacing: 12
                                         Rectangle {
-                                            anchors.centerIn: parent
-                                            width: 12
-                                            height: 12
+                                            Layout.preferredWidth: 30
+                                            Layout.preferredHeight: 30
                                             radius: 6
-                                            color: choice.modelData.palette.accent
+                                            color: choice.modelData.palette.background
+                                            border.color: choice.modelData.palette.borderInteractive
+                                            border.width: 1
+                                            Rectangle {
+                                                anchors.centerIn: parent
+                                                width: 12
+                                                height: 12
+                                                radius: 6
+                                                color: choice.modelData.palette.accent
+                                            }
+                                        }
+                                        Text {
+                                            Layout.fillWidth: true
+                                            text: choice.modelData.name
+                                            color: root.selectedId === choice.modelData.id ? Theme.accent : Theme.text
+                                            font { family: Theme.fontFamily; pixelSize: Theme.fontSmall; bold: root.selectedId === choice.modelData.id }
+                                            elide: Text.ElideRight
+                                        }
+                                        Text {
+                                            visible: root.configStore.theme === choice.modelData.id
+                                            text: "✓"
+                                            color: Theme.accent
+                                            font.family: Theme.fontFamily
+                                            font.pixelSize: 14
                                         }
                                     }
-                                    Text {
-                                        Layout.fillWidth: true
-                                        text: choice.modelData.name
-                                        color: root.selectedId === choice.modelData.id ? Theme.accent : Theme.text
-                                        font { family: Theme.fontFamily; pixelSize: Theme.fontSmall; bold: root.selectedId === choice.modelData.id }
-                                        elide: Text.ElideRight
-                                    }
-                                    Text {
-                                        visible: root.configStore.theme === choice.modelData.id
-                                        text: "✓"
-                                        color: Theme.accent
-                                        font.family: Theme.fontFamily
-                                        font.pixelSize: 14
-                                    }
+                                }
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    visible: catalog.count === 0
+                                    text: "No matching themes"
+                                    color: Theme.textMuted
+                                    font { family: Theme.fontFamily; pixelSize: Theme.fontSmall }
                                 }
                             }
-
-                            Text {
-                                anchors.centerIn: parent
-                                visible: catalog.count === 0
-                                text: "No matching themes"
-                                color: Theme.textMuted
-                                font { family: Theme.fontFamily; pixelSize: Theme.fontSmall }
-                            }
-                        }
-                    }
-
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-                        spacing: 16
-
-                        RowLayout {
-                            Layout.fillWidth: true
-                            Text {
-                                text: "DESKTOP PREVIEW"
-                                color: Theme.textMuted
-                                font { family: Theme.fontFamily; pixelSize: Theme.fontSmall; bold: true }
-                            }
-                            Item { Layout.fillWidth: true }
-                            Text {
-                                text: root.selectedTheme.kind === "light" ? "Light" : "Dark"
-                                color: Theme.textMuted
-                                font { family: Theme.fontFamily; pixelSize: Theme.fontSmall }
-                            }
-                        }
-
-                        DesktopPreview {
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            Layout.minimumHeight: content.compact ? 130 : 220
-                            colors: root.selectedTheme.palette
-                            metrics: Theme.metricsFor(root.selectedId)
-                            wallpaper: root.configStore.wallpaperPath
-                            themeName: root.selectedTheme.name
                         }
 
                         ColumnLayout {
                             Layout.fillWidth: true
-                            spacing: 8
-                            Text {
-                                Layout.fillWidth: true
-                                text: root.selectedTheme.name
-                                color: Theme.text
-                                font { family: Theme.fontFamily; pixelSize: content.compact ? 20 : 28; bold: true }
-                                elide: Text.ElideRight
-                            }
-                            Text {
-                                Layout.fillWidth: true
-                                text: root.selectedTheme.description
-                                color: Theme.textMuted
-                                font { family: Theme.fontFamily; pixelSize: Theme.fontSmall }
-                                wrapMode: Text.WordWrap
-                                maximumLineCount: 2
-                                elide: Text.ElideRight
-                            }
-                        }
+                            Layout.fillHeight: true
+                            spacing: 16
 
-                        Row {
-                            spacing: 8
-                            visible: !content.compact
-                            Repeater {
-                                model: ["background", "surface", "surfaceRaised", "accent", "accentMuted", "text", "textMuted", "danger"]
-                                Rectangle {
-                                    required property string modelData
-                                    width: 28
-                                    height: 28
-                                    radius: 6
-                                    color: root.selectedTheme.palette[modelData]
-                                    border.color: Theme.borderInteractive
-                                    border.width: 1
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Text {
+                                    text: "DESKTOP PREVIEW"
+                                    color: Theme.textMuted
+                                    font { family: Theme.fontFamily; pixelSize: Theme.fontSmall; bold: true }
+                                }
+                                Item { Layout.fillWidth: true }
+                                Text {
+                                    text: root.selectedTheme.kind === "light" ? "Light" : "Dark"
+                                    color: Theme.textMuted
+                                    font { family: Theme.fontFamily; pixelSize: Theme.fontSmall }
+                                }
+                            }
+
+                            DesktopPreview {
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+                                Layout.minimumHeight: content.compact ? 130 : 220
+                                colors: root.selectedTheme.palette
+                                metrics: Theme.metricsFor(root.selectedId)
+                                wallpaper: root.configStore.wallpaperPath
+                                themeName: root.selectedTheme.name
+                            }
+
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 8
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: root.selectedTheme.name
+                                    color: Theme.text
+                                    font { family: Theme.fontFamily; pixelSize: content.compact ? 20 : 28; bold: true }
+                                    elide: Text.ElideRight
+                                }
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: root.selectedTheme.description
+                                    color: Theme.textMuted
+                                    font { family: Theme.fontFamily; pixelSize: Theme.fontSmall }
+                                    wrapMode: Text.WordWrap
+                                    maximumLineCount: 2
+                                    elide: Text.ElideRight
+                                }
+                            }
+
+                            Row {
+                                spacing: 8
+                                visible: !content.compact
+                                Repeater {
+                                    model: ["background", "surface", "surfaceRaised", "accent", "accentMuted", "text", "textMuted", "danger"]
+                                    Rectangle {
+                                        required property string modelData
+                                        width: 28
+                                        height: 28
+                                        radius: 6
+                                        color: root.selectedTheme.palette[modelData]
+                                        border.color: Theme.borderInteractive
+                                        border.width: 1
+                                    }
                                 }
                             }
                         }
                     }
-                }
                 }
 
                 Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Theme.border }

@@ -161,6 +161,10 @@ ShellRoot {
         }
     }
 
+    TelegramTheme {
+        configStore: configStore
+    }
+
     Wallpaper {
         sourcePath: configStore.wallpaper
     }
