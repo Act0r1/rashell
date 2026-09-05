@@ -1,21 +1,26 @@
 {
   "version": 1,
-  "theme": "muninn",
-  "wallpaper": "~/Pictures/Wallpapers/bisbiswas-a-summer-evening.png",
+  "theme": "tokyonight",
+  "wallpaper": "/home/yeager/Pictures/Wallpapers/among-trees-campsite.jpg",
+  "captureDirectory": "~/Pictures/Screenshots",
+  "weatherLocation": "Kazan",
+  "notificationDurationSeconds": 8,
   "bar": {
     "left": [
       "rashell.workspaces"
     ],
     "center": [
+      "rashell.weather",
       "rashell.clock",
       "rashell.media",
-      "rashell.screenshot"
+      "rashell.screenshot",
+      "rashell.system"
     ],
     "right": [
       "rashell.keyboard",
       "rashell.tray",
+      "rashell.bluetooth",
       "rashell.notifications",
-      "rashell.system",
       "rashell.audio",
       "rashell.tokens",
       "rashell.control",

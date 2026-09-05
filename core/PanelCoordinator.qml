@@ -13,9 +13,10 @@ Scope {
     property var contentProperties: ({})
     property bool opened: false
     property bool transitioning: false
-    property bool requestGrab: false
     property int transaction: 0
     property var anchorsByKey: ({})
+
+    signal appearanceRequested(var screen)
 
     function key(panelId, outputName) {
         return panelId + "@" + outputName
@@ -66,20 +67,20 @@ Scope {
     function toggleRegistered(panelId, source, properties) {
         const target = registeredAnchor(panelId, preferredOutputName())
         if (!target) return false
-        toggle(panelId, target.item, target.alignment, source, properties, false)
+        toggle(panelId, target.item, target.alignment, source, properties)
         return true
     }
 
-    function toggle(panelId, anchor, itemAlignment, source, properties, wantsGrab) {
+    function toggle(panelId, anchor, itemAlignment, source, properties) {
         if (opened && activePanelId === panelId && anchorItem === anchor) {
             close("trigger-toggle")
             return
         }
 
-        open(panelId, anchor, itemAlignment, source, properties, wantsGrab === undefined ? true : wantsGrab)
+        open(panelId, anchor, itemAlignment, source, properties)
     }
 
-    function open(panelId, anchor, itemAlignment, source, properties, wantsGrab) {
+    function open(panelId, anchor, itemAlignment, source, properties) {
         if (!anchor) return
 
         const token = ++transaction
@@ -89,7 +90,6 @@ Scope {
         activePanelId = panelId
         anchorItem = anchor
         alignment = itemAlignment || "center"
-        requestGrab = wantsGrab === true
         contentSource = source
         contentProperties = properties || ({})
         contentLoader.source = ""
@@ -112,7 +112,6 @@ Scope {
         anchorItem = null
         contentSource = ""
         contentProperties = ({})
-        requestGrab = false
         contentLoader.source = ""
     }
 
@@ -138,7 +137,7 @@ Scope {
 
         visible: false
         color: "transparent"
-        grabFocus: coordinator.requestGrab
+        grabFocus: true
         implicitWidth: contentLoader.item ? contentLoader.item.implicitWidth : 1
         implicitHeight: contentLoader.item ? contentLoader.item.implicitHeight : 1
 

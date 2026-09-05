@@ -1,4 +1,5 @@
 module qs.ui
 ActionButton 1.0 ActionButton.qml
+CloseButton 1.0 CloseButton.qml
 LevelSlider 1.0 LevelSlider.qml
 PanelFrame 1.0 PanelFrame.qml

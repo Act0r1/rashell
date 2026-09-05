@@ -73,7 +73,7 @@ Scope {
                             border.width: Theme.borderWidth
 
                             Rectangle {
-                                width: Math.min(1, root.audioState.outputVolume / 1.5) * parent.width
+                                width: Math.min(1, root.audioState.outputVolume) * parent.width
                                 height: parent.height
                                 color: Theme.accent
                             }

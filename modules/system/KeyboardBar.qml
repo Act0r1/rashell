@@ -19,7 +19,7 @@ Item {
             text: "󰌌 " + root.state.shortName
             color: Theme.text
             font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSmall
+            font.pixelSize: Theme.fontTitle
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
         }

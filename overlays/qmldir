@@ -2,3 +2,4 @@ module qs.overlays
 VolumeOsd 1.0 VolumeOsd.qml
 FeedbackOverlay 1.0 FeedbackOverlay.qml
 Wallpaper 1.0 Wallpaper.qml
+WorkflowStatus 1.0 WorkflowStatus.qml

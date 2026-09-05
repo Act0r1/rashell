@@ -1,0 +1,3 @@
+module qs.modules.wallpaper
+WallpaperState 1.0 WallpaperState.qml
+WallpaperPicker 1.0 WallpaperPicker.qml

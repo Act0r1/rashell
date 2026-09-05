@@ -66,22 +66,32 @@ uninstall: stop
 remove: uninstall
 
 themes:
-    @printf '%s\n' oilslick muninn nevermore talon ember raven jade
+    #!/usr/bin/env bash
+    set -euo pipefail
+    python3 - "{{root}}/core/themes.json" <<'PY'
+    import json
+    import sys
+    from pathlib import Path
+
+    catalog = json.loads(Path(sys.argv[1]).read_text())
+    print("\n".join(theme["id"] for theme in catalog))
+    PY
 
 theme name:
     #!/usr/bin/env bash
     set -euo pipefail
-    python3 - "{{root}}/config.json" "{{name}}" <<'PY'
+    python3 - "{{root}}/config.json" "{{root}}/core/themes.json" "{{name}}" <<'PY'
     import json
     import os
     import sys
     from pathlib import Path
 
     path = Path(sys.argv[1])
-    name = sys.argv[2]
-    allowed = {"oilslick", "muninn", "nevermore", "talon", "ember", "raven", "jade"}
+    catalog_path = Path(sys.argv[2])
+    name = sys.argv[3]
+    allowed = [theme["id"] for theme in json.loads(catalog_path.read_text())]
     if name not in allowed:
-        raise SystemExit(f"Unknown theme: {name}. Choose from: {', '.join(sorted(allowed))}")
+        raise SystemExit(f"Unknown theme: {name}. Choose from: {', '.join(allowed)}")
     data = json.loads(path.read_text())
     data["theme"] = name
     temporary = path.with_suffix(".json.tmp")
@@ -90,6 +100,10 @@ theme name:
     print(f"Theme set to {name}")
     PY
 
+shaders:
+    cd "{{root}}" && scripts/build-shaders.sh
+
 test:
     cd "{{root}}" && python -m unittest discover -s tests -p 'test_*.py' -v
+    cd "{{root}}" && QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input tests/tst_launcher_search.qml -o -,txt
     cd "{{root}}" && tests/smoke.sh

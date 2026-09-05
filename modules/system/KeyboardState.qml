@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Io
 
 Scope {
@@ -18,7 +19,14 @@ Scope {
 
     function cycle() {
         Quickshell.execDetached(["hyprctl", "switchxkblayout", "all", "next"])
-        delayedRefresh.restart()
+    }
+
+    function applyLayoutEvent(data) {
+        const separator = data.lastIndexOf(",")
+        if (separator === -1) return
+
+        const value = data.slice(separator + 1).trim()
+        if (value !== "" && value.toLowerCase() !== "error") layoutName = value
     }
 
     Process {
@@ -40,9 +48,11 @@ Scope {
         onTriggered: state.refresh()
     }
 
-    Timer {
-        id: delayedRefresh
-        interval: 150
-        onTriggered: state.refresh()
+    Connections {
+        target: Hyprland
+
+        function onRawEvent(event) {
+            if (event.name === "activelayout") state.applyLayoutEvent(event.data)
+        }
     }
 }

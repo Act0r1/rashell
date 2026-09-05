@@ -50,10 +50,10 @@ Scope {
     property string pendingKind: ""
     property string pendingOrigin: ""
     property real pendingValue: 0
-    signal directOutputChangeObserved(string outputName)
+    signal outputChangeObserved(string outputName)
 
     function clampVolume(value) {
-        return Math.max(0, Math.min(1.5, Number(value)))
+        return Math.max(0, Math.min(1, Number(value)))
     }
 
     function nodeLabel(node) {
@@ -127,18 +127,20 @@ Scope {
         pendingValue = 0
     }
 
-    function completeDirectVolume() {
-        if (pendingKind !== "volume" || Math.abs(outputVolume - pendingValue) > 0.011) return
-        const origin = pendingOrigin
-        clearPendingDirect()
-        directOutputChangeObserved(origin)
+    function observeOutputVolumeChange() {
+        const directChange = pendingKind === "volume"
+            && Math.abs(outputVolume - pendingValue) <= 0.011
+        const origin = directChange ? pendingOrigin : ""
+        if (directChange) clearPendingDirect()
+        outputChangeObserved(origin)
     }
 
-    function completeDirectMute() {
-        if (pendingKind !== "mute" || (outputMuted ? 1 : 0) !== pendingValue) return
-        const origin = pendingOrigin
-        clearPendingDirect()
-        directOutputChangeObserved(origin)
+    function observeOutputMuteChange() {
+        const directChange = pendingKind === "mute"
+            && (outputMuted ? 1 : 0) === pendingValue
+        const origin = directChange ? pendingOrigin : ""
+        if (directChange) clearPendingDirect()
+        outputChangeObserved(origin)
     }
 
     onReadyChanged: {
@@ -155,8 +157,8 @@ Scope {
 
     Connections {
         target: state.outputUsable ? state.output.audio : null
-        function onVolumesChanged() { state.completeDirectVolume() }
-        function onMutedChanged() { state.completeDirectMute() }
+        function onVolumesChanged() { state.observeOutputVolumeChange() }
+        function onMutedChanged() { state.observeOutputMuteChange() }
     }
 
     PwObjectTracker {

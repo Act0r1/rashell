@@ -5,10 +5,21 @@ import Quickshell.Hyprland
 Scope {
     id: state
 
-    readonly property var ids: [1, 2, 3, 4, 5, 6]
+    readonly property var baseIds: [1, 2, 3, 4, 5, 6]
     readonly property var workspaces: Hyprland.workspaces ? Hyprland.workspaces.values : []
+    readonly property var ids: visibleWorkspaceIds()
     readonly property var monitors: Hyprland.monitors ? Hyprland.monitors.values : []
     readonly property bool available: monitors.length > 0
+
+    function visibleWorkspaceIds() {
+        const result = baseIds.slice()
+        for (let index = 0; index < workspaces.length; index++) {
+            const workspaceId = Number(workspaces[index].id)
+            if (workspaceId > 0 && result.indexOf(workspaceId) === -1) result.push(workspaceId)
+        }
+        result.sort((left, right) => left - right)
+        return result
+    }
 
     function monitor(outputName) {
         for (let index = 0; index < monitors.length; index++) {

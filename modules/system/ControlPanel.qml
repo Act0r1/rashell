@@ -1,20 +1,45 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
-import QtQuick.Dialogs
+import QtQuick.Controls
+import QtQuick.Window
 import Quickshell
 import qs.core
 import qs.ui
 
 FocusScope {
     id: root
+
     required property var coordinator
     required property var audioState
+    required property var screenshotState
     required property var systemState
     required property var controlState
     required property var notificationState
+    required property var sessionModeState
+    required property var textCaptureState
     required property var configStore
-    implicitWidth: 460
-    implicitHeight: panel.implicitHeight
+    required property var barEditor
+    required property var lockScreen
+    required property var wallpaperPicker
+    required property string outputName
+
+    readonly property var anchorWindow: coordinator.anchorItem ? coordinator.anchorItem.QsWindow.window : null
+    readonly property var targetScreen: anchorWindow ? anchorWindow.screen : null
+    readonly property real availablePanelHeight: {
+        const anchor = coordinator.anchorItem
+        const anchorBottom = anchorWindow && anchor
+            ? anchorWindow.contentItem.mapFromItem(anchor, 0, anchor.height + Theme.panelGap).y
+            : Theme.barHeight + Theme.panelGap
+        return Math.max(240, (targetScreen ? targetScreen.height : 900)
+            - Math.max(Theme.barHeight + Theme.panelGap, anchorBottom) - Theme.edgeMargin - Theme.spaceMd)
+    }
+    readonly property real frameChromeHeight: Math.max(Theme.compactControlSize, 36)
+        + Theme.panelPadding * 2 + Theme.spaceLg * 4 + Theme.borderWidth * 2 + powerRow.height
     property string armedAction: ""
+
+    implicitWidth: Math.min(460, targetScreen ? targetScreen.width - Theme.spaceXl * 2 : 460)
+    implicitHeight: panel.implicitHeight
 
     function confirmAction(action, command) {
         if (armedAction === action) {
@@ -24,6 +49,30 @@ FocusScope {
         }
         armedAction = action
         confirmationTimeout.restart()
+    }
+
+    function openAudioDevices() {
+        root.coordinator.open(
+            "audio", root.coordinator.anchorItem, root.coordinator.alignment,
+            Quickshell.shellDir + "/modules/audio/AudioPanel.qml",
+            { coordinator: root.coordinator, audioState: root.audioState }
+        )
+    }
+
+    function revealFocusedControl() {
+        const window = root.Window.window
+        const item = window ? window.activeFocusItem : null
+        if (!item) return
+        let ancestor = item
+        while (ancestor && ancestor !== controls) ancestor = ancestor.parent
+        if (!ancestor) return
+        const top = controls.mapFromItem(item, 0, 0).y
+        const bottom = top + item.height
+        if (top < controlScroll.contentY) controlScroll.contentY = Math.max(0, top - Theme.spaceSm)
+        else if (bottom > controlScroll.contentY + controlScroll.height) {
+            controlScroll.contentY = Math.min(controlScroll.contentHeight - controlScroll.height,
+                bottom - controlScroll.height + Theme.spaceSm)
+        }
     }
 
     Timer {
@@ -37,14 +86,206 @@ FocusScope {
         onActivated: root.coordinator.close("escape")
     }
 
-    FileDialog {
-        id: wallpaperDialog
-        title: "Choose wallpaper"
-        currentFolder: "file://" + Quickshell.env("HOME") + "/Pictures/Wallpapers"
-        nameFilters: ["Images (*.png *.jpg *.jpeg *.webp)"]
-        onAccepted: {
-            const selected = decodeURIComponent(String(selectedFile).replace(/^file:\/\//, ""))
-            root.configStore.setWallpaper(selected)
+    Connections {
+        target: root.Window.window
+        function onActiveFocusItemChanged() { root.revealFocusedControl() }
+    }
+
+    component QuickTile: Rectangle {
+        id: tile
+
+        required property string label
+        required property string detail
+        required property string glyph
+        required property string accessibleName
+        property string toggleName: ""
+        property bool active: false
+        property bool toggleEnabled: true
+        property bool hasToggle: false
+        readonly property bool hovered: tileAction.hovered || tileToggle.hovered
+        signal activated()
+        signal toggleRequested()
+
+        height: 56
+        radius: Theme.radius
+        color: tileAction.down || tileToggle.down ? Qt.alpha(Theme.accent, 0.2)
+            : tile.hovered ? Qt.alpha(Theme.accent, 0.14)
+            : tile.active ? Qt.alpha(Theme.accent, 0.07) : Theme.surface
+        border.color: tileAction.visualFocus || tileToggle.visualFocus ? Theme.focus
+            : tile.hovered ? Theme.accentMuted : tile.active ? Theme.accentMuted : Theme.border
+        border.width: tileAction.visualFocus || tileToggle.visualFocus ? Theme.focusWidth : Theme.borderWidth
+
+        ActionButton {
+            id: tileAction
+            anchors {
+                fill: parent
+                rightMargin: tile.hasToggle ? 48 : 0
+            }
+            accessibleName: tile.accessibleName
+            toolTipText: ""
+            onClicked: tile.activated()
+            leftPadding: Theme.spaceLg
+            rightPadding: Theme.spaceSm
+            topPadding: Theme.spaceMd
+            bottomPadding: Theme.spaceMd
+
+            contentItem: Row {
+                spacing: Theme.spaceMd
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: 20
+                    text: tile.glyph
+                    color: tile.active ? Theme.accent : Theme.textMuted
+                    font.family: Theme.fontFamily
+                    font.pixelSize: 20
+                    horizontalAlignment: Text.AlignHCenter
+                }
+                Column {
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: parent.width - 20 - parent.spacing
+                    spacing: Theme.spaceSm
+                    Text {
+                        width: parent.width
+                        text: tile.label
+                        color: Theme.text
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontBody
+                        font.bold: true
+                        elide: Text.ElideRight
+                    }
+                    Text {
+                        width: parent.width
+                        text: tile.detail
+                        textFormat: Text.PlainText
+                        color: Theme.textMuted
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSmall
+                        elide: Text.ElideRight
+                    }
+                }
+            }
+            background: Item {}
+        }
+
+        Switch {
+            id: tileToggle
+            anchors {
+                right: parent.right
+                top: parent.top
+                bottom: parent.bottom
+                rightMargin: Theme.spaceSm
+            }
+            visible: tile.hasToggle
+            enabled: tile.toggleEnabled
+            hoverEnabled: true
+            width: 44
+            padding: 0
+            checked: tile.active
+            Accessible.name: tile.toggleName
+            onToggled: tile.toggleRequested()
+            contentItem: Item {}
+            background: Item {}
+            indicator: Rectangle {
+                x: (tileToggle.width - width) / 2
+                y: (tileToggle.height - height) / 2
+                width: 30
+                height: 18
+                radius: height / 2
+                color: !tileToggle.enabled ? Theme.border
+                    : tileToggle.checked ? Theme.accent : Theme.borderInteractive
+
+                Rectangle {
+                    x: tileToggle.checked ? parent.width - width - 3 : 3
+                    y: 3
+                    width: 12
+                    height: 12
+                    radius: width / 2
+                    color: tileToggle.checked ? Theme.textOnAccent : Theme.surface
+                }
+            }
+        }
+    }
+
+    component AudioControl: Column {
+        id: audioControl
+
+        required property string label
+        required property string deviceName
+        required property string glyph
+        required property bool usable
+        required property real volume
+        signal muteRequested()
+        signal volumeMoved(real value)
+
+        spacing: Theme.spaceSm
+
+        Item {
+            width: parent.width
+            height: Theme.compactControlSize
+
+            ActionButton {
+                id: deviceButton
+                anchors {
+                    left: parent.left
+                    right: levelText.left
+                    rightMargin: Theme.spaceMd
+                    verticalCenter: parent.verticalCenter
+                }
+                height: parent.height
+                leftPadding: 0
+                rightPadding: Theme.spaceSm
+                accessibleName: "Choose " + audioControl.label.toLowerCase() + " device: " + audioControl.deviceName
+                toolTipText: audioControl.deviceName + " · Choose device"
+                onClicked: root.openAudioDevices()
+                contentItem: Text {
+                    text: audioControl.label + " · " + audioControl.deviceName + "  ›"
+                    textFormat: Text.PlainText
+                    color: deviceButton.hovered ? Theme.accent : audioControl.usable ? Theme.text : Theme.textMuted
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSmall
+                    elide: Text.ElideRight
+                    verticalAlignment: Text.AlignVCenter
+                }
+                background: Rectangle {
+                    color: "transparent"
+                    radius: Theme.radius
+                    border.color: deviceButton.activeFocus ? Theme.focus : "transparent"
+                    border.width: Theme.focusWidth
+                }
+            }
+
+            Text {
+                id: levelText
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                text: audioControl.usable ? Math.round(audioControl.volume * 100) + "%" : "—"
+                color: audioControl.usable ? Theme.text : Theme.textDisabled
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSmall
+            }
+        }
+
+        Row {
+            width: parent.width
+            height: Theme.controlHeight
+            spacing: Theme.spaceMd
+
+            ActionButton {
+                width: 40
+                height: parent.height
+                text: audioControl.glyph
+                accessibleName: "Toggle " + audioControl.label.toLowerCase() + " mute"
+                enabled: audioControl.usable
+                onClicked: audioControl.muteRequested()
+            }
+            LevelSlider {
+                width: parent.width - 40 - parent.spacing
+                height: parent.height
+                enabled: audioControl.usable
+                value: audioControl.volume
+                accessibleName: audioControl.label + " volume"
+                onMoved: audioControl.volumeMoved(value)
+            }
         }
     }
 
@@ -58,281 +299,364 @@ FocusScope {
             width: parent.width
             spacing: Theme.spaceLg
 
-            Row {
+            Flickable {
+                id: controlScroll
                 width: parent.width
-                spacing: Theme.spaceMd
+                height: Math.min(contentHeight, Math.max(80, root.availablePanelHeight - root.frameChromeHeight))
+                contentWidth: width
+                contentHeight: controls.implicitHeight
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
+                flickableDirection: Flickable.VerticalFlick
 
-                Rectangle {
-                    width: 46
-                    height: 46
-                    radius: Theme.radius
-                    color: Theme.accent
-                    Text {
-                        anchors.centerIn: parent
-                        text: "I"
-                        color: Theme.textOnAccent
-                        font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontTitle
-                        font.bold: true
+                ScrollBar.vertical: ScrollBar {
+                    id: controlScrollbar
+                    policy: ScrollBar.AsNeeded
+                    visible: controlScroll.contentHeight > controlScroll.height
+                    width: 5
+                    contentItem: Rectangle {
+                        implicitWidth: 3
+                        radius: 2
+                        color: controlScrollbar.pressed || controlScrollbar.hovered ? Theme.accent : Theme.accentMuted
                     }
+                    background: Item {}
                 }
 
                 Column {
-                    anchors.verticalCenter: parent.verticalCenter
-                    width: parent.width - 54
-                    Text {
-                        text: "Insaf"
-                        color: Theme.text
-                        font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontTitle
-                        font.bold: true
+                    id: controls
+                    width: parent.width - (controlScroll.contentHeight > controlScroll.height ? Theme.spaceMd : 0)
+                    spacing: Theme.spaceLg
+
+                    Row {
+                        width: parent.width
+                        spacing: Theme.spaceMd
+
+                        Rectangle {
+                            width: 40
+                            height: 40
+                            radius: Theme.radius
+                            color: Theme.surfaceRaised
+                            border.color: Theme.accentMuted
+                            border.width: Theme.borderWidth
+                            Text {
+                                anchors.centerIn: parent
+                                text: "I"
+                                color: Theme.accent
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontTitle
+                                font.bold: true
+                            }
+                        }
+
+                        Column {
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: parent.width - 48
+                            spacing: Theme.spaceSm
+                            Text {
+                                text: "Insaf"
+                                color: Theme.text
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontBody
+                                font.bold: true
+                            }
+                            Text {
+                                width: parent.width
+                                text: "CPU " + root.systemState.cpuPercent + "%  ·  RAM " + root.systemState.memoryPercent + "%"
+                                color: Theme.textMuted
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontSmall
+                                elide: Text.ElideRight
+                            }
+                        }
                     }
-                    Text {
-                        text: "CPU " + root.systemState.cpuPercent + "%  ·  RAM " + root.systemState.memoryPercent
-                            + "%  ·  " + root.systemState.updates + " updates  ·  " + root.configStore.theme
-                        color: Theme.textMuted
-                        font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontSmall
+
+                    Grid {
+                        width: parent.width
+                        columns: 2
+                        spacing: Theme.spaceMd
+
+                        QuickTile {
+                            width: (parent.width - parent.spacing) / 2
+                            label: "Wi-Fi"
+                            detail: !root.controlState.networkEnabled ? "Off"
+                                : root.controlState.networkName === "Not connected" ? "Not connected" : root.controlState.networkName
+                            glyph: root.controlState.networkEnabled ? "󰤨" : "󰤭"
+                            active: root.controlState.networkEnabled
+                            accessibleName: "Turn Wi-Fi " + (root.controlState.networkEnabled ? "off" : "on")
+                            hasSettings: true
+                            settingsName: "Open network settings"
+                            onActivated: root.controlState.toggleNetwork()
+                            onSettingsRequested: root.coordinator.open(
+                                "network", root.coordinator.anchorItem, root.coordinator.alignment,
+                                Quickshell.shellDir + "/modules/system/NetworkPanel.qml",
+                                { coordinator: root.coordinator }
+                            )
+                        }
+
+                        QuickTile {
+                            width: (parent.width - parent.spacing) / 2
+                            label: "Bluetooth"
+                            detail: !BluetoothState.available ? "Unavailable" : BluetoothState.blocked ? "Blocked"
+                                : !BluetoothState.enabled ? "Off" : BluetoothState.connectedDevices.length > 0
+                                    ? BluetoothState.deviceLabel(BluetoothState.connectedDevices[0]) : "Not connected"
+                            glyph: BluetoothState.enabled ? "󰂯" : "󰂲"
+                            active: BluetoothState.enabled
+                            toggleEnabled: BluetoothState.available && !BluetoothState.blocked
+                            accessibleName: "Turn Bluetooth " + (BluetoothState.enabled ? "off" : "on")
+                            hasSettings: true
+                            settingsName: "Open Bluetooth devices"
+                            onActivated: BluetoothState.toggleEnabled()
+                            onSettingsRequested: root.coordinator.open(
+                                "bluetooth", root.coordinator.anchorItem, root.coordinator.alignment,
+                                Quickshell.shellDir + "/modules/system/BluetoothPanel.qml",
+                                { coordinator: root.coordinator }
+                            )
+                        }
+
+                        QuickTile {
+                            width: (parent.width - parent.spacing) / 2
+                            label: "Mode"
+                            detail: root.sessionModeState.title + "  ›"
+                            glyph: "󰓅"
+                            active: root.sessionModeState.active
+                            accessibleName: "Choose work or presentation mode"
+                            onActivated: root.coordinator.open(
+                                "modes", root.coordinator.anchorItem, root.coordinator.alignment,
+                                Quickshell.shellDir + "/modules/session/ModePanel.qml",
+                                { coordinator: root.coordinator, modeState: root.sessionModeState }
+                            )
+                        }
+
+                        QuickTile {
+                            width: (parent.width - parent.spacing) / 2
+                            label: "Do not disturb"
+                            detail: root.notificationState.doNotDisturb ? "On · Notifications paused" : "Off · Notifications on"
+                            glyph: root.notificationState.doNotDisturb ? "󰂛" : "󰂚"
+                            active: root.notificationState.doNotDisturb
+                            accessibleName: "Turn do not disturb " + (root.notificationState.doNotDisturb ? "off" : "on")
+                            onActivated: root.notificationState.doNotDisturb = !root.notificationState.doNotDisturb
+                        }
+                    }
+
+                    Rectangle { width: parent.width; height: Theme.borderWidth; color: Theme.border }
+
+                    Column {
+                        width: parent.width
+                        spacing: Theme.spaceMd
+
+                        AudioControl {
+                            width: parent.width
+                            label: "Speakers"
+                            deviceName: root.audioState.outputUsable ? root.audioState.nodeLabel(root.audioState.output) : "Unavailable"
+                            glyph: root.audioState.outputMuted ? "󰝟" : "󰕾"
+                            usable: root.audioState.outputUsable
+                            volume: root.audioState.outputVolume
+                            onMuteRequested: root.audioState.toggleOutputMute()
+                            onVolumeMoved: value => root.audioState.setOutputVolume(value)
+                        }
+
+                        AudioControl {
+                            width: parent.width
+                            label: "Microphone"
+                            deviceName: root.audioState.inputUsable ? root.audioState.nodeLabel(root.audioState.input) : "Unavailable"
+                            glyph: root.audioState.inputMuted ? "󰍭" : "󰍬"
+                            usable: root.audioState.inputUsable
+                            volume: root.audioState.inputVolume
+                            onMuteRequested: root.audioState.toggleInputMute()
+                            onVolumeMoved: value => root.audioState.setInputVolume(value)
+                        }
+                    }
+
+                    Column {
+                        width: parent.width
+                        visible: root.controlState.brightness >= 0
+                        spacing: Theme.spaceSm
+                        Text {
+                            text: "Brightness  ·  " + Math.round(root.controlState.brightness * 100) + "%"
+                            color: Theme.textMuted
+                            font.family: Theme.fontFamily
+                            font.pixelSize: Theme.fontSmall
+                        }
+                        LevelSlider {
+                            width: parent.width
+                            height: Theme.controlHeight
+                            from: 0.01
+                            to: 1
+                            value: root.controlState.brightness
+                            accessibleName: "Display brightness"
+                            onMoved: root.controlState.setBrightness(value)
+                        }
+                    }
+
+                    Row {
+                        width: parent.width
+                        spacing: Theme.spaceMd
+                        ActionButton {
+                            width: (parent.width - parent.spacing) / 2
+                            height: 38
+                            text: root.textCaptureState.recording ? "● Recording…" : "󰍬  Text & dictation"
+                            selected: root.textCaptureState.recording
+                            accessibleName: "Open text capture and dictation"
+                            onClicked: root.coordinator.open(
+                                "text", root.coordinator.anchorItem, root.coordinator.alignment,
+                                Quickshell.shellDir + "/modules/capture/TextCapturePanel.qml",
+                                { coordinator: root.coordinator, captureState: root.textCaptureState }
+                            )
+                        }
+                        ActionButton {
+                            width: (parent.width - parent.spacing) / 2
+                            height: 38
+                            text: "󰄀  Capture"
+                            accessibleName: "Open screen capture"
+                            onClicked: root.coordinator.open(
+                                "screenshot", root.coordinator.anchorItem, root.coordinator.alignment,
+                                Quickshell.shellDir + "/modules/system/ScreenshotPanel.qml",
+                                {
+                                    coordinator: root.coordinator, captureState: root.screenshotState,
+                                    configStore: root.configStore, outputName: root.outputName
+                                }
+                            )
+                        }
+                    }
+
+                    Column {
+                        width: parent.width
+                        spacing: Theme.spaceMd
+
+                        ActionButton {
+                            id: appearanceButton
+                            width: parent.width
+                            height: 38
+                            leftPadding: Theme.spaceLg
+                            rightPadding: Theme.spaceLg
+                            accessibleName: "Open appearance settings"
+                            onClicked: root.coordinator.appearanceRequested(root.targetScreen)
+                            contentItem: Row {
+                                spacing: Theme.spaceMd
+                                Text {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: parent.width - appearanceStatus.implicitWidth - parent.spacing
+                                    text: "󰏘  Appearance"
+                                    color: Theme.text
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: Theme.fontBody
+                                    elide: Text.ElideRight
+                                }
+                                Text {
+                                    id: appearanceStatus
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    text: Theme.themeInfo(root.configStore.theme).name + "  ›"
+                                    color: Theme.textMuted
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: Theme.fontSmall
+                                }
+                            }
+                        }
+
+                        Row {
+                            width: parent.width
+                            spacing: Theme.spaceMd
+                            ActionButton {
+                                width: (parent.width - parent.spacing) / 2
+                                height: 36
+                                text: "󰸉  Wallpaper"
+                                accessibleName: "Choose wallpaper"
+                                onClicked: {
+                                    const screen = root.targetScreen
+                                    const picker = root.wallpaperPicker
+                                    root.coordinator.close("open-wallpaper")
+                                    picker.open(screen)
+                                }
+                            }
+                            ActionButton {
+                                width: (parent.width - parent.spacing) / 2
+                                height: 36
+                                text: "󰓡  Customize bar"
+                                accessibleName: "Open bar settings"
+                                onClicked: {
+                                    const screen = root.targetScreen
+                                    const editor = root.barEditor
+                                    root.coordinator.close("open-bar-settings")
+                                    editor.open(screen)
+                                }
+                            }
+                        }
+                    }
+
+                    Row {
+                        width: parent.width
+                        spacing: Theme.spaceMd
+                        ActionButton {
+                            width: (parent.width - parent.spacing) / 2
+                            height: 36
+                            text: "󰏔  Updates"
+                            accessibleName: "Open system updates"
+                            onClicked: root.coordinator.open(
+                                "updates", root.coordinator.anchorItem, root.coordinator.alignment,
+                                Quickshell.shellDir + "/modules/system/UpdatesPanel.qml",
+                                { coordinator: root.coordinator, systemState: root.systemState }
+                            )
+                        }
+                        ActionButton {
+                            width: (parent.width - parent.spacing) / 2
+                            height: 36
+                            text: "󰻠  System details"
+                            accessibleName: "Open system monitor"
+                            onClicked: root.coordinator.open(
+                                "system", root.coordinator.anchorItem, root.coordinator.alignment,
+                                Quickshell.shellDir + "/modules/system/SystemPanel.qml",
+                                { coordinator: root.coordinator, systemState: root.systemState }
+                            )
+                        }
                     }
                 }
             }
 
-            Text {
-                text: "CONNECTIVITY"
-                color: Theme.accent
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSmall
-                font.bold: true
-            }
-
-            Grid {
-                width: parent.width
-                columns: 2
-                spacing: Theme.spaceMd
-
-                ActionButton {
-                    width: (parent.width - parent.spacing) / 2
-                    text: (root.controlState.networkEnabled ? "󰤨  Wi-Fi on" : "󰤭  Wi-Fi off")
-                        + (root.controlState.networkName === "Not connected" ? "" : " · " + root.controlState.networkName)
-                    selected: root.controlState.networkEnabled
-                    accessibleName: "Toggle Wi-Fi"
-                    onClicked: root.controlState.toggleNetwork()
-                }
-                ActionButton {
-                    width: (parent.width - parent.spacing) / 2
-                    text: (root.controlState.bluetoothEnabled ? "󰂯  Bluetooth on" : "󰂲  Bluetooth off")
-                        + (root.controlState.bluetoothDevice === "No connected device" ? "" : " · " + root.controlState.bluetoothDevice)
-                    selected: root.controlState.bluetoothEnabled
-                    accessibleName: "Toggle Bluetooth"
-                    onClicked: root.controlState.toggleBluetooth()
-                }
-                ActionButton {
-                    width: (parent.width - parent.spacing) / 2
-                    text: "󰛳  Network settings"
-                    accessibleName: "Open network settings"
-                    onClicked: root.controlState.openNetworkSettings()
-                }
-                ActionButton {
-                    width: (parent.width - parent.spacing) / 2
-                    text: root.notificationState.doNotDisturb ? "󰂛  DND on" : "󰂚  DND off"
-                    selected: root.notificationState.doNotDisturb
-                    accessibleName: "Toggle do not disturb"
-                    onClicked: root.notificationState.doNotDisturb = !root.notificationState.doNotDisturb
-                }
-            }
-
-            Rectangle { width: parent.width; height: 1; color: Theme.border }
-
-            Text {
-                text: "AUDIO"
-                color: Theme.accent
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSmall
-                font.bold: true
-            }
-
-            Text {
-                width: parent.width
-                text: root.audioState.outputUsable
-                    ? "󰕾  " + root.audioState.nodeLabel(root.audioState.output) + "  ·  " + Math.round(root.audioState.outputVolume * 100) + "%"
-                    : "󰖁  Audio output unavailable"
-                color: Theme.text
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontBody
-                elide: Text.ElideRight
-            }
+            Rectangle { width: parent.width; height: Theme.borderWidth; color: Theme.border }
 
             Row {
+                id: powerRow
                 width: parent.width
-                height: Theme.controlHeight
-                spacing: Theme.spaceMd
+                height: 40
+                spacing: Theme.spaceSm
+
                 ActionButton {
-                    width: 46
-                    text: root.audioState.outputMuted ? "󰝟" : "󰕾"
-                    accessibleName: "Toggle output mute"
-                    enabled: root.audioState.outputUsable
-                    onClicked: root.audioState.toggleOutputMute()
-                }
-                LevelSlider {
-                    width: parent.width - 46 - parent.spacing
+                    width: (parent.width - parent.spacing * 3) / 4
                     height: parent.height
-                    enabled: root.audioState.outputUsable
-                    value: root.audioState.outputVolume
-                    accessibleName: "Output volume"
-                    onMoved: root.audioState.setOutputVolume(value)
-                }
-            }
-
-            Text {
-                width: parent.width
-                text: root.audioState.inputUsable
-                    ? "󰍬  " + root.audioState.nodeLabel(root.audioState.input) + "  ·  " + Math.round(root.audioState.inputVolume * 100) + "%"
-                    : "󰍭  Microphone unavailable"
-                color: Theme.textMuted
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSmall
-                elide: Text.ElideRight
-            }
-
-            Row {
-                width: parent.width
-                height: Theme.controlHeight
-                spacing: Theme.spaceMd
-                ActionButton {
-                    width: 46
-                    text: root.audioState.inputMuted ? "󰍭" : "󰍬"
-                    accessibleName: "Toggle microphone mute"
-                    enabled: root.audioState.inputUsable
-                    onClicked: root.audioState.toggleInputMute()
-                }
-                LevelSlider {
-                    width: parent.width - 46 - parent.spacing
-                    height: parent.height
-                    enabled: root.audioState.inputUsable
-                    value: root.audioState.inputVolume
-                    accessibleName: "Microphone volume"
-                    onMoved: root.audioState.setInputVolume(value)
-                }
-            }
-
-            ActionButton {
-                width: parent.width
-                text: "Open input and output devices"
-                accessibleName: "Open audio devices"
-                onClicked: {
-                    root.coordinator.close("switch")
-                    Qt.callLater(function() {
-                        root.coordinator.toggleRegistered(
-                            "audio",
-                            Quickshell.shellDir + "/modules/audio/AudioPanel.qml",
-                            { coordinator: root.coordinator, audioState: root.audioState }
-                        )
-                    })
-                }
-            }
-
-            Rectangle { width: parent.width; height: 1; color: Theme.border }
-
-            Column {
-                width: parent.width
-                visible: root.controlState.brightness >= 0
-                spacing: Theme.spaceSm
-                Text {
-                    text: "BRIGHTNESS  ·  " + Math.round(root.controlState.brightness * 100) + "%"
-                    color: Theme.accent
-                    font.family: Theme.fontFamily
-                    font.pixelSize: Theme.fontSmall
-                    font.bold: true
-                }
-                LevelSlider {
-                    width: parent.width
-                    height: Theme.controlHeight
-                    from: 0.01
-                    to: 1
-                    value: root.controlState.brightness
-                    accessibleName: "Display brightness"
-                    onMoved: root.controlState.setBrightness(value)
-                }
-            }
-
-            Text {
-                text: "THEME"
-                color: Theme.accent
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSmall
-                font.bold: true
-            }
-
-            Row {
-                width: parent.width
-                spacing: Theme.spaceSm
-                Repeater {
-                    model: ["oilslick", "muninn", "nevermore", "talon"]
-                    ActionButton {
-                        required property string modelData
-                        width: (parent.width - parent.spacing * 3) / 4
-                        text: modelData
-                        selected: root.configStore.theme === modelData
-                        accessibleName: "Use " + modelData + " theme"
-                        onClicked: root.configStore.setTheme(modelData)
+                    text: "󰌾  Lock"
+                    accessibleName: "Lock screen"
+                    onClicked: {
+                        const lock = root.lockScreen
+                        root.coordinator.close("lock-screen")
+                        lock.lock()
                     }
                 }
-            }
-
-            Grid {
-                width: parent.width
-                columns: 3
-                spacing: Theme.spaceMd
-                ActionButton {
-                    width: (parent.width - parent.spacing * 2) / 3
-                    text: "󰸉  Wallpaper"
-                    accessibleName: "Choose wallpaper"
-                    onClicked: wallpaperDialog.open()
-                }
-                ActionButton {
-                    width: (parent.width - parent.spacing * 2) / 3
-                    text: "󰄀  Screenshot"
-                    accessibleName: "Take screenshot"
-                    onClicked: Quickshell.execDetached(["sh", "-c", "mkdir -p \"$HOME/Pictures/Screenshots\"; f=\"$HOME/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png\"; grim \"$f\" && wl-copy < \"$f\""])
-                }
-                ActionButton {
-                    width: (parent.width - parent.spacing * 2) / 3
-                    text: "󰏔  Update " + root.systemState.updates
-                    accessibleName: "Open system updater"
-                    onClicked: Quickshell.execDetached(["ghostty", "-e", "bash", "-lc", "yay; flatpak update; read -n 1 -p 'Press any key to close'"])
-                }
-            }
-
-            Rectangle { width: parent.width; height: 1; color: Theme.border }
-
-            Row {
-                width: parent.width
-                spacing: Theme.spaceSm
-
                 ActionButton {
                     width: (parent.width - parent.spacing * 3) / 4
-                    text: "󰌾"
-                    accessibleName: "Lock"
-                    onClicked: Quickshell.execDetached(["swaylock", "-f", "-i", root.configStore.wallpaperPath, "-s", "fill"])
+                    height: parent.height
+                    text: "󰤄  Sleep"
+                    accessibleName: "Lock the screen and suspend"
+                    onClicked: {
+                        const lock = root.lockScreen
+                        root.coordinator.close("suspend")
+                        lock.lockAndSuspend()
+                    }
                 }
                 ActionButton {
                     width: (parent.width - parent.spacing * 3) / 4
-                    text: "󰤄"
-                    accessibleName: "Suspend"
-                    onClicked: Quickshell.execDetached(["sh", "-c", "swaylock -f -i " + JSON.stringify(root.configStore.wallpaperPath) + " -s fill & sleep 0.5; systemctl suspend"])
-                }
-                ActionButton {
-                    width: (parent.width - parent.spacing * 3) / 4
-                    text: root.armedAction === "reboot" ? "CONFIRM" : "󰜉"
+                    height: parent.height
+                    text: root.armedAction === "reboot" ? "CONFIRM" : "󰜉  Restart"
                     selected: root.armedAction === "reboot"
-                    accessibleName: "Restart; activate twice to confirm"
+                    accessibleName: "Restart; click twice to confirm"
                     onClicked: root.confirmAction("reboot", ["systemctl", "reboot"])
                 }
                 ActionButton {
                     width: (parent.width - parent.spacing * 3) / 4
-                    text: root.armedAction === "poweroff" ? "CONFIRM" : "󰐥"
+                    height: parent.height
+                    text: root.armedAction === "poweroff" ? "CONFIRM" : "󰐥  Power"
                     selected: root.armedAction === "poweroff"
-                    accessibleName: "Power off; activate twice to confirm"
+                    danger: true
+                    accessibleName: "Power off; click twice to confirm"
                     onClicked: root.confirmAction("poweroff", ["systemctl", "poweroff"])
                 }
             }

@@ -22,7 +22,7 @@ Item {
             text: "󰧑 " + root.state.compact(root.state.totalTokens)
             color: Theme.text
             font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSmall
+            font.pixelSize: Theme.fontTitle
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
         }

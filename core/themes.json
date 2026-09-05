@@ -1,0 +1,359 @@
+[
+  {
+    "id": "oilslick",
+    "name": "Oilslick",
+    "description": "Near-black glass with a violet signal.",
+    "kind": "dark",
+    "palette": {
+      "background": "#050507",
+      "surface": "#09090d",
+      "surfaceRaised": "#171721",
+      "accent": "#9a82ff",
+      "accentMuted": "#b09ff2",
+      "text": "#f4f6fc",
+      "textMuted": "#a7acbd",
+      "textDisabled": "#777c90",
+      "textOnAccent": "#07070a",
+      "border": "#30313b",
+      "borderInteractive": "#676b7e",
+      "danger": "#ff5f7e",
+      "textOnDanger": "#050507"
+    }
+  },
+  {
+    "id": "muninn",
+    "name": "Muninn",
+    "description": "Charcoal and old gold, calm and deliberate.",
+    "kind": "dark",
+    "palette": {
+      "background": "#0f1012",
+      "surface": "#111214",
+      "surfaceRaised": "#1d1e21",
+      "accent": "#c9a227",
+      "accentMuted": "#bca550",
+      "text": "#eae5d8",
+      "textMuted": "#aaa69b",
+      "textDisabled": "#7f7b72",
+      "textOnAccent": "#0f1012",
+      "border": "#353537",
+      "borderInteractive": "#6b6962",
+      "danger": "#d85b43",
+      "textOnDanger": "#0f1012"
+    }
+  },
+  {
+    "id": "nevermore",
+    "name": "Nevermore",
+    "description": "Ink black with a dramatic crimson edge.",
+    "kind": "dark",
+    "palette": {
+      "background": "#08070a",
+      "surface": "#0f0d12",
+      "surfaceRaised": "#1c171e",
+      "accent": "#c43b52",
+      "accentMuted": "#b56371",
+      "text": "#e6ded0",
+      "textMuted": "#b3aa9b",
+      "textDisabled": "#7f776b",
+      "textOnAccent": "#fff5e9",
+      "border": "#393238",
+      "borderInteractive": "#766d70",
+      "danger": "#ed536b",
+      "textOnDanger": "#08070a"
+    }
+  },
+  {
+    "id": "talon",
+    "name": "Talon",
+    "description": "Hard monochrome with square, compact geometry.",
+    "kind": "dark",
+    "palette": {
+      "background": "#0b0c0e",
+      "surface": "#101113",
+      "surfaceRaised": "#202124",
+      "accent": "#f2f0ea",
+      "accentMuted": "#b9b8b3",
+      "text": "#f2f0ea",
+      "textMuted": "#aaa9a5",
+      "textDisabled": "#747571",
+      "textOnAccent": "#0b0c0e",
+      "border": "#38393b",
+      "borderInteractive": "#757671",
+      "danger": "#ff4d4d",
+      "textOnDanger": "#0b0c0e"
+    }
+  },
+  {
+    "id": "ember",
+    "name": "Ember",
+    "description": "Warm amber light over soft graphite.",
+    "kind": "dark",
+    "palette": {
+      "background": "#0e0e13",
+      "surface": "#17171f",
+      "surfaceRaised": "#22222d",
+      "accent": "#ffbd5a",
+      "accentMuted": "#ad8046",
+      "text": "#f2ecdf",
+      "textMuted": "#bcb4a6",
+      "textDisabled": "#777168",
+      "textOnAccent": "#0e0e13",
+      "border": "#32303a",
+      "borderInteractive": "#7a6a55",
+      "danger": "#ef6f6c",
+      "textOnDanger": "#0e0e13"
+    }
+  },
+  {
+    "id": "raven",
+    "name": "Raven",
+    "description": "Blue-black layers with a lavender pulse.",
+    "kind": "dark",
+    "palette": {
+      "background": "#0d0e16",
+      "surface": "#171824",
+      "surfaceRaised": "#222438",
+      "accent": "#a79aff",
+      "accentMuted": "#756eb8",
+      "text": "#ebe9ff",
+      "textMuted": "#b6b3ce",
+      "textDisabled": "#74728a",
+      "textOnAccent": "#0d0e16",
+      "border": "#303247",
+      "borderInteractive": "#686b94",
+      "danger": "#f07178",
+      "textOnDanger": "#0d0e16"
+    }
+  },
+  {
+    "id": "jade",
+    "name": "Jade",
+    "description": "Forest glass with a clear mineral green.",
+    "kind": "dark",
+    "palette": {
+      "background": "#0c110e",
+      "surface": "#151d18",
+      "surfaceRaised": "#202c25",
+      "accent": "#73dfa1",
+      "accentMuted": "#4f9d71",
+      "text": "#e2f2e8",
+      "textMuted": "#a9c1b2",
+      "textDisabled": "#6c7e72",
+      "textOnAccent": "#0c110e",
+      "border": "#2b3d31",
+      "borderInteractive": "#4f745d",
+      "danger": "#f07167",
+      "textOnDanger": "#0c110e"
+    }
+  },
+  {
+    "id": "tide",
+    "name": "Tide",
+    "description": "Deep teal water with a bright sea-glass accent.",
+    "kind": "dark",
+    "palette": {
+      "background": "#071718",
+      "surface": "#0c2223",
+      "surfaceRaised": "#133233",
+      "accent": "#4fd1c5",
+      "accentMuted": "#63a9a3",
+      "text": "#e2f5f2",
+      "textMuted": "#a4c5c0",
+      "textDisabled": "#65827f",
+      "textOnAccent": "#071718",
+      "border": "#244546",
+      "borderInteractive": "#5d8f8b",
+      "danger": "#d95763",
+      "textOnDanger": "#071718"
+    }
+  },
+  {
+    "id": "frost",
+    "name": "Frost",
+    "description": "Icy daylight with crisp blue-green controls.",
+    "kind": "light",
+    "palette": {
+      "background": "#eaf3f7",
+      "surface": "#f5fafc",
+      "surfaceRaised": "#ffffff",
+      "accent": "#126d89",
+      "accentMuted": "#4c7f91",
+      "text": "#18323d",
+      "textMuted": "#526d78",
+      "textDisabled": "#81959d",
+      "textOnAccent": "#ffffff",
+      "border": "#cadae0",
+      "borderInteractive": "#6a828c",
+      "danger": "#a63d52",
+      "textOnDanger": "#ffffff"
+    }
+  },
+  {
+    "id": "paper",
+    "name": "Paper",
+    "description": "Quiet neutral paper with slate ink.",
+    "kind": "light",
+    "palette": {
+      "background": "#edeae3",
+      "surface": "#f8f6f1",
+      "surfaceRaised": "#ffffff",
+      "accent": "#4f5d75",
+      "accentMuted": "#6f7890",
+      "text": "#292b2f",
+      "textMuted": "#5e6064",
+      "textDisabled": "#8f8e88",
+      "textOnAccent": "#ffffff",
+      "border": "#dad5cb",
+      "borderInteractive": "#807b72",
+      "danger": "#a33d3d",
+      "textOnDanger": "#ffffff"
+    }
+  },
+  {
+    "id": "dune",
+    "name": "Dune",
+    "description": "Sun-warmed sand with dark umber type.",
+    "kind": "light",
+    "palette": {
+      "background": "#ece2d0",
+      "surface": "#f7f0e4",
+      "surfaceRaised": "#fffaf1",
+      "accent": "#8a5200",
+      "accentMuted": "#9b6d35",
+      "text": "#33291f",
+      "textMuted": "#655847",
+      "textDisabled": "#8f806e",
+      "textOnAccent": "#ffffff",
+      "border": "#d3c3ab",
+      "borderInteractive": "#84715a",
+      "danger": "#a33f32",
+      "textOnDanger": "#ffffff"
+    }
+  },
+  {
+    "id": "dusk",
+    "name": "Dusk",
+    "description": "Dusky plum shadows with an orchid highlight.",
+    "kind": "dark",
+    "palette": {
+      "background": "#15121e",
+      "surface": "#1d1929",
+      "surfaceRaised": "#292238",
+      "accent": "#c58af9",
+      "accentMuted": "#a488bd",
+      "text": "#f1eafb",
+      "textMuted": "#b9afc8",
+      "textDisabled": "#7f748f",
+      "textOnAccent": "#15121e",
+      "border": "#3d344c",
+      "borderInteractive": "#827590",
+      "danger": "#d95d7b",
+      "textOnDanger": "#15121e"
+    }
+  },
+  {
+    "id": "tokyonight",
+    "name": "Tokyo Night",
+    "description": "Tokyo Night's deep navy and electric blue.",
+    "kind": "dark",
+    "palette": {
+      "background": "#16161e",
+      "surface": "#1a1b26",
+      "surfaceRaised": "#24283b",
+      "accent": "#7aa2f7",
+      "accentMuted": "#89a7e0",
+      "text": "#c0caf5",
+      "textMuted": "#a9b1d6",
+      "textDisabled": "#737aa2",
+      "textOnAccent": "#16161e",
+      "border": "#3b4261",
+      "borderInteractive": "#737aa2",
+      "danger": "#db4b4b",
+      "textOnDanger": "#0c0e14"
+    }
+  },
+  {
+    "id": "tokyostorm",
+    "name": "Tokyo Storm",
+    "description": "Tokyo Night's brighter storm-blue surface stack.",
+    "kind": "dark",
+    "palette": {
+      "background": "#1f2335",
+      "surface": "#24283b",
+      "surfaceRaised": "#292e42",
+      "accent": "#7aa2f7",
+      "accentMuted": "#89a7e0",
+      "text": "#c0caf5",
+      "textMuted": "#a9b1d6",
+      "textDisabled": "#737aa2",
+      "textOnAccent": "#1f2335",
+      "border": "#3b4261",
+      "borderInteractive": "#7f87b0",
+      "danger": "#db4b4b",
+      "textOnDanger": "#0c0e14"
+    }
+  },
+  {
+    "id": "ayu-dark",
+    "name": "Ayu Dark",
+    "description": "Ayu's ink-dark canvas with a warm gold accent.",
+    "kind": "dark",
+    "palette": {
+      "background": "#0d1017",
+      "surface": "#141821",
+      "surfaceRaised": "#1b1f29",
+      "accent": "#e6b450",
+      "accentMuted": "#b39250",
+      "text": "#bfbdb6",
+      "textMuted": "#9da6b4",
+      "textDisabled": "#6f7888",
+      "textOnAccent": "#0d1017",
+      "border": "#2d3440",
+      "borderInteractive": "#68768a",
+      "danger": "#d95757",
+      "textOnDanger": "#0d1017"
+    }
+  },
+  {
+    "id": "ayu-mirage",
+    "name": "Ayu Mirage",
+    "description": "Ayu's softened blue-gray canvas and amber light.",
+    "kind": "dark",
+    "palette": {
+      "background": "#1f2430",
+      "surface": "#282e3b",
+      "surfaceRaised": "#343b4a",
+      "accent": "#ffcc66",
+      "accentMuted": "#c7a761",
+      "text": "#cccac2",
+      "textMuted": "#a9adae",
+      "textDisabled": "#7a8190",
+      "textOnAccent": "#1f2430",
+      "border": "#414858",
+      "borderInteractive": "#7b879b",
+      "danger": "#ff6666",
+      "textOnDanger": "#1f2430"
+    }
+  },
+  {
+    "id": "ayu-light",
+    "name": "Ayu Light",
+    "description": "Ayu's clean paper surface with a grounded orange accent.",
+    "kind": "light",
+    "palette": {
+      "background": "#f8f9fa",
+      "surface": "#fafafa",
+      "surfaceRaised": "#ffffff",
+      "accent": "#9c5700",
+      "accentMuted": "#8c6c44",
+      "text": "#5c6166",
+      "textMuted": "#606970",
+      "textDisabled": "#8b9298",
+      "textOnAccent": "#ffffff",
+      "border": "#d9dee2",
+      "borderInteractive": "#7a858e",
+      "danger": "#a9363e",
+      "textOnDanger": "#ffffff"
+    }
+  }
+]

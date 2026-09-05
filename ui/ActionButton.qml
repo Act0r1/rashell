@@ -9,12 +9,41 @@ Button {
     property bool subtleSelected: false
     property bool danger: false
     property string accessibleName: text
+    property string toolTipText: accessibleName
 
     implicitHeight: Theme.compactControlSize
     implicitWidth: Math.max(Theme.compactControlSize, contentItem.implicitWidth + Theme.spaceLg * 2)
     hoverEnabled: true
     Accessible.name: accessibleName
     Accessible.role: Accessible.Button
+
+    ToolTip {
+        id: tip
+
+        visible: control.hovered && control.toolTipText !== ""
+        delay: 450
+        timeout: 5000
+        text: control.toolTipText
+        y: -implicitHeight - Theme.spaceSm
+        leftPadding: Theme.spaceLg
+        rightPadding: Theme.spaceLg
+        topPadding: Theme.spaceMd
+        bottomPadding: Theme.spaceMd
+
+        contentItem: Text {
+            text: tip.text
+            color: Theme.text
+            font.family: Theme.fontFamily
+            font.pixelSize: Theme.fontSmall
+        }
+
+        background: Rectangle {
+            color: Theme.surfaceRaised
+            border.color: Theme.accentMuted
+            border.width: Theme.borderWidth
+            radius: Math.max(6, Theme.radius)
+        }
+    }
 
     contentItem: Text {
         text: control.text

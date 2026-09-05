@@ -2,13 +2,25 @@ module qs.modules.system
 SystemState 1.0 SystemState.qml
 KeyboardState 1.0 KeyboardState.qml
 ControlState 1.0 ControlState.qml
+singleton BluetoothState 1.0 BluetoothState.qml
 TokenState 1.0 TokenState.qml
 SystemBar 1.0 SystemBar.qml
+SystemPanel 1.0 SystemPanel.qml
 UpdatesBar 1.0 UpdatesBar.qml
+UpdatesPanel 1.0 UpdatesPanel.qml
+ScreenshotState 1.0 ScreenshotState.qml
 ScreenshotBar 1.0 ScreenshotBar.qml
+ScreenshotPanel 1.0 ScreenshotPanel.qml
 KeyboardBar 1.0 KeyboardBar.qml
 TrayBar 1.0 TrayBar.qml
+TrayButton 1.0 TrayButton.qml
+TrayOverflowPanel 1.0 TrayOverflowPanel.qml
+TrayMenu 1.0 TrayMenu.qml
 ControlBar 1.0 ControlBar.qml
 ControlPanel 1.0 ControlPanel.qml
+BluetoothBar 1.0 BluetoothBar.qml
+BluetoothPanel 1.0 BluetoothPanel.qml
+NetworkPanel 1.0 NetworkPanel.qml
+BarEditorPanel 1.0 BarEditorPanel.qml
 TokenBar 1.0 TokenBar.qml
 TokenPanel 1.0 TokenPanel.qml

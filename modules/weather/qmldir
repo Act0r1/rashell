@@ -1,0 +1,8 @@
+module qs.modules.weather
+WeatherState 1.0 WeatherState.qml
+WeatherBar 1.0 WeatherBar.qml
+WeatherPanel 1.0 WeatherPanel.qml
+WeatherScene 1.0 WeatherScene.qml
+GlassPane 1.0 GlassPane.qml
+NightScene 1.0 NightScene.qml
+CityScene 1.0 CityScene.qml

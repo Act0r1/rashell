@@ -6,14 +6,17 @@ Slider {
     id: control
 
     property string accessibleName: "Level"
+    property string accessibleDescription: Math.round(value * 100) + " percent"
+
+    implicitHeight: Theme.controlHeight
 
     from: 0
-    to: 1.5
+    to: 1
     stepSize: 0.05
     hoverEnabled: true
     Accessible.name: accessibleName
     Accessible.role: Accessible.Slider
-    Accessible.description: Math.round(value * 100) + " percent"
+    Accessible.description: accessibleDescription
 
     background: Rectangle {
         x: control.leftPadding
@@ -29,6 +32,7 @@ Slider {
             height: parent.height
             color: Theme.accent
         }
+
     }
 
     handle: Rectangle {
@@ -41,4 +45,5 @@ Slider {
         border.width: control.activeFocus ? Theme.focusWidth : Theme.borderWidth
         radius: 1
     }
+
 }

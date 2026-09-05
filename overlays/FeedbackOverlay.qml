@@ -9,10 +9,12 @@ Scope {
     property string targetOutput: ""
     property string message: ""
     property bool showing: false
+    property bool error: true
 
-    function show(outputName, text) {
+    function show(outputName, text, isError) {
         targetOutput = outputName
         message = text
+        error = isError !== false
         showing = true
         hideTimer.restart()
     }
@@ -51,7 +53,7 @@ Scope {
                 Rectangle {
                     anchors.fill: parent
                     color: Theme.surface
-                    border.color: Theme.danger
+                    border.color: root.error ? Theme.danger : Theme.accent
                     border.width: Theme.borderWidth
                     radius: Theme.radius
 
@@ -61,7 +63,7 @@ Scope {
                             margins: Theme.spaceLg
                         }
                         text: root.message
-                        color: Theme.danger
+                        color: root.error ? Theme.danger : Theme.text
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontBody
                         elide: Text.ElideRight

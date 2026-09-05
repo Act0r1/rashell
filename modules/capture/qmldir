@@ -1,0 +1,3 @@
+module qs.modules.capture
+TextCaptureState 1.0 TextCaptureState.qml
+TextCapturePanel 1.0 TextCapturePanel.qml

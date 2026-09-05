@@ -7,10 +7,16 @@ Item {
     id: root
     required property var coordinator
     required property var audioState
+    required property var screenshotState
     required property var systemState
     required property var controlState
     required property var notificationState
+    required property var sessionModeState
+    required property var textCaptureState
     required property var configStore
+    required property var barEditor
+    required property var lockScreen
+    required property var wallpaperPicker
     required property string outputName
     implicitWidth: Theme.compactControlSize
     implicitHeight: Theme.controlHeight
@@ -25,7 +31,7 @@ Item {
             text: "󰒓"
             color: Theme.accent
             font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontBody
+            font.pixelSize: Theme.fontTitle
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
         }
@@ -48,10 +54,17 @@ Item {
             {
                 coordinator: root.coordinator,
                 audioState: root.audioState,
+                screenshotState: root.screenshotState,
                 systemState: root.systemState,
                 controlState: root.controlState,
                 notificationState: root.notificationState,
-                configStore: root.configStore
+                sessionModeState: root.sessionModeState,
+                textCaptureState: root.textCaptureState,
+                configStore: root.configStore,
+                barEditor: root.barEditor,
+                lockScreen: root.lockScreen,
+                wallpaperPicker: root.wallpaperPicker,
+                outputName: root.outputName
             }
         )
     }

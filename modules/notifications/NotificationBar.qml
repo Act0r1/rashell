@@ -22,7 +22,7 @@ Item {
             text: (root.state.doNotDisturb ? "󰂛" : "󰂚") + (root.state.unread > 0 ? " " + root.state.unread : "")
             color: root.state.unread > 0 ? Theme.accent : Theme.text
             font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSmall
+            font.pixelSize: Theme.fontTitle
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
         }

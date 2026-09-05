@@ -50,8 +50,7 @@ Item {
                     color: button.current ? Theme.textOnAccent
                         : button.occupied ? Theme.text : Theme.textDisabled
                     font.family: Theme.fontFamily
-                    font.pixelSize: Theme.fontBody
-                    font.bold: button.current
+                    font.pixelSize: Theme.fontSmall
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                 }

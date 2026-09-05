@@ -1,32 +1,52 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Quickshell.Networking
 
 Scope {
     id: state
 
-    property bool networkEnabled: true
-    property string networkName: "Not connected"
-    property bool bluetoothEnabled: false
-    property string bluetoothDevice: "No connected device"
+    readonly property bool wifiEnabled: Networking.wifiEnabled
+    readonly property bool wifiAvailable: Networking.devices.values.some(device => device.type === DeviceType.Wifi)
+    readonly property bool wifiBlocked: !Networking.wifiHardwareEnabled
+    readonly property var connectedDevices: Networking.devices.values.filter(device => device.connected)
+    readonly property var wifiNetwork: {
+        for (const device of Networking.devices.values) {
+            if (device.type !== DeviceType.Wifi) continue
+            for (const network of device.networks.values) {
+                if (network.connected) return network
+            }
+        }
+        return null
+    }
+    readonly property string wifiDetail: !wifiAvailable ? "Unavailable" : wifiBlocked ? "Blocked"
+        : !wifiEnabled ? "Off" : wifiNetwork ? wifiNetwork.name : "Not connected"
+    readonly property bool networkConnected: connectedDevices.length > 0
+    readonly property bool wiredConnected: connectedDevices.some(device => device.type === DeviceType.Wired)
+    readonly property string networkLabel: {
+        const labels = []
+        for (const device of connectedDevices) {
+            const label = device.type === DeviceType.Wired ? "Ethernet"
+                : device.type === DeviceType.Wifi ? "Wi-Fi" : device.name
+            if (labels.indexOf(label) === -1) labels.push(label)
+        }
+        return labels.length > 0 ? labels.join(" + ") : "No connection"
+    }
+    readonly property string networkDetail: !networkConnected ? "Offline"
+        : Networking.connectivity === NetworkConnectivity.Full ? "Internet access"
+        : Networking.connectivity === NetworkConnectivity.Portal ? "Sign-in required"
+        : Networking.connectivity === NetworkConnectivity.Limited ? "Limited connectivity"
+        : Networking.connectivity === NetworkConnectivity.None ? "No internet"
+        : "Connected"
     property real brightness: -1
 
     function refresh() {
         if (!status.running) status.running = true
     }
 
-    function toggleNetwork() {
-        Quickshell.execDetached(["nmcli", "radio", "wifi", networkEnabled ? "off" : "on"])
-        delayedRefresh.restart()
-    }
-
-    function openNetworkSettings() {
-        Quickshell.execDetached(["nm-connection-editor"])
-    }
-
-    function toggleBluetooth() {
-        Quickshell.execDetached(["bluetoothctl", "power", bluetoothEnabled ? "off" : "on"])
-        delayedRefresh.restart()
+    function toggleWifi() {
+        if (!wifiAvailable || wifiBlocked) return
+        Networking.wifiEnabled = !Networking.wifiEnabled
     }
 
     function setBrightness(value) {
@@ -41,22 +61,13 @@ Scope {
         id: status
         command: [
             "sh", "-c",
-            "wifi=$(nmcli radio wifi 2>/dev/null); "
-                + "ssid=$(nmcli -t -f ACTIVE,SSID dev wifi 2>/dev/null | sed -n 's/^yes://p' | head -n1); "
-                + "bt=$(bluetoothctl show 2>/dev/null | awk '/Powered:/ {print $2; exit}'); "
-                + "btdev=$(bluetoothctl devices Connected 2>/dev/null | sed -n '1s/^Device [^ ]* //p'); "
-                + "backlight=$(find /sys/class/backlight -mindepth 1 -maxdepth 1 -type l 2>/dev/null | head -n1); "
+            "backlight=$(find /sys/class/backlight -mindepth 1 -maxdepth 1 -type l 2>/dev/null | head -n1); "
                 + "if [ -n \"$backlight\" ]; then current=$(cat \"$backlight/brightness\"); max=$(cat \"$backlight/max_brightness\"); b=$(awk -v c=\"$current\" -v m=\"$max\" 'BEGIN {printf \"%.0f\", 100*c/m}'); else b=-1; fi; "
-                + "printf '%s\\n%s\\n%s\\n%s\\n%s\\n' \"$wifi\" \"${ssid:-Not connected}\" \"$bt\" \"${btdev:-No connected device}\" \"$b\""
+                + "printf '%s\\n' \"$b\""
         ]
         stdout: StdioCollector {
             onStreamFinished: {
-                const values = text.trim().split("\n")
-                state.networkEnabled = values.length > 0 && values[0] === "enabled"
-                state.networkName = values.length > 1 ? values[1] : "Not connected"
-                state.bluetoothEnabled = values.length > 2 && values[2] === "yes"
-                state.bluetoothDevice = values.length > 3 ? values[3] : "No connected device"
-                const brightnessPercent = values.length > 4 ? Number(values[4]) : -1
+                const brightnessPercent = text.trim() === "" ? -1 : Number(text.trim())
                 state.brightness = brightnessPercent >= 0 ? brightnessPercent / 100 : -1
             }
         }

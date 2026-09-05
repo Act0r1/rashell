@@ -6,6 +6,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import qs.core
+import "LauncherSearch.js" as LauncherSearch
 
 Scope {
     id: root
@@ -15,6 +16,43 @@ Scope {
     property var targetScreen: null
     property string mode: "apps"
     property var clipboardItems: []
+    property var actions: []
+    property var projects: []
+    property string projectError: ""
+    property string projectConfigPath: ""
+    readonly property var modeNames: ["apps", "clipboard", "actions", "projects"]
+
+    signal actionRequested(string actionId)
+    signal projectRequested(string projectId)
+
+    function preferredScreen() {
+        const outputName = coordinator && coordinator.preferredOutputName
+            ? String(coordinator.preferredOutputName()) : ""
+        const screens = Quickshell.screens || []
+        for (let index = 0; index < screens.length; index++) {
+            if (String(screens[index].name || "") === outputName) return screens[index]
+        }
+        return screens.length > 0 ? screens[0] : null
+    }
+
+    function setMode(nextMode) {
+        const normalizedMode = String(nextMode || "").toLowerCase()
+        if (modeNames.indexOf(normalizedMode) === -1) return false
+        mode = normalizedMode
+        search.text = ""
+        if (mode === "clipboard") clipboardQuery.running = true
+        Qt.callLater(function() {
+            results.currentIndex = results.count > 0 ? 0 : -1
+            search.forceActiveFocus()
+        })
+        return true
+    }
+
+    function switchMode(offset) {
+        const current = Math.max(0, modeNames.indexOf(mode))
+        const next = (current + offset + modeNames.length) % modeNames.length
+        setMode(modeNames[next])
+    }
 
     function toggle() {
         if (opened) close()
@@ -22,11 +60,14 @@ Scope {
     }
 
     function open() {
+        openMode("apps")
+    }
+
+    function openMode(modeName) {
         coordinator.close("launcher")
-        targetScreen = Quickshell.screens.length > 0 ? Quickshell.screens[0] : null
-        mode = "apps"
-        clipboardQuery.running = true
-        opened = true
+        targetScreen = preferredScreen()
+        setMode(modeNames.indexOf(String(modeName || "").toLowerCase()) === -1 ? "apps" : modeName)
+        opened = targetScreen !== null
     }
 
     function close() {
@@ -38,6 +79,23 @@ Scope {
         if (!Number.isInteger(numericId) || numericId < 0) return
         Quickshell.execDetached(["sh", "-c", "printf '%s' " + String(numericId) + " | cliphist decode | wl-copy"])
         close()
+    }
+
+    function activate(item) {
+        if (!item) return
+        if (item.kind === "clipboard") {
+            copyClipboard(item.id)
+        } else if (item.kind === "action") {
+            if (!item.enabled) return
+            close()
+            actionRequested(String(item.id))
+        } else if (item.kind === "project") {
+            close()
+            projectRequested(String(item.id))
+        } else if (item.kind === "app") {
+            item.entry.execute()
+            close()
+        }
     }
 
     Process {
@@ -71,7 +129,7 @@ Scope {
 
         Rectangle {
             anchors.fill: parent
-            color: Qt.rgba(0, 0, 0, 0.52)
+            color: Qt.rgba(0, 0, 0, 0.42)
 
             MouseArea {
                 anchors.fill: parent
@@ -81,13 +139,13 @@ Scope {
 
         Rectangle {
             id: card
-            width: Math.min(700, window.width - 48)
-            height: Math.min(680, window.height - 120)
+            width: Math.min(620, window.width - Theme.spaceXl * 2)
+            height: Math.min(560, window.height - Theme.spaceXl * 4)
             anchors.centerIn: parent
             color: Theme.surface
-            border.color: Theme.borderInteractive
-            border.width: 1
-            radius: 16
+            border.color: Theme.border
+            border.width: Theme.borderWidth
+            radius: Theme.radius
 
             MouseArea {
                 anchors.fill: parent
@@ -96,26 +154,116 @@ Scope {
 
             Column {
                 anchors.fill: parent
-                anchors.margins: 18
-                spacing: 12
+                anchors.margins: Theme.spaceXl
+                spacing: Theme.spaceLg
+
+                Item {
+                    width: parent.width
+                    height: Theme.controlHeight
+
+                    Text {
+                        anchors.left: parent.left
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "Launcher"
+                        color: Theme.text
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontTitle + 2
+                        font.weight: Font.DemiBold
+                    }
+
+                    Text {
+                        anchors.right: parent.right
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "ctrl+tab switch"
+                        color: Theme.textDisabled
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSmall
+                    }
+                }
+
+                Row {
+                    id: tabRow
+                    width: parent.width
+                    height: Theme.compactControlSize
+                    spacing: Theme.spaceSm
+
+                    Repeater {
+                        model: [
+                            { mode: "apps", label: "Applications" },
+                            { mode: "clipboard", label: "Clipboard" },
+                            { mode: "actions", label: "Actions" },
+                            { mode: "projects", label: "Projects" }
+                        ]
+
+                        Button {
+                            id: tabButton
+                            required property var modelData
+                            width: (tabRow.width - tabRow.spacing * 3) / 4
+                            height: tabRow.height
+                            text: modelData.label
+                            onClicked: root.setMode(modelData.mode)
+
+                            background: Rectangle {
+                                color: root.mode === tabButton.modelData.mode
+                                    ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.16) : "transparent"
+                                border.color: root.mode === tabButton.modelData.mode ? Theme.accent : Theme.border
+                                border.width: Theme.borderWidth
+                                radius: Theme.radius
+                            }
+
+                            contentItem: Text {
+                                text: tabButton.text
+                                color: root.mode === tabButton.modelData.mode ? Theme.accent : Theme.textMuted
+                                elide: Text.ElideRight
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontSmall
+                                fontSizeMode: Text.Fit
+                                minimumPixelSize: 9
+                                font.weight: Font.Medium
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                            }
+                        }
+                    }
+                }
 
                 TextField {
                     id: search
                     width: parent.width
-                    height: 48
-                    placeholderText: "Search applications…"
+                    height: 44
+                    placeholderText: root.mode === "apps" ? "Search applications…"
+                        : root.mode === "clipboard" ? "Search clipboard…"
+                        : root.mode === "actions" ? "Search actions…"
+                        : "Search projects…"
+                    placeholderTextColor: Theme.textMuted
                     color: Theme.text
                     selectionColor: Theme.accent
                     selectedTextColor: Theme.textOnAccent
+                    leftPadding: Theme.spaceLg
+                    rightPadding: 44
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontBody
                     focus: root.opened
 
+                    onTextChanged: Qt.callLater(function() {
+                        results.currentIndex = results.count > 0 ? 0 : -1
+                    })
+
                     background: Rectangle {
                         color: Theme.surfaceRaised
                         border.color: search.activeFocus ? Theme.accent : Theme.border
-                        border.width: 1
+                        border.width: search.activeFocus ? Theme.focusWidth : Theme.borderWidth
                         radius: Theme.radius
+                    }
+
+                    Text {
+                        anchors.right: parent.right
+                        anchors.rightMargin: Theme.spaceLg
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "/"
+                        color: Theme.textDisabled
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSmall
                     }
 
                     Keys.onPressed: event => {
@@ -126,7 +274,14 @@ Scope {
                             results.currentIndex = Math.max(0, results.currentIndex - 1)
                             event.accepted = true
                         } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                            if (results.currentItem) results.currentItem.launch()
+                            if (results.currentIndex >= 0) root.activate(results.model[results.currentIndex])
+                            event.accepted = true
+                        } else if ((event.modifiers & Qt.ControlModifier)
+                                && (event.key === Qt.Key_Tab || event.key === Qt.Key_Backtab)) {
+                            root.switchMode(event.key === Qt.Key_Backtab || (event.modifiers & Qt.ShiftModifier) ? -1 : 1)
+                            event.accepted = true
+                        } else if ((event.modifiers & Qt.ControlModifier) && event.key >= Qt.Key_1 && event.key <= Qt.Key_4) {
+                            root.setMode(root.modeNames[event.key - Qt.Key_1])
                             event.accepted = true
                         } else if (event.key === Qt.Key_Escape) {
                             root.close()
@@ -135,118 +290,223 @@ Scope {
                     }
                 }
 
-                Row {
+                Item {
                     width: parent.width
-                    spacing: 8
-                    Button {
-                        width: 120
-                        height: 30
-                        text: "Applications"
-                        onClicked: root.mode = "apps"
-                        background: Rectangle { color: root.mode === "apps" ? Theme.accent : Theme.surfaceRaised; radius: Theme.radius }
-                        contentItem: Text { text: parent.text; color: root.mode === "apps" ? Theme.textOnAccent : Theme.text; font.family: Theme.fontFamily; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter }
+                    height: 18
+
+                    Text {
+                        anchors.left: parent.left
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: results.count + (results.count === 1 ? " result" : " results")
+                        color: Theme.textMuted
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSmall
                     }
-                    Button {
-                        width: 120
-                        height: 30
-                        text: "Clipboard"
-                        onClicked: root.mode = "clipboard"
-                        background: Rectangle { color: root.mode === "clipboard" ? Theme.accent : Theme.surfaceRaised; radius: Theme.radius }
-                        contentItem: Text { text: parent.text; color: root.mode === "clipboard" ? Theme.textOnAccent : Theme.text; font.family: Theme.fontFamily; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter }
+
+                    Text {
+                        anchors.right: parent.right
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: parent.width * 0.72
+                        text: root.mode === "projects" && root.projectError !== ""
+                            ? root.projectError : "↑↓ navigate   enter open   esc close"
+                        color: root.mode === "projects" && root.projectError !== ""
+                            ? Theme.danger : Theme.textDisabled
+                        elide: Text.ElideRight
+                        horizontalAlignment: Text.AlignRight
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSmall
                     }
                 }
 
-                Text {
-                    text: root.mode === "apps" ? (search.text === "" ? "APPLICATIONS" : "RESULTS") : "CLIPBOARD HISTORY"
-                    color: Theme.textMuted
-                    font.family: Theme.fontFamily
-                    font.pixelSize: Theme.fontSmall
-                    font.bold: true
-                }
-
-                ListView {
-                    id: results
+                Item {
                     width: parent.width
-                    height: parent.height - search.height - 82
-                    spacing: 4
-                    clip: true
-                    currentIndex: count > 0 ? 0 : -1
-                    model: {
-                        const query = search.text.trim().toLowerCase()
-                        if (root.mode === "clipboard") {
-                            return root.clipboardItems.filter(function(item) {
-                                return query === "" || item.text.toLowerCase().indexOf(query) !== -1
-                            }).slice(0, 40).map(function(item) {
-                                return { kind: "clipboard", id: item.id, name: item.text, comment: "Copy to clipboard", icon: "edit-copy" }
+                    height: parent.height - Theme.controlHeight - tabRow.height - search.height - 18 - Theme.spaceLg * 4
+
+                    ListView {
+                        id: results
+                        anchors.fill: parent
+                        spacing: Theme.spaceSm
+                        clip: true
+                        currentIndex: count > 0 ? 0 : -1
+                        model: {
+                            const query = search.text.trim().toLowerCase()
+                            if (root.mode === "clipboard") {
+                                return root.clipboardItems.filter(function(item) {
+                                    return query === "" || item.text.toLowerCase().indexOf(query) !== -1
+                                }).slice(0, 40).map(function(item) {
+                                    return {
+                                        kind: "clipboard",
+                                        id: item.id,
+                                        name: item.text,
+                                        comment: "Copy to clipboard",
+                                        icon: "edit-copy",
+                                        enabled: true
+                                    }
+                                })
+                            }
+                            if (root.mode === "actions") {
+                                return LauncherSearch.records(root.actions, query, 40).map(function(action) {
+                                    return {
+                                        kind: "action",
+                                        id: action.id,
+                                        name: action.name,
+                                        comment: action.comment || "",
+                                        icon: action.icon || "system-run",
+                                        enabled: action.enabled !== false
+                                    }
+                                })
+                            }
+                            if (root.mode === "projects") {
+                                return LauncherSearch.records(root.projects, query, 40).map(function(project) {
+                                    return {
+                                        kind: "project",
+                                        id: project.id,
+                                        name: project.name,
+                                        comment: project.comment || project.path || "",
+                                        icon: project.icon || "folder",
+                                        enabled: true
+                                    }
+                                })
+                            }
+                            const all = DesktopEntries.applications ? DesktopEntries.applications.values : []
+                            return LauncherSearch.applications(all, query, 40).map(function(entry) {
+                                return {
+                                    kind: "app",
+                                    entry: entry,
+                                    name: entry.name,
+                                    comment: entry.comment || "",
+                                    icon: entry.icon,
+                                    enabled: true
+                                }
                             })
                         }
-                        const all = DesktopEntries.applications ? DesktopEntries.applications.values : []
-                        return all.filter(function(entry) {
-                            if (!entry || entry.noDisplay || entry.hidden) return false
-                            if (query === "") return true
-                            return String(entry.name || "").toLowerCase().indexOf(query) !== -1
-                                || String(entry.comment || "").toLowerCase().indexOf(query) !== -1
-                                || String(entry.keywords || "").toLowerCase().indexOf(query) !== -1
-                        }).slice(0, 40).map(function(entry) {
-                            return { kind: "app", entry: entry, name: entry.name, comment: entry.comment || entry.id, icon: entry.icon }
-                        })
-                    }
 
-                    delegate: ItemDelegate {
-                        id: appDelegate
-                        required property var modelData
-                        required property int index
-                        width: ListView.view.width
-                        height: 52
-                        hoverEnabled: true
-                        highlighted: ListView.isCurrentItem
+                        delegate: ItemDelegate {
+                            id: resultDelegate
+                            required property var modelData
+                            required property int index
+                            width: ListView.view.width
+                            height: 48
+                            hoverEnabled: true
+                            highlighted: ListView.isCurrentItem
+                            enabled: modelData.kind !== "action" || modelData.enabled
 
-                        function launch() {
-                            if (appDelegate.modelData.kind === "clipboard") root.copyClipboard(appDelegate.modelData.id)
-                            else appDelegate.modelData.entry.execute()
-                            root.close()
-                        }
-
-                        contentItem: Row {
-                            spacing: 12
-                            Image {
-                                width: 30
-                                height: 30
-                                anchors.verticalCenter: parent.verticalCenter
-                                source: Quickshell.iconPath(appDelegate.modelData.icon)
-                                fillMode: Image.PreserveAspectFit
+                            function launch() {
+                                root.activate(resultDelegate.modelData)
                             }
-                            Column {
-                                anchors.verticalCenter: parent.verticalCenter
-                                width: parent.width - 42
-                                Text {
-                                    width: parent.width
-                                    text: appDelegate.modelData.name
-                                    color: Theme.text
-                                    elide: Text.ElideRight
-                                    font.family: Theme.fontFamily
-                                    font.pixelSize: Theme.fontBody
-                                    font.bold: true
+
+                            contentItem: Item {
+                                opacity: resultDelegate.enabled ? 1 : 0.55
+
+                                Image {
+                                    id: resultIcon
+                                    width: 28
+                                    height: 28
+                                    anchors.left: parent.left
+                                    anchors.leftMargin: Theme.spaceLg
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    source: Quickshell.iconPath(resultDelegate.modelData.icon)
+                                    fillMode: Image.PreserveAspectFit
                                 }
+
                                 Text {
-                                    width: parent.width
-                                    text: appDelegate.modelData.comment
-                                    color: Theme.textMuted
-                                    elide: Text.ElideRight
+                                    id: unavailableLabel
+                                    anchors.right: parent.right
+                                    anchors.rightMargin: Theme.spaceLg
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    visible: resultDelegate.modelData.kind === "action" && !resultDelegate.modelData.enabled
+                                    text: "Unavailable"
+                                    color: Theme.textDisabled
                                     font.family: Theme.fontFamily
                                     font.pixelSize: Theme.fontSmall
                                 }
+
+                                Column {
+                                    anchors.left: resultIcon.right
+                                    anchors.leftMargin: Theme.spaceLg
+                                    anchors.right: unavailableLabel.visible ? unavailableLabel.left : parent.right
+                                    anchors.rightMargin: Theme.spaceLg
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    spacing: 1
+
+                                    Text {
+                                        width: parent.width
+                                        text: resultDelegate.modelData.name
+                                        color: Theme.text
+                                        elide: Text.ElideRight
+                                        font.family: Theme.fontFamily
+                                        font.pixelSize: Theme.fontBody
+                                        font.weight: Font.DemiBold
+                                    }
+
+                                    Text {
+                                        width: parent.width
+                                        visible: text.length > 0
+                                        text: resultDelegate.modelData.comment
+                                        color: Theme.textMuted
+                                        elide: Text.ElideRight
+                                        font.family: Theme.fontFamily
+                                        font.pixelSize: Theme.fontSmall
+                                    }
+                                }
                             }
+
+                            background: Rectangle {
+                                color: resultDelegate.highlighted
+                                    ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.13)
+                                    : resultDelegate.hovered ? Theme.surfaceRaised : "transparent"
+                                radius: Theme.radius
+
+                                Rectangle {
+                                    width: Theme.focusWidth
+                                    height: parent.height - Theme.spaceLg * 2
+                                    anchors.left: parent.left
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    visible: resultDelegate.highlighted
+                                    color: Theme.accent
+                                    radius: width
+                                }
+                            }
+
+                            onHoveredChanged: if (hovered) results.currentIndex = index
+                            onClicked: launch()
                         }
 
-                        background: Rectangle {
-                            color: appDelegate.highlighted || appDelegate.hovered ? Theme.surfaceRaised : "transparent"
-                            border.color: appDelegate.highlighted ? Theme.accent : "transparent"
-                            border.width: 1
-                            radius: Theme.radius
+                        ScrollBar.vertical: ScrollBar {
+                            policy: ScrollBar.AsNeeded
+                            width: Theme.spaceMd
+                            contentItem: Rectangle {
+                                implicitWidth: Theme.spaceSm
+                                radius: Theme.spaceXs
+                                color: Theme.borderInteractive
+                            }
+                            background: Item {}
                         }
-                        onHoveredChanged: if (hovered) results.currentIndex = index
-                        onClicked: launch()
+                    }
+
+                    Text {
+                        width: parent.width - Theme.spaceXl * 2
+                        anchors.centerIn: parent
+                        visible: results.count === 0
+                        text: {
+                            if (root.mode === "clipboard") {
+                                return clipboardQuery.running ? "Loading clipboard…" : "Clipboard is empty"
+                            }
+                            if (root.mode === "apps") return "No applications found"
+                            if (root.mode === "actions") {
+                                return search.text.trim() === "" ? "No actions configured" : "No actions found"
+                            }
+                            if (root.projectError !== "") return root.projectError
+                            if (search.text.trim() !== "") return "No projects found"
+                            return root.projectConfigPath !== ""
+                                ? "No projects configured\nAdd projects to " + root.projectConfigPath
+                                : "No projects configured"
+                        }
+                        color: root.mode === "projects" && root.projectError !== "" ? Theme.danger : Theme.textMuted
+                        wrapMode: Text.Wrap
+                        horizontalAlignment: Text.AlignHCenter
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontBody
                     }
                 }
             }

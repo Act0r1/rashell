@@ -12,7 +12,7 @@ Item {
     required property var feedback
     required property string outputName
 
-    implicitWidth: audioContent.implicitWidth + 16
+    implicitWidth: Math.max(72, audioContent.implicitWidth + 16)
     implicitHeight: Theme.controlHeight
 
     Button {
@@ -26,24 +26,27 @@ Item {
 
         contentItem: Row {
             id: audioContent
-            spacing: Theme.spaceMd
+            spacing: Theme.spaceSm + 2
 
             Text {
                 anchors.verticalCenter: parent.verticalCenter
-                text: root.state.availability === "loading" ? "AUDIO ..."
-                    : root.state.availability !== "ready" ? "AUDIO !"
-                    : root.state.outputMuted ? "MUTE" : "VOL"
+                text: root.state.availability !== "ready" ? "󰝟"
+                    : root.state.outputMuted ? "󰝟"
+                    : root.state.outputVolume < 0.01 ? "󰕿"
+                    : root.state.outputVolume < 0.5 ? "󰖀" : "󰕾"
                 color: root.state.outputMuted ? Theme.danger
                     : root.state.availability === "ready" ? Theme.accentMuted : Theme.textMuted
                 font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSmall
-                font.bold: true
+                font.pixelSize: 18
             }
 
             Text {
                 anchors.verticalCenter: parent.verticalCenter
-                visible: root.state.availability === "ready"
-                text: Math.round(root.state.outputVolume * 100) + "%"
+                width: 34
+                horizontalAlignment: Text.AlignRight
+                text: root.state.availability === "loading" ? "…"
+                    : root.state.availability !== "ready" ? "!"
+                    : Math.round(root.state.outputVolume * 100) + "%"
                 color: Theme.text
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontBody
