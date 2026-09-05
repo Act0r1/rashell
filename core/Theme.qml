@@ -62,10 +62,10 @@ QtObject {
     readonly property color danger: palette.danger
     readonly property color textOnDanger: palette.textOnDanger
 
-    readonly property string fontFamily: "FiraCode Nerd Font"
-    readonly property int fontSmall: 11
-    readonly property int fontBody: 13
-    readonly property int fontTitle: 15
+    readonly property string fontFamily: "Adwaita Sans"
+    readonly property int fontSmall: 12
+    readonly property int fontBody: 14
+    readonly property int fontTitle: 16
 
     readonly property int spaceXs: 2
     readonly property int spaceSm: 4

@@ -57,8 +57,7 @@ class BluetoothPanelTest(unittest.TestCase):
         control_panel = (ROOT / "modules/system/ControlPanel.qml").read_text()
 
         self.assertIn('"/modules/system/BluetoothPanel.qml"', control_panel)
-        self.assertIn('settingsName: "Open Bluetooth devices"', control_panel)
-        self.assertIn("accessibleName: tile.settingsName", control_panel)
+        self.assertIn('accessibleName: "Open Bluetooth devices"', control_panel)
         self.assertNotIn("controlState.toggleBluetooth", control_panel)
 
 

@@ -370,71 +370,122 @@ FocusScope {
                         }
                     }
 
-                    Grid {
+                    Column {
                         width: parent.width
-                        columns: 2
                         spacing: Theme.spaceMd
 
-                        QuickTile {
-                            width: (parent.width - parent.spacing) / 2
-                            label: "Wi-Fi"
-                            detail: !root.controlState.networkEnabled ? "Off"
-                                : root.controlState.networkName === "Not connected" ? "Not connected" : root.controlState.networkName
-                            glyph: root.controlState.networkEnabled ? "󰤨" : "󰤭"
-                            active: root.controlState.networkEnabled
-                            accessibleName: "Turn Wi-Fi " + (root.controlState.networkEnabled ? "off" : "on")
-                            hasSettings: true
-                            settingsName: "Open network settings"
-                            onActivated: root.controlState.toggleNetwork()
-                            onSettingsRequested: root.coordinator.open(
-                                "network", root.coordinator.anchorItem, root.coordinator.alignment,
-                                Quickshell.shellDir + "/modules/system/NetworkPanel.qml",
-                                { coordinator: root.coordinator }
-                            )
+                        Rectangle {
+                            width: parent.width
+                            height: 36
+                            radius: Theme.radius
+                            color: Theme.surfaceRaised
+
+                            Text {
+                                id: connectionGlyph
+                                anchors.left: parent.left
+                                anchors.leftMargin: Theme.spaceLg
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: 20
+                                text: root.controlState.wiredConnected ? "󰈀"
+                                    : root.controlState.networkConnected ? "󰤨" : "󰤭"
+                                color: root.controlState.networkConnected ? Theme.accent : Theme.textMuted
+                                font.family: Theme.fontFamily
+                                font.pixelSize: 18
+                                horizontalAlignment: Text.AlignHCenter
+                            }
+
+                            Text {
+                                anchors.left: connectionGlyph.right
+                                anchors.leftMargin: Theme.spaceMd
+                                anchors.right: connectionDetail.left
+                                anchors.rightMargin: Theme.spaceMd
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: root.controlState.networkLabel
+                                color: Theme.text
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontBody
+                                font.bold: true
+                                elide: Text.ElideRight
+                            }
+
+                            Text {
+                                id: connectionDetail
+                                anchors.right: parent.right
+                                anchors.rightMargin: Theme.spaceLg
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: root.controlState.networkDetail
+                                color: Theme.textMuted
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontSmall
+                            }
                         }
 
-                        QuickTile {
-                            width: (parent.width - parent.spacing) / 2
-                            label: "Bluetooth"
-                            detail: !BluetoothState.available ? "Unavailable" : BluetoothState.blocked ? "Blocked"
-                                : !BluetoothState.enabled ? "Off" : BluetoothState.connectedDevices.length > 0
-                                    ? BluetoothState.deviceLabel(BluetoothState.connectedDevices[0]) : "Not connected"
-                            glyph: BluetoothState.enabled ? "󰂯" : "󰂲"
-                            active: BluetoothState.enabled
-                            toggleEnabled: BluetoothState.available && !BluetoothState.blocked
-                            accessibleName: "Turn Bluetooth " + (BluetoothState.enabled ? "off" : "on")
-                            hasSettings: true
-                            settingsName: "Open Bluetooth devices"
-                            onActivated: BluetoothState.toggleEnabled()
-                            onSettingsRequested: root.coordinator.open(
-                                "bluetooth", root.coordinator.anchorItem, root.coordinator.alignment,
-                                Quickshell.shellDir + "/modules/system/BluetoothPanel.qml",
-                                { coordinator: root.coordinator }
-                            )
-                        }
+                        Grid {
+                            width: parent.width
+                            columns: 2
+                            spacing: Theme.spaceMd
 
-                        QuickTile {
-                            width: (parent.width - parent.spacing) / 2
-                            label: "Mode"
-                            detail: root.sessionModeState.title + "  ›"
-                            glyph: "󰓅"
-                            active: root.sessionModeState.active
-                            accessibleName: "Choose work or presentation mode"
-                            onActivated: root.coordinator.open(
-                                "modes", root.coordinator.anchorItem, root.coordinator.alignment,
-                                Quickshell.shellDir + "/modules/session/ModePanel.qml",
-                                { coordinator: root.coordinator, modeState: root.sessionModeState }
-                            )
-                        }
+                            QuickTile {
+                                width: (parent.width - parent.spacing) / 2
+                                label: "Wi-Fi"
+                                detail: root.controlState.wifiDetail
+                                glyph: root.controlState.wifiEnabled ? "󰤨" : "󰤭"
+                                active: root.controlState.wifiEnabled
+                                accessibleName: "Choose Wi-Fi network"
+                                hasToggle: true
+                                toggleEnabled: root.controlState.wifiAvailable && !root.controlState.wifiBlocked
+                                toggleName: "Turn Wi-Fi " + (root.controlState.wifiEnabled ? "off" : "on")
+                                onToggleRequested: root.controlState.toggleWifi()
+                                onActivated: root.coordinator.open(
+                                    "network", root.coordinator.anchorItem, root.coordinator.alignment,
+                                    Quickshell.shellDir + "/modules/system/NetworkPanel.qml",
+                                    { coordinator: root.coordinator }
+                                )
+                            }
 
-                        QuickTile {
-                            width: (parent.width - parent.spacing) / 2
-                            label: "Do not disturb"
-                            detail: root.notificationState.doNotDisturb ? "On · Notifications paused" : "Off · Notifications on"
-                            glyph: root.notificationState.doNotDisturb ? "󰂛" : "󰂚"
-                            active: root.notificationState.doNotDisturb
-                            accessibleName: "Turn do not disturb " + (root.notificationState.doNotDisturb ? "off" : "on")
-                            onActivated: root.notificationState.doNotDisturb = !root.notificationState.doNotDisturb
+                            QuickTile {
+                                width: (parent.width - parent.spacing) / 2
+                                label: "Bluetooth"
+                                detail: !BluetoothState.available ? "Unavailable" : BluetoothState.blocked ? "Blocked"
+                                    : !BluetoothState.enabled ? "Off" : BluetoothState.connectedDevices.length > 0
+                                        ? BluetoothState.deviceLabel(BluetoothState.connectedDevices[0]) : "Not connected"
+                                glyph: BluetoothState.enabled ? "󰂯" : "󰂲"
+                                active: BluetoothState.enabled
+                                toggleEnabled: BluetoothState.available && !BluetoothState.blocked
+                                accessibleName: "Open Bluetooth devices"
+                                hasToggle: true
+                                toggleName: "Turn Bluetooth " + (BluetoothState.enabled ? "off" : "on")
+                                onToggleRequested: BluetoothState.toggleEnabled()
+                                onActivated: root.coordinator.open(
+                                    "bluetooth", root.coordinator.anchorItem, root.coordinator.alignment,
+                                    Quickshell.shellDir + "/modules/system/BluetoothPanel.qml",
+                                    { coordinator: root.coordinator }
+                                )
+                            }
+
+                            QuickTile {
+                                width: (parent.width - parent.spacing) / 2
+                                label: "Mode"
+                                detail: root.sessionModeState.title + "  ›"
+                                glyph: "󰓅"
+                                active: root.sessionModeState.active
+                                accessibleName: "Choose work or presentation mode"
+                                onActivated: root.coordinator.open(
+                                    "modes", root.coordinator.anchorItem, root.coordinator.alignment,
+                                    Quickshell.shellDir + "/modules/session/ModePanel.qml",
+                                    { coordinator: root.coordinator, modeState: root.sessionModeState }
+                                )
+                            }
+
+                            QuickTile {
+                                width: (parent.width - parent.spacing) / 2
+                                label: "Do not disturb"
+                                detail: root.notificationState.doNotDisturb ? "On · Paused" : "Off · Notifications on"
+                                glyph: root.notificationState.doNotDisturb ? "󰂛" : "󰂚"
+                                active: root.notificationState.doNotDisturb
+                                accessibleName: "Turn do not disturb " + (root.notificationState.doNotDisturb ? "off" : "on")
+                                onActivated: root.notificationState.doNotDisturb = !root.notificationState.doNotDisturb
+                            }
                         }
                     }
 

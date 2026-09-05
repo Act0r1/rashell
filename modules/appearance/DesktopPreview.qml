@@ -47,7 +47,7 @@ Rectangle {
                     required property string modelData
                     text: modelData
                     color: modelData === "01" ? root.colors.accent : root.colors.textMuted
-                    font { family: Theme.fontFamily; pixelSize: 11; bold: modelData === "01" }
+                    font { family: Theme.fontFamily; pixelSize: Theme.fontSmall; bold: modelData === "01" }
                 }
             }
         }
@@ -56,14 +56,14 @@ Rectangle {
             anchors.centerIn: parent
             text: "14:32"
             color: root.colors.text
-            font { family: Theme.fontFamily; pixelSize: 11 }
+            font { family: Theme.fontFamily; pixelSize: Theme.fontSmall }
         }
 
         Text {
             anchors { right: parent.right; rightMargin: 16; verticalCenter: parent.verticalCenter }
             text: "󰖩   󰕾  60%"
             color: root.colors.accent
-            font { family: Theme.fontFamily; pixelSize: 11 }
+            font { family: Theme.fontFamily; pixelSize: Theme.fontSmall }
         }
 
         Rectangle {
@@ -95,7 +95,7 @@ Rectangle {
                 Text {
                     text: "Terminal"
                     color: root.colors.textMuted
-                    font { family: Theme.fontFamily; pixelSize: 11 }
+                    font { family: Theme.fontFamily; pixelSize: Theme.fontSmall }
                 }
             }
 
@@ -105,14 +105,14 @@ Rectangle {
                 width: parent.width
                 text: "insaf ~"
                 color: root.colors.accent
-                font { family: Theme.fontFamily; pixelSize: 13; bold: true }
+                font { family: Theme.fontFamily; pixelSize: Theme.fontBody; bold: true }
             }
 
             Text {
                 width: parent.width
                 text: root.themeName
                 color: root.colors.text
-                font { family: Theme.fontFamily; pixelSize: 16; bold: true }
+                font { family: Theme.fontFamily; pixelSize: Theme.fontTitle; bold: true }
                 elide: Text.ElideRight
             }
 
@@ -121,7 +121,7 @@ Rectangle {
                 visible: terminal.height > 190
                 text: "A little space to build."
                 color: root.colors.textMuted
-                font { family: Theme.fontFamily; pixelSize: 11 }
+                font { family: Theme.fontFamily; pixelSize: Theme.fontSmall }
                 elide: Text.ElideRight
             }
 
@@ -158,12 +158,12 @@ Rectangle {
             Text {
                 text: "󰂚  Notification"
                 color: root.colors.accent
-                font { family: Theme.fontFamily; pixelSize: 11; bold: true }
+                font { family: Theme.fontFamily; pixelSize: Theme.fontSmall; bold: true }
             }
             Text {
                 text: "Everything in its place."
                 color: root.colors.text
-                font { family: Theme.fontFamily; pixelSize: 11 }
+                font { family: Theme.fontFamily; pixelSize: Theme.fontSmall }
             }
             Rectangle {
                 width: 78
@@ -174,7 +174,7 @@ Rectangle {
                     anchors.centerIn: parent
                     text: "Open"
                     color: root.colors.textOnAccent
-                    font { family: Theme.fontFamily; pixelSize: 11; bold: true }
+                    font { family: Theme.fontFamily; pixelSize: Theme.fontSmall; bold: true }
                 }
             }
         }

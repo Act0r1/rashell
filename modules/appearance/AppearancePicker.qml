@@ -107,9 +107,6 @@ Scope {
                 } else if (event.key === Qt.Key_Down || event.key === Qt.Key_Up) {
                     root.step(event.key === Qt.Key_Down ? 1 : -1)
                     event.accepted = true
-                } else if ((event.key === Qt.Key_Return || event.key === Qt.Key_Enter) && search.activeFocus) {
-                    root.applySelected()
-                    event.accepted = true
                 }
             }
 
@@ -140,15 +137,26 @@ Scope {
                         Text {
                             text: Theme.catalog.length + " themes · find your atmosphere"
                             color: Theme.textMuted
-                            font { family: Theme.fontFamily; pixelSize: 12 }
+                            font { family: Theme.fontFamily; pixelSize: Theme.fontSmall }
                         }
                     }
                     CloseButton { onClicked: root.close() }
                 }
 
-                GridLayout {
+                Flickable {
+                    id: bodyScroll
                     Layout.fillWidth: true
                     Layout.fillHeight: true
+                    contentWidth: width
+                    contentHeight: bodyGrid.height
+                    clip: true
+                    boundsBehavior: Flickable.StopAtBounds
+                    ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+
+                    GridLayout {
+                    id: bodyGrid
+                    width: bodyScroll.width - 8
+                    height: Math.max(bodyScroll.height, implicitHeight)
                     columns: content.compact ? 1 : 2
                     rowSpacing: 16
                     columnSpacing: 26
@@ -169,7 +177,7 @@ Scope {
                             placeholderTextColor: Theme.textMuted
                             selectionColor: Theme.accent
                             selectedTextColor: Theme.textOnAccent
-                            font { family: Theme.fontFamily; pixelSize: 13 }
+                            font { family: Theme.fontFamily; pixelSize: Theme.fontBody }
                             leftPadding: 12
                             rightPadding: 12
                             Accessible.name: "Search themes"
@@ -225,6 +233,7 @@ Scope {
                                 rightPadding: 12
                                 Accessible.name: modelData.name + (root.configStore.theme === modelData.id ? ", current theme" : "")
                                 onClicked: root.selectAt(index)
+                                onActiveFocusChanged: if (activeFocus) root.selectAt(index)
                                 Keys.onReturnPressed: root.applySelected()
                                 Keys.onEnterPressed: root.applySelected()
 
@@ -256,7 +265,7 @@ Scope {
                                         Layout.fillWidth: true
                                         text: choice.modelData.name
                                         color: root.selectedId === choice.modelData.id ? Theme.accent : Theme.text
-                                        font { family: Theme.fontFamily; pixelSize: 12; bold: root.selectedId === choice.modelData.id }
+                                        font { family: Theme.fontFamily; pixelSize: Theme.fontSmall; bold: root.selectedId === choice.modelData.id }
                                         elide: Text.ElideRight
                                     }
                                     Text {
@@ -273,7 +282,7 @@ Scope {
                                 visible: catalog.count === 0
                                 text: "No matching themes"
                                 color: Theme.textMuted
-                                font { family: Theme.fontFamily; pixelSize: 12 }
+                                font { family: Theme.fontFamily; pixelSize: Theme.fontSmall }
                             }
                         }
                     }
@@ -288,13 +297,13 @@ Scope {
                             Text {
                                 text: "DESKTOP PREVIEW"
                                 color: Theme.textMuted
-                                font { family: Theme.fontFamily; pixelSize: 11; bold: true }
+                                font { family: Theme.fontFamily; pixelSize: Theme.fontSmall; bold: true }
                             }
                             Item { Layout.fillWidth: true }
                             Text {
                                 text: root.selectedTheme.kind === "light" ? "Light" : "Dark"
                                 color: Theme.textMuted
-                                font { family: Theme.fontFamily; pixelSize: 11 }
+                                font { family: Theme.fontFamily; pixelSize: Theme.fontSmall }
                             }
                         }
 
@@ -322,7 +331,7 @@ Scope {
                                 Layout.fillWidth: true
                                 text: root.selectedTheme.description
                                 color: Theme.textMuted
-                                font { family: Theme.fontFamily; pixelSize: 12 }
+                                font { family: Theme.fontFamily; pixelSize: Theme.fontSmall }
                                 wrapMode: Text.WordWrap
                                 maximumLineCount: 2
                                 elide: Text.ElideRight
@@ -347,6 +356,7 @@ Scope {
                         }
                     }
                 }
+                }
 
                 Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Theme.border }
 
@@ -367,7 +377,7 @@ Scope {
                         visible: !content.compact
                         text: root.error !== "" ? root.error : "↑ ↓ Browse    Enter Apply    Esc Close"
                         color: root.error !== "" ? Theme.danger : Theme.textMuted
-                        font { family: Theme.fontFamily; pixelSize: 11 }
+                        font { family: Theme.fontFamily; pixelSize: Theme.fontSmall }
                         horizontalAlignment: Text.AlignHCenter
                         elide: Text.ElideRight
                     }
