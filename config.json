@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "theme": "tokyonight",
+  "theme": "raven",
   "wallpaper": "/home/yeager/Pictures/Wallpapers/among-trees-campsite.jpg",
   "captureDirectory": "~/Pictures/Screenshots",
   "weatherLocation": "Kazan",
@@ -26,5 +26,10 @@
       "rashell.control",
       "rashell.updates"
     ]
-  }
+  },
+  "trayPinnedIds": [
+    "chrome_status_icon_1",
+    "indicator-solaar",
+    "steam"
+  ]
 }

@@ -5,7 +5,7 @@ import qs.core
 Item {
     id: root
     required property var state
-    implicitWidth: label.implicitWidth + 18
+    implicitWidth: keyboardContent.implicitWidth + 18
     implicitHeight: Theme.controlHeight
 
     Button {
@@ -14,14 +14,25 @@ Item {
         hoverEnabled: true
         Accessible.name: "Keyboard layout " + root.state.layoutName
 
-        contentItem: Text {
-            id: label
-            text: "󰌌 " + root.state.shortName
-            color: Theme.text
-            font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontTitle
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
+        contentItem: Row {
+            id: keyboardContent
+            spacing: Theme.spaceSm
+
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text: "󰌌"
+                color: Theme.accent
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontTitle
+            }
+
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text: root.state.shortName
+                color: Theme.accent
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontTitle
+            }
         }
 
         background: Rectangle {

@@ -7,6 +7,7 @@ Item {
     id: root
 
     required property var state
+    required property var textCaptureState
     required property var coordinator
     required property var configStore
     required property string outputName
@@ -49,6 +50,7 @@ Item {
                 {
                     coordinator: root.coordinator,
                     captureState: root.state,
+                    textCaptureState: root.textCaptureState,
                     configStore: root.configStore,
                     outputName: root.outputName
                 }

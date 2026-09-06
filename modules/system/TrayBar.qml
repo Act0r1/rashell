@@ -24,7 +24,11 @@ Item {
         }
         return result
     }
-    readonly property int overflowCount: items.length - pinnedItems.length
+    readonly property var overflowItems: items.filter(item => pinnedItems.indexOf(item) === -1)
+    readonly property int overflowCount: overflowItems.length
+    readonly property string dragMimeType: "application/x-rashell-tray-item"
+    property var draggedItem: null
+    property var pendingPinned: null
     readonly property bool overflowOpened: coordinator.opened
         && coordinator.activePanelId === "tray" && coordinator.anchorItem === overflowButton
     property int menuRequest: 0
@@ -44,16 +48,55 @@ Item {
         return pinnedItems.indexOf(item) !== -1
     }
 
-    function togglePin(item) {
+    function setPinned(item, pinned) {
         const id = pinId(item)
         if (id === "" || items.indexOf(item) === -1) return
         const next = pinnedIds === null
             ? pinnedItems.map(entry => pinId(entry)).filter((pin, index, pins) => pin !== "" && pins.indexOf(pin) === index)
             : Array.from(pinnedIds)
         const index = next.indexOf(id)
-        if (index === -1) next.push(id)
-        else next.splice(index, 1)
+        if (pinned && index === -1) next.push(id)
+        else if (!pinned && index !== -1) next.splice(index, 1)
+        else return
         configStore.setTrayPinnedIds(next)
+    }
+
+    function openOverflow() {
+        if (overflowOpened) return
+        closeMenu()
+        coordinator.open(
+            "tray", overflowButton, "right",
+            Quickshell.shellDir + "/modules/system/TrayOverflowPanel.qml",
+            { trayBar: root, coordinator: coordinator }
+        )
+    }
+
+    function beginDrag(item) {
+        draggedItem = item
+        pendingPinned = null
+        trayTooltip.visible = false
+        tooltipAnchor = null
+        openOverflow()
+    }
+
+    function acceptsDrag(event) {
+        return draggedItem !== null && event.formats.indexOf(dragMimeType) !== -1
+            && event.getDataAsString(dragMimeType) === pinId(draggedItem)
+    }
+
+    function acceptDrop(event, pinned) {
+        if (!acceptsDrag(event)) return
+        pendingPinned = pinned
+        event.accept(Qt.MoveAction)
+    }
+
+    function finishDrag(action) {
+        const item = draggedItem
+        const pinned = pendingPinned
+        draggedItem = null
+        pendingPinned = null
+        if (action !== Qt.MoveAction || pinned === null) return
+        Qt.callLater(function() { root.setPinned(item, pinned) })
     }
 
     function closeMenu() {
@@ -85,7 +128,7 @@ Item {
     }
 
     function showTooltip(item, anchorItem) {
-        if (coordinator.opened || !item) return
+        if (coordinator.opened || draggedItem || !item) return
         const title = String(item.tooltipTitle || item.title || item.id || "")
         if (title === "") return
         const characters = Array.from(title)
@@ -189,6 +232,23 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         spacing: Theme.spaceXs
 
+        Rectangle {
+            visible: root.draggedItem !== null && root.pinnedItems.length === 0
+            width: visible ? 32 : 0
+            height: Theme.controlHeight
+            color: barDrop.containsDrag ? Theme.accentMuted : Theme.surfaceRaised
+            border.color: Theme.accent
+            border.width: Theme.borderWidth
+            radius: Theme.radius
+
+            Text {
+                anchors.centerIn: parent
+                text: "+"
+                color: Theme.accent
+                font.pixelSize: 18
+            }
+        }
+
         Repeater {
             model: root.pinnedItems
 
@@ -196,6 +256,10 @@ Item {
                 id: trayButton
                 required property var modelData
                 trayItem: modelData
+                draggable: root.pinId(modelData) !== ""
+                dragMimeType: root.dragMimeType
+                onDragStarted: root.beginDrag(modelData)
+                onDragFinished: action => root.finishDrag(action)
                 width: 32
                 height: Theme.controlHeight
                 onTriggered: button => root.triggerItem(modelData, button, trayButton)
@@ -204,6 +268,7 @@ Item {
                     else root.hideTooltip(trayButton)
                 }
                 Component.onDestruction: {
+                    if (!root) return
                     root.hideTooltip(trayButton)
                     if (trayMenu && trayMenu.anchorItem === trayButton) root.closeMenu()
                 }
@@ -216,8 +281,6 @@ Item {
             height: Theme.controlHeight
             hoverEnabled: true
             Accessible.name: "Tray applications, " + root.overflowCount + " hidden. Manage pinned apps"
-            ToolTip.visible: hovered && !root.overflowOpened
-            ToolTip.text: root.overflowCount > 0 ? root.overflowCount + " more apps" : "Manage tray apps"
 
             contentItem: Text {
                 text: root.overflowOpened ? "󰅃" : "󰅀"
@@ -238,12 +301,27 @@ Item {
 
             onClicked: {
                 root.closeMenu()
-                root.coordinator.toggle(
-                    "tray", overflowButton, "right",
-                    Quickshell.shellDir + "/modules/system/TrayOverflowPanel.qml",
-                    { trayBar: root, coordinator: root.coordinator }
-                )
+                if (root.overflowOpened) root.coordinator.close("trigger-toggle")
+                else root.openOverflow()
             }
+        }
+    }
+
+    DropArea {
+        id: barDrop
+        anchors.fill: parent
+        keys: [root.dragMimeType]
+        onEntered: event => { event.accepted = root.acceptsDrag(event) }
+        onDropped: event => root.acceptDrop(event, true)
+
+        DropArea {
+            x: overflowButton.x
+            y: trayRow.y
+            width: overflowButton.width
+            height: overflowButton.height
+            keys: [root.dragMimeType]
+            onEntered: event => { event.accepted = root.acceptsDrag(event) }
+            onDropped: event => root.acceptDrop(event, false)
         }
     }
 

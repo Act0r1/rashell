@@ -35,7 +35,7 @@ Item {
                     : root.state.outputVolume < 0.01 ? "󰕿"
                     : root.state.outputVolume < 0.5 ? "󰖀" : "󰕾"
                 color: root.state.outputMuted ? Theme.danger
-                    : root.state.availability === "ready" ? Theme.accentMuted : Theme.textMuted
+                    : root.state.availability === "ready" ? Theme.accent : Theme.textMuted
                 font.family: Theme.fontFamily
                 font.pixelSize: 18
             }
@@ -47,7 +47,7 @@ Item {
                 text: root.state.availability === "loading" ? "…"
                     : root.state.availability !== "ready" ? "!"
                     : Math.round(root.state.outputVolume * 100) + "%"
-                color: Theme.text
+                color: Theme.accent
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontBody
             }

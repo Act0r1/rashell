@@ -17,6 +17,7 @@ Scope {
     property var anchorsByKey: ({})
 
     signal appearanceRequested(var screen)
+    signal mediaDownloadRequested()
 
     function key(panelId, outputName) {
         return panelId + "@" + outputName
@@ -132,16 +133,31 @@ Scope {
         })
     }
 
+    HyprlandFocusGrab {
+        id: trayGrab
+        active: false
+        windows: coordinator.anchorItem && coordinator.anchorItem.QsWindow.window
+            ? [popup, coordinator.anchorItem.QsWindow.window] : [popup]
+        onCleared: {
+            if (coordinator.activePanelId === "tray") coordinator.close("outside-click")
+        }
+    }
+
     PopupWindow {
         id: popup
 
         visible: false
         color: "transparent"
-        grabFocus: true
+        grabFocus: coordinator.activePanelId !== "tray"
         implicitWidth: contentLoader.item ? contentLoader.item.implicitWidth : 1
         implicitHeight: contentLoader.item ? contentLoader.item.implicitHeight : 1
 
         onVisibleChanged: {
+            if (visible && coordinator.activePanelId === "tray") {
+                Qt.callLater(function() {
+                    if (popup.visible && coordinator.activePanelId === "tray") trayGrab.active = true
+                })
+            } else trayGrab.active = false
             if (!visible && coordinator.opened && !coordinator.transitioning) coordinator.deferOutsideClear()
         }
 

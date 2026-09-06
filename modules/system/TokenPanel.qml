@@ -14,7 +14,7 @@ FocusScope {
     PanelFrame {
         id: panel
         width: parent.width
-        title: "TOKEN METER · TODAY"
+        title: "TOKEN METER · 24H"
         onCloseRequested: root.coordinator.close("close-control")
 
         Column {
@@ -29,7 +29,7 @@ FocusScope {
                 Repeater {
                     model: [
                         ["TOKENS", root.tokenState.compact(root.tokenState.totalTokens)],
-                        ["COST", "$" + root.tokenState.cost.toFixed(2)],
+                        ["API ESTIMATE", root.tokenState.costLabel],
                         ["CACHE", Math.round(root.tokenState.cacheRate * 100) + "%"],
                         ["SESSIONS", String(root.tokenState.sessions)]
                     ]
@@ -61,6 +61,27 @@ FocusScope {
                             }
                         }
                     }
+                }
+            }
+
+            Text {
+                width: parent.width
+                text: root.tokenState.unpricedTokens > 0
+                    ? "Standard API pricing · " + root.tokenState.compact(root.tokenState.unpricedTokens) + " tokens unpriced"
+                    : "Standard API estimate · last 24 hours"
+                color: Theme.textMuted
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSmall
+                wrapMode: Text.WordWrap
+            }
+
+            ActionButton {
+                width: parent.width
+                text: "Detailed statistics"
+                accessibleName: "Open detailed token statistics"
+                onClicked: {
+                    root.tokenState.openDetails()
+                    root.coordinator.close("open-details")
                 }
             }
 

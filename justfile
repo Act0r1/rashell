@@ -35,6 +35,9 @@ start: install
 
 run: start
 
+download:
+    @"{{qs}}" ipc -c rashell call rashell mediaDownloadToggle
+
 stop:
     #!/usr/bin/env bash
     set -euo pipefail

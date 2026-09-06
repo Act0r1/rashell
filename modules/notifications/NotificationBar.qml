@@ -20,7 +20,7 @@ Item {
         contentItem: Text {
             id: label
             text: (root.state.doNotDisturb ? "󰂛" : "󰂚") + (root.state.unread > 0 ? " " + root.state.unread : "")
-            color: root.state.unread > 0 ? Theme.accent : Theme.text
+            color: Theme.accent
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontTitle
             horizontalAlignment: Text.AlignHCenter

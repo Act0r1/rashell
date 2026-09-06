@@ -99,6 +99,7 @@ Item {
         id: screenshotComponent
         ScreenshotBar {
             state: root.screenshotState
+            textCaptureState: root.textCaptureState
             coordinator: root.coordinator
             configStore: root.configStore
             outputName: root.outputName

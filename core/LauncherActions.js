@@ -17,6 +17,7 @@ function entries(status, themes) {
         entry("panel.calendar", "Calendar and reminders", "View dates and set a reminder", "time date календарь напоминания", "view-calendar"),
         entry("panel.weather", "Weather", "Forecast and location", "forecast погода", "weather-clear"),
         entry("panel.media", "Media controls", "Playback and current track", "music player музыка", "multimedia-player"),
+        entry("panel.download", "Download media", "Download a video or image and copy it to the clipboard", "download yt-dlp video image скачать видео картинку загрузка буфер", "folder-download"),
         entry("panel.capture", "Screenshots and recording", "Capture an image or record the screen", "screenshot video скриншот запись", "camera-photo"),
         entry("panel.text", "Text capture and dictation", "Extract text or dictate locally", "ocr speech whisper текст диктовка", "insert-text"),
         entry("text.ocr", "Copy text from screen", status.ocrAvailable ? "Select an area for local text recognition" : status.ocrReason, "ocr screenshot распознать текст", "edit-copy", status.ocrAvailable && !status.captureBusy),

@@ -1,0 +1,3 @@
+module qs.modules.download
+MediaDownloadState 1.0 MediaDownloadState.qml
+MediaDownloadPanel 1.0 MediaDownloadPanel.qml

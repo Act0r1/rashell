@@ -9,6 +9,8 @@ Item {
 
     required property var trayItem
     property bool showLabel: false
+    property bool draggable: false
+    property string dragMimeType: "application/x-rashell-tray-item"
     readonly property string label: trayItem
         ? String(trayItem.tooltipTitle || trayItem.title || trayItem.id || "Application") : "Application"
 
@@ -21,6 +23,17 @@ Item {
 
     signal triggered(int button)
     signal hovered(bool entered)
+    signal dragStarted()
+    signal dragFinished(int action)
+
+    Drag.dragType: Drag.None
+    Drag.supportedActions: Qt.MoveAction
+    Drag.proposedAction: Qt.MoveAction
+    Drag.mimeData: ({ [root.dragMimeType]: root.trayItem ? String(root.trayItem.id || "").trim() : "" })
+    Drag.imageSource: icon.source
+    Drag.imageSourceSize: Qt.size(24, 24)
+    Drag.hotSpot: Qt.point(12, 12)
+    Drag.onDragFinished: action => root.dragFinished(action)
 
     function iconSource() {
         const icon = trayItem ? String(trayItem.icon || "") : ""
@@ -97,6 +110,35 @@ Item {
         acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
         onEntered: root.hovered(true)
         onExited: root.hovered(false)
-        onClicked: event => root.triggered(event.button)
+        property point pressPosition: Qt.point(0, 0)
+        property bool dragged: false
+        onPressed: event => {
+            pressPosition = Qt.point(event.x, event.y)
+            dragged = false
+        }
+        onPositionChanged: event => {
+            if (!root.draggable || dragged || !(pressedButtons & Qt.LeftButton)) return
+            if (Math.hypot(event.x - pressPosition.x, event.y - pressPosition.y) < 10) return
+            dragged = true
+            root.hovered(false)
+            root.dragStarted()
+            Qt.callLater(function() {
+                if (!(mouse.pressedButtons & Qt.LeftButton)) {
+                    root.dragFinished(Qt.IgnoreAction)
+                    return
+                }
+                root.Drag.active = true
+                root.Drag.startDrag(Qt.MoveAction)
+            })
+        }
+        onClicked: event => {
+            if (!dragged) root.triggered(event.button)
+        }
+        onWheel: event => {
+            if (!root.trayItem) return
+            if (event.angleDelta.y !== 0) root.trayItem.scroll(event.angleDelta.y, false)
+            if (event.angleDelta.x !== 0) root.trayItem.scroll(event.angleDelta.x, true)
+            event.accepted = true
+        }
     }
 }

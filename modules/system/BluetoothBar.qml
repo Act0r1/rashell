@@ -33,7 +33,7 @@ Item {
             text: !BluetoothState.enabled ? "󰂲"
                 : root.connectedCount > 0 ? "󰂱  " + root.deviceText : "󰂯"
             color: !BluetoothState.available ? Theme.textDisabled
-                : root.connectedCount > 0 ? Theme.accent : Theme.text
+                : BluetoothState.enabled ? Theme.accent : Theme.textMuted
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontTitle
             font.bold: root.connectedCount > 0

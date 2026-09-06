@@ -10,19 +10,23 @@ Scope {
         const configured = String(Quickshell.env("XDG_CONFIG_HOME") || "")
         return configured.charAt(0) === "/" ? configured : Quickshell.env("HOME") + "/.config"
     }
-    readonly property string outputPath: configHome + "/rashell/telegram.tdesktop-palette"
+    readonly property string outputPath: configHome + "/rashell/telegram.tdesktop-theme"
     property string desiredTheme: ""
     property string attemptedTheme: ""
+    property bool exportSucceeded: false
 
     function queueExport(): void {
-        if (!configStore.hasValidFile || configStore.theme === desiredTheme) return
+        if (!configStore.hasValidFile) return
+        if (configStore.theme === desiredTheme && (exportProcess.running || exportSucceeded)) return
         desiredTheme = configStore.theme
         exportTimer.restart()
     }
 
     function exportTheme(): void {
-        if (exportProcess.running || desiredTheme === "" || desiredTheme === attemptedTheme) return
+        if (exportProcess.running || desiredTheme === ""
+                || (desiredTheme === attemptedTheme && exportSucceeded)) return
         attemptedTheme = desiredTheme
+        exportSucceeded = false
         exportProcess.command = [
             "python3", Quickshell.shellDir + "/scripts/telegram-theme.py",
             "--theme", attemptedTheme, "--output", outputPath
@@ -48,8 +52,9 @@ Scope {
             id: errorOutput
         }
         onExited: function(exitCode, exitStatus) {
+            root.exportSucceeded = exitCode === 0 && exitStatus === 0
             const detail = errorOutput.text.trim()
-            if (exitCode !== 0 || exitStatus !== 0) {
+            if (!root.exportSucceeded) {
                 console.warn("Telegram theme export (" + root.attemptedTheme + ") failed: exit "
                     + exitCode + ", status " + exitStatus + (detail !== "" ? ": " + detail : ""))
             } else if (detail !== "") {

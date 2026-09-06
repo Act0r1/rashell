@@ -9,6 +9,7 @@ FocusScope {
 
     required property var coordinator
     required property var captureState
+    required property var textCaptureState
     required property var configStore
     required property string outputName
 
@@ -72,6 +73,20 @@ FocusScope {
                 onClicked: {
                     root.coordinator.close("start-annotation")
                     root.captureState.start("annotate", root.configStore.captureDirectoryPath, root.outputName)
+                }
+            }
+
+            ActionButton {
+                width: parent.width
+                visible: !root.captureState.recording
+                text: "OCR · Copy text"
+                accessibleName: "Select an area and copy recognized text"
+                enabled: root.textCaptureState.ocrAvailable && !root.textCaptureState.busy
+                    && !root.captureState.busy && !root.captureState.selecting
+                onClicked: {
+                    const capture = root.textCaptureState
+                    root.coordinator.close("select-text-area")
+                    capture.startOcr()
                 }
             }
 

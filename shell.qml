@@ -19,6 +19,7 @@ import qs.modules.appearance
 import qs.modules.projects
 import qs.modules.session
 import qs.modules.capture
+import qs.modules.download
 import qs.overlays
 import "core/LauncherActions.js" as LauncherActions
 
@@ -60,7 +61,7 @@ ShellRoot {
             weather: "weather/WeatherPanel.qml", media: "media/MediaPanel.qml",
             screenshot: "system/ScreenshotPanel.qml", system: "system/SystemPanel.qml",
             updates: "system/UpdatesPanel.qml", modes: "session/ModePanel.qml",
-            text: "capture/TextCapturePanel.qml"
+            text: "capture/TextCapturePanel.qml", download: "download/MediaDownloadPanel.qml"
         }
         if (!sources[panelId]) return false
         const outputName = panelCoordinator.preferredOutputName()
@@ -82,10 +83,12 @@ ShellRoot {
         else if (panelId === "system" || panelId === "updates") properties.systemState = systemState
         else if (panelId === "screenshot") {
             properties.captureState = screenshotState
+            properties.textCaptureState = textCaptureState
             properties.configStore = configStore
             properties.outputName = outputName
         } else if (panelId === "modes") properties.modeState = sessionModeState
         else if (panelId === "text") properties.captureState = textCaptureState
+        else if (panelId === "download") properties.downloadState = mediaDownloadState
         else if (panelId === "control") {
             properties = {
                 coordinator: panelCoordinator, audioState: audioState,
@@ -250,6 +253,12 @@ ShellRoot {
         onCompleted: function(message) { shell.reportSuccess(message) }
     }
 
+    MediaDownloadState {
+        id: mediaDownloadState
+        onFailed: function(message) { shell.reportIpcFailure(message) }
+        onCompleted: function(message) { shell.reportSuccess(message) }
+    }
+
     Connections {
         target: lockScreen
         function onLockedChanged() {
@@ -287,6 +296,7 @@ ShellRoot {
     PanelCoordinator {
         id: panelCoordinator
         onAppearanceRequested: function(screen) { shell.openAppearance(screen, "") }
+        onMediaDownloadRequested: shell.toggleTaskPanel("download")
     }
 
     Connections {
@@ -373,6 +383,10 @@ ShellRoot {
 
         function textCaptureToggle(): string {
             return shell.toggleTaskPanel("text") ? "ok" : "output unavailable"
+        }
+
+        function mediaDownloadToggle(): string {
+            return shell.toggleTaskPanel("download") ? "ok" : "output unavailable"
         }
 
         function dictationToggle(): string {

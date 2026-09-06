@@ -125,7 +125,7 @@ class Capture:
         self.require_success(self.run(["grim", "-g", geometry, str(screenshot)], self.directory / "grim.log"), "Could not capture the selected area")
         emit("status", "Recognizing text locally…")
         text_file = self.directory / "ocr.txt"
-        self.require_success(self.run(["tesseract", str(screenshot), "stdout", "-l", os.environ.get("RASHELL_OCR_LANGUAGE", "eng")], text_file), "OCR failed; check the configured Tesseract language")
+        self.require_success(self.run(["tesseract", str(screenshot), "stdout", "-l", os.environ.get("RASHELL_OCR_LANGUAGE", "rus+eng")], text_file), "OCR failed; check the configured Tesseract language")
         return text_file.read_text().strip()
 
     def dictate(self, config: Capabilities) -> str:

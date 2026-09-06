@@ -3,11 +3,15 @@
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import os
 import re
+import struct
 import sys
 import tempfile
+import zipfile
+import zlib
 from pathlib import Path
 from string import Template
 from typing import cast
@@ -75,21 +79,71 @@ def render_palette(palette: dict[str, str]) -> str:
         "dangerHover": blend(palette["surface"], palette["danger"], 0.12),
         "dangerRipple": blend(palette["surface"], palette["danger"], 0.20),
     }
+    peer_colors = {
+        "peer1": "#c03d33",
+        "peer2": "#4fad2d",
+        "peer3": "#d09306",
+        "peer5": "#8544d6",
+        "peer6": "#cd4073",
+        "peer7": "#2996ad",
+        "peer8": "#ce671b",
+    }
+    colors.update({
+        key: blend(value, palette["text"], 0.22)
+        for key, value in peer_colors.items()
+    })
     template = (CORE / "telegram-base.tdesktop-palette").read_text(encoding="utf-8")
     return Template(template).substitute(colors)
 
 
-def write_palette(output: Path, content: str) -> None:
+def png_chunk(kind: bytes, data: bytes) -> bytes:
+    return (
+        struct.pack(">I", len(data))
+        + kind
+        + data
+        + struct.pack(">I", zlib.crc32(kind + data))
+    )
+
+
+def solid_background(color: str) -> bytes:
+    size = 64
+    row = b"\x00" + bytes.fromhex(color[1:]) * size
+    return (
+        b"\x89PNG\r\n\x1a\n"
+        + png_chunk(b"IHDR", struct.pack(">IIBBBBB", size, size, 8, 2, 0, 0, 0))
+        + png_chunk(b"IDAT", zlib.compress(row * size))
+        + png_chunk(b"IEND", b"")
+    )
+
+
+def render_theme(palette: dict[str, str], suffix: str) -> bytes:
+    colors = render_palette(palette).encode("utf-8")
+    if suffix.lower() == ".tdesktop-palette":
+        return colors
+    if suffix.lower() != ".tdesktop-theme":
+        raise ValueError("The output must end in .tdesktop-theme or .tdesktop-palette")
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as archive:
+        for name, content in (
+            ("colors.tdesktop-palette", colors),
+            ("background.png", solid_background(palette["background"])),
+        ):
+            member = zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0))
+            member.compress_type = zipfile.ZIP_STORED
+            archive.writestr(member, content)
+    return buffer.getvalue()
+
+
+def write_theme(output: Path, content: bytes) -> None:
     if not output.is_absolute():
         raise ValueError("The output path must be absolute")
-    if output.is_file() and output.read_text(encoding="utf-8") == content:
+    if output.is_file() and output.read_bytes() == content:
         return
     output.parent.mkdir(parents=True, exist_ok=True)
     temporary: Path | None = None
     try:
         with tempfile.NamedTemporaryFile(
-            mode="w",
-            encoding="utf-8",
+            mode="wb",
             dir=output.parent,
             prefix=f".{output.name}.",
             delete=False,
@@ -110,9 +164,9 @@ def main() -> int:
     parser.add_argument("--output", required=True)
     arguments = parser.parse_args()
     try:
-        content = render_palette(load_palette(arguments.theme))
         output = Path(arguments.output)
-        write_palette(output, content)
+        content = render_theme(load_palette(arguments.theme), output.suffix)
+        write_theme(output, content)
     except (OSError, UnicodeError, ValueError, KeyError) as error:
         print(f"Telegram theme: {error}", file=sys.stderr)
         return 1

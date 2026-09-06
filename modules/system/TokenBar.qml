@@ -8,7 +8,7 @@ Item {
     required property var state
     required property var coordinator
     required property string outputName
-    implicitWidth: label.implicitWidth + 16
+    implicitWidth: tokenContent.implicitWidth + 16
     implicitHeight: Theme.controlHeight
 
     Button {
@@ -17,17 +17,33 @@ Item {
         hoverEnabled: true
         Accessible.name: "Token usage " + root.state.compact(root.state.totalTokens)
 
-        contentItem: Text {
-            id: label
-            text: "󰧑 " + root.state.compact(root.state.totalTokens)
-            color: Theme.text
-            font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontTitle
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
+        contentItem: Row {
+            id: tokenContent
+            spacing: Theme.spaceSm
+
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text: "󰧑"
+                color: Theme.accent
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontTitle
+            }
+
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text: root.state.compact(root.state.totalTokens)
+                color: Theme.accent
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontTitle
+            }
         }
         background: Rectangle {
-            color: button.hovered || button.down ? Theme.surfaceRaised : "transparent"
+            readonly property bool active: root.coordinator.opened
+                && root.coordinator.activePanelId === "tokens"
+                && root.coordinator.anchorItem === root
+            color: active || button.hovered || button.down ? Theme.surfaceRaised : "transparent"
+            border.color: active ? Theme.accent : "transparent"
+            border.width: Theme.borderWidth
             radius: Theme.radius
         }
         onClicked: root.coordinator.toggle(

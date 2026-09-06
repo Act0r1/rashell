@@ -11,6 +11,25 @@ Scope {
     readonly property var monitors: Hyprland.monitors ? Hyprland.monitors.values : []
     readonly property bool available: monitors.length > 0
 
+    signal attentionRequested(int workspaceId)
+
+    Connections {
+        target: Hyprland
+
+        function onRawEvent(event) {
+            if (event.name !== "urgent" && event.name !== "openwindow") return
+            const address = event.data.split(",")[0].replace(/^0x/, "")
+            const toplevels = Hyprland.toplevels.values
+            for (let index = 0; index < toplevels.length; index++) {
+                const toplevel = toplevels[index]
+                if (toplevel.address.replace(/^0x/, "") === address && toplevel.workspace) {
+                    state.attentionRequested(toplevel.workspace.id)
+                    return
+                }
+            }
+        }
+    }
+
     function visibleWorkspaceIds() {
         const result = baseIds.slice()
         for (let index = 0; index < workspaces.length; index++) {
@@ -43,6 +62,11 @@ Scope {
     function occupied(workspaceId) {
         const current = workspace(workspaceId)
         return current !== null && current.toplevels && current.toplevels.values.length > 0
+    }
+
+    function urgent(workspaceId) {
+        const current = workspace(workspaceId)
+        return current !== null && current.urgent
     }
 
     function activate(workspaceId) {

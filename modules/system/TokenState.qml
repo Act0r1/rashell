@@ -8,11 +8,17 @@ Scope {
     readonly property var today: snapshot.periods && snapshot.periods.today ? snapshot.periods.today : ({})
     readonly property real totalTokens: Number(today.totalTokens || 0)
     readonly property real cost: Number(today.cost || 0)
+    readonly property real unpricedTokens: Number(today.unpricedTokens || 0)
+    readonly property string costLabel: "$" + cost.toFixed(2) + (unpricedTokens > 0 ? "+" : "")
     readonly property real cacheRate: Number(today.cacheRate || 0)
     readonly property int sessions: Number(today.sessions || 0)
 
     function refresh() {
         if (!query.running) query.running = true
+    }
+
+    function openDetails() {
+        Quickshell.execDetached(["python3", Quickshell.env("HOME") + "/.config/noctalia/token-meter/token-meter.py", "open"])
     }
 
     function compact(value) {

@@ -564,6 +564,7 @@ FocusScope {
                                 Quickshell.shellDir + "/modules/system/ScreenshotPanel.qml",
                                 {
                                     coordinator: root.coordinator, captureState: root.screenshotState,
+                                    textCaptureState: root.textCaptureState,
                                     configStore: root.configStore, outputName: root.outputName
                                 }
                             )
@@ -573,6 +574,15 @@ FocusScope {
                     Column {
                         width: parent.width
                         spacing: Theme.spaceMd
+
+                        ActionButton {
+                            id: downloadButton
+                            width: parent.width
+                            height: 38
+                            text: "↓  Download media"
+                            accessibleName: "Download a video or image from a link"
+                            onClicked: root.coordinator.mediaDownloadRequested()
+                        }
 
                         ActionButton {
                             id: appearanceButton
