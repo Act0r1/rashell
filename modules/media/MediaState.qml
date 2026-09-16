@@ -17,14 +17,12 @@ Scope {
     readonly property real position: available ? Number(player.position || 0) : 0
 
     function selectPlayer() {
-        let fallback = null
         for (let index = 0; index < players.length; index++) {
             const candidate = players[index]
             if (!candidate || !candidate.canControl) continue
-            if (!fallback) fallback = candidate
             if (candidate.playbackState === MprisPlaybackState.Playing) return candidate
         }
-        return fallback
+        return null
     }
 
     function playPause() {

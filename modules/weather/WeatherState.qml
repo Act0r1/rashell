@@ -21,6 +21,7 @@ Scope {
     property date updatedAt: new Date(0)
     property bool refreshPending: false
     property bool forecastPending: false
+    property bool fallbackActive: false
     property var hourlyForecast: []
     property var dailyForecast: []
     property real utcOffsetSeconds: NaN
@@ -42,16 +43,22 @@ Scope {
     readonly property string temperatureText: available ? temperatureCelsius + "°C" : "--°C"
     readonly property string icon: scenePhase === "night" && (weatherCode === 113 || weatherCode === 116)
         ? "󰖔" : iconForCode(weatherCode)
-    readonly property bool refreshing: weatherProcess.running || forecastProcess.running
+    readonly property bool refreshing: weatherProcess.running || geocodingProcess.running || forecastProcess.running
     readonly property string requestUrl: {
         const city = String(configStore.weatherLocation || "").trim()
         return "https://wttr.in/" + (city === "" ? "" : encodeURIComponent(city)) + "?format=j1"
+    }
+    readonly property string geocodingUrl: {
+        const city = String(configStore.weatherLocation || "").trim()
+        return city === "" ? "" : "https://geocoding-api.open-meteo.com/v1/search?name="
+            + encodeURIComponent(city) + "&count=1&language=en&format=json"
     }
     readonly property string forecastUrl: latitude === "" || longitude === "" ? "" :
         "https://api.open-meteo.com/v1/forecast"
         + "?latitude=" + encodeURIComponent(latitude)
         + "&longitude=" + encodeURIComponent(longitude)
-        + "&current=temperature_2m,is_day"
+        + "&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m"
+        + "&wind_speed_unit=ms"
         + "&hourly=temperature_2m,precipitation_probability,weather_code"
         + "&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset"
         + "&timezone=auto&forecast_days=6"
@@ -82,6 +89,7 @@ Scope {
 
     function resetLocation() {
         available = false
+        fallbackActive = false
         location = ""
         latitude = ""
         longitude = ""
@@ -126,6 +134,18 @@ Scope {
         return "Thunderstorms"
     }
 
+    function weatherCodeForWmo(code) {
+        const codes = {
+            0: 113, 1: 113, 2: 116, 3: 122, 45: 248, 48: 260,
+            51: 263, 53: 266, 55: 266, 56: 281, 57: 284,
+            61: 296, 63: 302, 65: 308, 66: 311, 67: 314,
+            71: 326, 73: 332, 75: 338, 77: 350,
+            80: 353, 81: 356, 82: 359, 85: 368, 86: 371,
+            95: 200, 96: 386, 99: 389
+        }
+        return codes[code]
+    }
+
     function refresh() {
         if (weatherProcess.running) {
             refreshPending = true
@@ -147,16 +167,45 @@ Scope {
         forecastProcess.running = true
     }
 
+    function refreshFallback() {
+        fallbackActive = true
+        if (forecastUrl !== "") {
+            refreshForecast()
+            return
+        }
+        if (geocodingUrl === "" || geocodingProcess.running) return
+        geocodingProcess.requestedUrl = geocodingUrl
+        geocodingProcess.running = true
+    }
+
+    function applyGeocodingResponse(text) {
+        if (!String(text || "").trim()) return
+        try {
+            const payload = JSON.parse(text)
+            const area = payload.results && payload.results[0]
+            if (!area || typeof area.latitude !== "number" || typeof area.longitude !== "number"
+                || !isFinite(area.latitude) || !isFinite(area.longitude)
+                || Math.abs(area.latitude) > 90 || Math.abs(area.longitude) > 180) return
+            latitude = String(area.latitude)
+            longitude = String(area.longitude)
+            location = String(area.name || configStore.weatherLocation)
+            Qt.callLater(refreshForecast)
+        } catch (error) {
+            console.warn("Weather location response rejected: " + error)
+        }
+    }
+
     function applyResponse(text) {
+        if (!String(text || "").trim()) return false
         try {
             const payload = JSON.parse(String(text || ""))
             const current = payload.current_condition && payload.current_condition.length > 0
                 ? payload.current_condition[0] : null
-            if (!current) return
+            if (!current) return false
 
             const temperature = Number(current.temp_C)
             const code = Number(current.weatherCode)
-            if (!isFinite(temperature) || !isFinite(code)) return
+            if (!isFinite(temperature) || !isFinite(code)) return false
 
             const description = current.weatherDesc && current.weatherDesc.length > 0
                 ? current.weatherDesc[0].value : ""
@@ -200,15 +249,33 @@ Scope {
             longitude = area ? String(area.longitude || "") : ""
             updatedAt = new Date()
             available = true
+            fallbackActive = false
             Qt.callLater(refreshForecast)
+            return true
         } catch (error) {
             console.warn("Weather response rejected: " + error)
+            return false
         }
     }
 
     function applyForecastResponse(text) {
+        if (!String(text || "").trim()) return
         try {
             const payload = JSON.parse(String(text || ""))
+            const current = payload.current
+            if (fallbackActive && current && weatherCodeForWmo(current.weather_code) !== undefined
+                && [current.temperature_2m, current.apparent_temperature, current.relative_humidity_2m,
+                    current.wind_speed_10m, current.precipitation].every(value => typeof value === "number" && isFinite(value))) {
+                temperatureCelsius = Math.round(current.temperature_2m)
+                feelsLikeCelsius = Math.round(current.apparent_temperature)
+                humidityPercent = Math.round(current.relative_humidity_2m)
+                windMetersPerSecond = current.wind_speed_10m
+                precipitationMm = current.precipitation
+                weatherCode = weatherCodeForWmo(current.weather_code)
+                condition = describeWmo(current.weather_code)
+                updatedAt = new Date()
+                available = true
+            }
             if (!payload.hourly || !payload.daily || !Array.isArray(payload.hourly.time) || !Array.isArray(payload.daily.time)) return
 
             const offset = Number(payload.utc_offset_seconds)
@@ -273,11 +340,34 @@ Scope {
         ]
         stdout: StdioCollector {
             onStreamFinished: {
-                if (weatherProcess.requestedUrl === state.requestUrl) state.applyResponse(text)
+                if (weatherProcess.requestedUrl === state.requestUrl && !state.applyResponse(text)) {
+                    state.refreshFallback()
+                }
             }
         }
         onExited: function() {
             if (state.refreshPending) Qt.callLater(state.refresh)
+        }
+    }
+
+    Process {
+        id: geocodingProcess
+        property string requestedUrl: ""
+        command: [
+            "curl", "--fail", "--silent", "--show-error", "--max-time", "10",
+            geocodingProcess.requestedUrl
+        ]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                if (state.fallbackActive && geocodingProcess.requestedUrl === state.geocodingUrl) {
+                    state.applyGeocodingResponse(text)
+                }
+            }
+        }
+        onExited: function() {
+            if (state.fallbackActive && geocodingProcess.requestedUrl !== state.geocodingUrl) {
+                Qt.callLater(state.refreshFallback)
+            }
         }
     }
 

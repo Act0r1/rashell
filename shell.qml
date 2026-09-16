@@ -168,6 +168,10 @@ ShellRoot {
         configStore: configStore
     }
 
+    TerminalTheme {
+        configStore: configStore
+    }
+
     Wallpaper {
         sourcePath: configStore.wallpaper
     }
@@ -272,6 +276,7 @@ ShellRoot {
     Launcher {
         id: launcher
         coordinator: panelCoordinator
+        configStore: configStore
         actions: LauncherActions.entries({
             outputUsable: audioState.outputUsable,
             inputUsable: audioState.inputUsable,

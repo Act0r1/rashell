@@ -38,7 +38,7 @@ function filtered(entries, query, limit) {
     return matches.slice(0, limit)
 }
 
-function applications(entries, query, limit) {
+function applications(entries, query) {
     const normalizedQuery = String(query || "").trim().toLowerCase()
     const matches = entries.filter(function(entry) {
         return entry && !entry.noDisplay && !entry.hidden
@@ -53,7 +53,88 @@ function applications(entries, query, limit) {
         return String(left.name || "").localeCompare(String(right.name || ""))
     })
 
-    return matches.slice(0, limit)
+    return matches
+}
+
+function actionRecords(entry) {
+    const actions = entry && entry.actions
+    if (!actions || actions.length === 0) return []
+    const records = []
+    for (let index = 0; index < actions.length; index++) {
+        const action = actions[index]
+        if (!action || String(action.name || "").length === 0) continue
+        records.push(action)
+    }
+    return records
+}
+
+function isDestructiveAction(action) {
+    const id = String(action && action.id || "").toLowerCase()
+    const name = String(action && action.name || "").toLowerCase()
+    return id.indexOf("remove") !== -1 || id.indexOf("delete") !== -1 || id.indexOf("uninstall") !== -1
+        || name.indexOf("delete") !== -1 || name.indexOf("remove") !== -1 || name.indexOf("uninstall") !== -1
+}
+
+function deleteAction(entry) {
+    const actions = actionRecords(entry)
+    for (let index = 0; index < actions.length; index++) {
+        if (isDestructiveAction(actions[index])) return actions[index]
+    }
+    return null
+}
+
+function actionMatches(action, entry, query) {
+    if (!action || query === "") return false
+    return matchScore({
+        name: action.name,
+        comment: entry && entry.name || "",
+        keywords: "",
+        path: ""
+    }, query) !== -1
+}
+
+function applicationItems(entries, query) {
+    const normalizedQuery = String(query || "").trim().toLowerCase()
+    const apps = applications(entries, query)
+    const items = []
+    const seen = []
+
+    function pushApp(entry) {
+        if (!entry || seen.indexOf(entry) !== -1) return
+        seen.push(entry)
+        items.push({
+            kind: "app",
+            entry: entry,
+            name: entry.name,
+            comment: entry.comment || "",
+            icon: entry.icon,
+            enabled: true
+        })
+    }
+
+    for (let index = 0; index < apps.length; index++) pushApp(apps[index])
+    if (normalizedQuery === "") return items
+
+    const extras = []
+    const source = entries && entries.filter ? entries : []
+    for (let index = 0; index < source.length; index++) {
+        const entry = source[index]
+        if (!entry || entry.noDisplay || entry.hidden) continue
+        if (seen.indexOf(entry) !== -1) continue
+        const actions = actionRecords(entry)
+        for (let actionIndex = 0; actionIndex < actions.length; actionIndex++) {
+            if (actionMatches(actions[actionIndex], entry, normalizedQuery)) {
+                extras.push(entry)
+                break
+            }
+        }
+    }
+
+    extras.sort(function(left, right) {
+        return String(left.name || "").localeCompare(String(right.name || ""))
+    })
+    for (let index = 0; index < extras.length; index++) pushApp(extras[index])
+    return items
 }
 
 function records(entries, query, limit) {

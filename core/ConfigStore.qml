@@ -12,6 +12,7 @@ Scope {
         captureDirectory: "~/Pictures/Screenshots",
         weatherLocation: "",
         notificationDurationSeconds: 8,
+        clipboardHistoryLimit: 50,
         bar: {
             left: ["rashell.workspaces"],
             center: ["rashell.weather", "rashell.clock", "rashell.media", "rashell.screenshot"],
@@ -37,6 +38,7 @@ Scope {
     readonly property string captureDirectory: effective.captureDirectory
     readonly property string weatherLocation: effective.weatherLocation
     readonly property int notificationDurationSeconds: effective.notificationDurationSeconds
+    readonly property int clipboardHistoryLimit: effective.clipboardHistoryLimit
     readonly property string captureDirectoryPath: captureDirectory.indexOf("~/") === 0
         ? Quickshell.env("HOME") + captureDirectory.slice(1) : captureDirectory
     readonly property var leftModules: effective.bar.left
@@ -82,17 +84,23 @@ Scope {
             candidate.captureDirectory = defaults.captureDirectory
             candidate.weatherLocation = defaults.weatherLocation
             candidate.notificationDurationSeconds = defaults.notificationDurationSeconds
+            candidate.clipboardHistoryLimit = defaults.clipboardHistoryLimit
         } else if (isPlainObject(candidate) && sameKeys(candidate, ["version", "theme", "wallpaper", "bar"])) {
             candidate.captureDirectory = defaults.captureDirectory
             candidate.weatherLocation = defaults.weatherLocation
             candidate.notificationDurationSeconds = defaults.notificationDurationSeconds
+            candidate.clipboardHistoryLimit = defaults.clipboardHistoryLimit
         } else if (isPlainObject(candidate) && sameKeys(candidate, ["version", "theme", "wallpaper", "captureDirectory", "bar"])) {
             candidate.weatherLocation = defaults.weatherLocation
             candidate.notificationDurationSeconds = defaults.notificationDurationSeconds
+            candidate.clipboardHistoryLimit = defaults.clipboardHistoryLimit
         } else if (isPlainObject(candidate) && sameKeys(candidate, ["version", "theme", "wallpaper", "captureDirectory", "weatherLocation", "bar"])) {
             candidate.notificationDurationSeconds = defaults.notificationDurationSeconds
+            candidate.clipboardHistoryLimit = defaults.clipboardHistoryLimit
+        } else if (isPlainObject(candidate) && sameKeys(candidate, ["version", "theme", "wallpaper", "captureDirectory", "weatherLocation", "notificationDurationSeconds", "bar"])) {
+            candidate.clipboardHistoryLimit = defaults.clipboardHistoryLimit
         }
-        if (!isPlainObject(candidate) || !sameKeys(candidate, ["version", "theme", "wallpaper", "captureDirectory", "weatherLocation", "notificationDurationSeconds", "bar"])) return "invalid top-level fields"
+        if (!isPlainObject(candidate) || !sameKeys(candidate, ["version", "theme", "wallpaper", "captureDirectory", "weatherLocation", "notificationDurationSeconds", "clipboardHistoryLimit", "bar"])) return "invalid top-level fields"
         if (candidate.version !== 1) return "unsupported config version"
         if (Theme.names.indexOf(candidate.theme) === -1) return "unknown theme"
         if (typeof candidate.wallpaper !== "string" || candidate.wallpaper.trim() === "") return "invalid wallpaper"
@@ -102,6 +110,10 @@ Scope {
                 || Math.floor(candidate.notificationDurationSeconds) !== candidate.notificationDurationSeconds
                 || candidate.notificationDurationSeconds < 1
                 || candidate.notificationDurationSeconds > 60) return "invalid notification duration"
+        if (typeof candidate.clipboardHistoryLimit !== "number"
+                || Math.floor(candidate.clipboardHistoryLimit) !== candidate.clipboardHistoryLimit
+                || candidate.clipboardHistoryLimit < 10
+                || candidate.clipboardHistoryLimit > 750) return "invalid clipboard history limit"
         if (!isPlainObject(candidate.bar) || !sameKeys(candidate.bar, ["left", "center", "right"])) return "invalid bar fields"
 
         const allowed = barModuleIds
@@ -183,6 +195,12 @@ Scope {
     function setNotificationDurationSeconds(seconds) {
         const next = JSON.parse(JSON.stringify(effective))
         next.notificationDurationSeconds = Math.round(Number(seconds))
+        return save(next)
+    }
+
+    function setClipboardHistoryLimit(limit) {
+        const next = JSON.parse(JSON.stringify(effective))
+        next.clipboardHistoryLimit = Math.round(Number(limit))
         return save(next)
     }
 

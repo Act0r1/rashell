@@ -1,0 +1,36 @@
+=== Safe dae/Google diagnostic ===
+config_read=no
+addresses_printed=no
+initial_dae_active=false
+initial_org2_active=true
+
+The script needs sudo only to start/stop dae.
+
+=== OPENVPN_org2 ===
+cloudflare_ipv4_country=NL
+cloudflare_ipv4_transport=http/2
+cloudflare_ipv6_country=unavailable
+country_is_ipv4_country=NL
+gemini_http_status=200
+gemini_country_restriction_marker=not_found
+
+=== Switching to dae ===
+
+=== DAE_HYSTERIA2 ===
+cloudflare_ipv4_country=CH
+cloudflare_ipv4_transport=http/2
+cloudflare_ipv6_country=unavailable
+country_is_ipv4_country=CH
+gemini_http_status=200
+gemini_country_restriction_marker=not_found
+
+=== Safe routing evidence ===
+gemini_via_proxy_group=yes
+google_accounts_via_proxy_group=yes
+
+Diagnostic completed. No dae config fields, IP addresses, DNS servers, or credentials were printed.
+
+=== Restoring initial state ===
+dae_active=no
+org2_active=yes
+report=./dae-google-diagnostic.txt

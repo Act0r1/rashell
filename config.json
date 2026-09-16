@@ -5,6 +5,7 @@
   "captureDirectory": "~/Pictures/Screenshots",
   "weatherLocation": "Kazan",
   "notificationDurationSeconds": 8,
+  "clipboardHistoryLimit": 50,
   "bar": {
     "left": [
       "rashell.workspaces"

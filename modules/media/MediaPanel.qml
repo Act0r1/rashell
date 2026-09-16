@@ -41,7 +41,18 @@ FocusScope {
         title: "NOW PLAYING"
         onCloseRequested: root.coordinator.close("close-control")
 
+        Text {
+            width: parent.width
+            visible: !root.mediaState.available
+            text: "Nothing playing"
+            color: Theme.textMuted
+            horizontalAlignment: Text.AlignHCenter
+            font.family: Theme.fontFamily
+            font.pixelSize: Theme.fontBody
+        }
+
         Rectangle {
+            visible: root.mediaState.available
             width: parent.width
             height: 156
             color: Theme.surfaceRaised
@@ -152,6 +163,7 @@ FocusScope {
         }
 
         Column {
+            visible: root.mediaState.available
             width: parent.width
             spacing: Theme.spaceSm
 
@@ -200,12 +212,14 @@ FocusScope {
         }
 
         Rectangle {
+            visible: root.mediaState.available
             width: parent.width
             height: Theme.borderWidth
             color: Theme.border
         }
 
         Row {
+            visible: root.mediaState.available
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: Theme.spaceLg
 

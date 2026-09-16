@@ -2,4 +2,5 @@ module qs.core
 singleton Theme 1.0 Theme.qml
 ConfigStore 1.0 ConfigStore.qml
 TelegramTheme 1.0 TelegramTheme.qml
+TerminalTheme 1.0 TerminalTheme.qml
 PanelCoordinator 1.0 PanelCoordinator.qml

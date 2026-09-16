@@ -12,6 +12,7 @@ Scope {
     id: root
 
     required property var coordinator
+    required property var configStore
     property bool opened: false
     property var targetScreen: null
     property string mode: "apps"
@@ -21,6 +22,7 @@ Scope {
     property string projectError: ""
     property string projectConfigPath: ""
     readonly property var modeNames: ["apps", "clipboard", "actions", "projects"]
+    readonly property int clipboardHistoryLimit: configStore ? configStore.clipboardHistoryLimit : 50
 
     signal actionRequested(string actionId)
     signal projectRequested(string projectId)
@@ -40,7 +42,7 @@ Scope {
         if (modeNames.indexOf(normalizedMode) === -1) return false
         mode = normalizedMode
         search.text = ""
-        if (mode === "clipboard") clipboardQuery.running = true
+        if (mode === "clipboard") root.refreshClipboard()
         Qt.callLater(function() {
             results.currentIndex = results.count > 0 ? 0 : -1
             search.forceActiveFocus()
@@ -74,6 +76,19 @@ Scope {
         opened = false
     }
 
+    function refreshClipboard() {
+        if (clipboardQuery.running) return
+        clipboardQuery.buffer = []
+        clipboardQuery.running = true
+    }
+
+    function adjustClipboardHistoryLimit(delta) {
+        if (!configStore || !configStore.setClipboardHistoryLimit) return
+        const next = Math.max(10, Math.min(750, root.clipboardHistoryLimit + delta))
+        if (next === root.clipboardHistoryLimit) return
+        configStore.setClipboardHistoryLimit(next)
+    }
+
     function copyClipboard(id) {
         const numericId = Number(id)
         if (!Number.isInteger(numericId) || numericId < 0) return
@@ -98,20 +113,54 @@ Scope {
         }
     }
 
+    function activateDesktopAction(action) {
+        if (!action || !action.execute) return
+        close()
+        action.execute()
+    }
+
     Process {
         id: clipboardQuery
+        property var buffer: []
         command: ["cliphist", "list"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const lines = text.split("\n")
-                const next = []
-                for (let index = 0; index < lines.length; index++) {
-                    const separator = lines[index].indexOf("\t")
-                    if (separator <= 0) continue
-                    next.push({ id: lines[index].slice(0, separator), text: lines[index].slice(separator + 1) })
-                }
-                root.clipboardItems = next
+        stdout: SplitParser {
+            onRead: line => clipboardQuery.buffer.push(line)
+        }
+        onRunningChanged: if (running) buffer = []
+        onExited: exitCode => {
+            if (exitCode !== 0) return
+            const next = []
+            for (let index = 0; index < buffer.length; index++) {
+                const separator = buffer[index].indexOf("\t")
+                if (separator <= 0) continue
+                next.push({ id: buffer[index].slice(0, separator), text: buffer[index].slice(separator + 1) })
             }
+            const previous = root.clipboardItems
+            if (previous.length === next.length) {
+                let unchanged = true
+                for (let index = 0; index < next.length; index++) {
+                    if (previous[index].id !== next[index].id || previous[index].text !== next[index].text) {
+                        unchanged = false
+                        break
+                    }
+                }
+                if (unchanged) return
+            }
+            root.clipboardItems = next
+        }
+    }
+
+    Timer {
+        interval: 800
+        repeat: true
+        running: root.opened && root.mode === "clipboard"
+        onTriggered: root.refreshClipboard()
+    }
+
+    Connections {
+        target: Quickshell
+        function onClipboardTextChanged() {
+            if (root.opened && root.mode === "clipboard") root.refreshClipboard()
         }
     }
 
@@ -227,65 +276,150 @@ Scope {
                     }
                 }
 
-                TextField {
-                    id: search
+                Row {
+                    id: searchRow
                     width: parent.width
                     height: 44
-                    placeholderText: root.mode === "apps" ? "Search applications…"
-                        : root.mode === "clipboard" ? "Search clipboard…"
-                        : root.mode === "actions" ? "Search actions…"
-                        : "Search projects…"
-                    placeholderTextColor: Theme.textMuted
-                    color: Theme.text
-                    selectionColor: Theme.accent
-                    selectedTextColor: Theme.textOnAccent
-                    leftPadding: Theme.spaceLg
-                    rightPadding: 44
-                    font.family: Theme.fontFamily
-                    font.pixelSize: Theme.fontBody
-                    focus: root.opened
+                    spacing: Theme.spaceSm
 
-                    onTextChanged: Qt.callLater(function() {
-                        results.currentIndex = results.count > 0 ? 0 : -1
-                    })
-
-                    background: Rectangle {
-                        color: Theme.surfaceRaised
-                        border.color: search.activeFocus ? Theme.accent : Theme.border
-                        border.width: search.activeFocus ? Theme.focusWidth : Theme.borderWidth
-                        radius: Theme.radius
-                    }
-
-                    Text {
-                        anchors.right: parent.right
-                        anchors.rightMargin: Theme.spaceLg
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: "/"
-                        color: Theme.textDisabled
+                    TextField {
+                        id: search
+                        width: parent.width - (sliceStepper.visible ? sliceStepper.width + parent.spacing : 0)
+                        height: parent.height
+                        placeholderText: root.mode === "apps" ? "Search applications…"
+                            : root.mode === "clipboard" ? "Search clipboard…"
+                            : root.mode === "actions" ? "Search actions…"
+                            : "Search projects…"
+                        placeholderTextColor: Theme.textMuted
+                        color: Theme.text
+                        selectionColor: Theme.accent
+                        selectedTextColor: Theme.textOnAccent
+                        leftPadding: Theme.spaceLg
+                        rightPadding: 44
                         font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontSmall
+                        font.pixelSize: Theme.fontBody
+                        focus: root.opened
+
+                        onTextChanged: Qt.callLater(function() {
+                            results.currentIndex = results.count > 0 ? 0 : -1
+                        })
+
+                        background: Rectangle {
+                            color: Theme.surfaceRaised
+                            border.color: search.activeFocus ? Theme.accent : Theme.border
+                            border.width: search.activeFocus ? Theme.focusWidth : Theme.borderWidth
+                            radius: Theme.radius
+                        }
+
+                        Text {
+                            anchors.right: parent.right
+                            anchors.rightMargin: Theme.spaceLg
+                            anchors.verticalCenter: parent.verticalCenter
+                            visible: root.mode !== "clipboard"
+                            text: "/"
+                            color: Theme.textDisabled
+                            font.family: Theme.fontFamily
+                            font.pixelSize: Theme.fontSmall
+                        }
+
+                        Keys.onPressed: event => {
+                            if (event.key === Qt.Key_Down) {
+                                results.currentIndex = Math.min(results.count - 1, results.currentIndex + 1)
+                                event.accepted = true
+                            } else if (event.key === Qt.Key_Up) {
+                                results.currentIndex = Math.max(0, results.currentIndex - 1)
+                                event.accepted = true
+                            } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                                if (results.currentIndex >= 0) root.activate(results.model[results.currentIndex])
+                                event.accepted = true
+                            } else if ((event.modifiers & Qt.ControlModifier)
+                                    && (event.key === Qt.Key_Tab || event.key === Qt.Key_Backtab)) {
+                                root.switchMode(event.key === Qt.Key_Backtab || (event.modifiers & Qt.ShiftModifier) ? -1 : 1)
+                                event.accepted = true
+                            } else if ((event.modifiers & Qt.ControlModifier) && event.key >= Qt.Key_1 && event.key <= Qt.Key_4) {
+                                root.setMode(root.modeNames[event.key - Qt.Key_1])
+                                event.accepted = true
+                            } else if (event.key === Qt.Key_Escape) {
+                                root.close()
+                                event.accepted = true
+                            }
+                        }
                     }
 
-                    Keys.onPressed: event => {
-                        if (event.key === Qt.Key_Down) {
-                            results.currentIndex = Math.min(results.count - 1, results.currentIndex + 1)
-                            event.accepted = true
-                        } else if (event.key === Qt.Key_Up) {
-                            results.currentIndex = Math.max(0, results.currentIndex - 1)
-                            event.accepted = true
-                        } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                            if (results.currentIndex >= 0) root.activate(results.model[results.currentIndex])
-                            event.accepted = true
-                        } else if ((event.modifiers & Qt.ControlModifier)
-                                && (event.key === Qt.Key_Tab || event.key === Qt.Key_Backtab)) {
-                            root.switchMode(event.key === Qt.Key_Backtab || (event.modifiers & Qt.ShiftModifier) ? -1 : 1)
-                            event.accepted = true
-                        } else if ((event.modifiers & Qt.ControlModifier) && event.key >= Qt.Key_1 && event.key <= Qt.Key_4) {
-                            root.setMode(root.modeNames[event.key - Qt.Key_1])
-                            event.accepted = true
-                        } else if (event.key === Qt.Key_Escape) {
-                            root.close()
-                            event.accepted = true
+                    Row {
+                        id: sliceStepper
+                        visible: root.mode === "clipboard"
+                        height: parent.height
+                        spacing: Theme.spaceXs
+
+                        Button {
+                            width: Theme.compactControlSize
+                            height: parent.height
+                            text: "−"
+                            enabled: root.clipboardHistoryLimit > 10
+                            onClicked: {
+                                root.adjustClipboardHistoryLimit(-10)
+                                search.forceActiveFocus()
+                            }
+
+                            background: Rectangle {
+                                color: parent.hovered
+                                    ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.16) : Theme.surfaceRaised
+                                border.color: parent.enabled && parent.hovered ? Theme.accent : Theme.border
+                                border.width: Theme.borderWidth
+                                radius: Theme.radius
+                                opacity: parent.enabled ? 1 : 0.45
+                            }
+
+                            contentItem: Text {
+                                text: parent.text
+                                color: Theme.text
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontTitle
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                            }
+                        }
+
+                        Text {
+                            width: 28
+                            height: parent.height
+                            text: String(root.clipboardHistoryLimit)
+                            color: Theme.text
+                            font.family: Theme.fontFamily
+                            font.pixelSize: Theme.fontBody
+                            font.weight: Font.DemiBold
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        Button {
+                            width: Theme.compactControlSize
+                            height: parent.height
+                            text: "+"
+                            enabled: root.clipboardHistoryLimit < 750
+                            onClicked: {
+                                root.adjustClipboardHistoryLimit(10)
+                                search.forceActiveFocus()
+                            }
+
+                            background: Rectangle {
+                                color: parent.hovered
+                                    ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.16) : Theme.surfaceRaised
+                                border.color: parent.enabled && parent.hovered ? Theme.accent : Theme.border
+                                border.width: Theme.borderWidth
+                                radius: Theme.radius
+                                opacity: parent.enabled ? 1 : 0.45
+                            }
+
+                            contentItem: Text {
+                                text: parent.text
+                                color: Theme.text
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontTitle
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                            }
                         }
                     }
                 }
@@ -320,7 +454,7 @@ Scope {
 
                 Item {
                     width: parent.width
-                    height: parent.height - Theme.controlHeight - tabRow.height - search.height - 18 - Theme.spaceLg * 4
+                    height: parent.height - Theme.controlHeight - tabRow.height - searchRow.height - 18 - Theme.spaceLg * 4
 
                     ListView {
                         id: results
@@ -333,7 +467,7 @@ Scope {
                             if (root.mode === "clipboard") {
                                 return root.clipboardItems.filter(function(item) {
                                     return query === "" || item.text.toLowerCase().indexOf(query) !== -1
-                                }).slice(0, 40).map(function(item) {
+                                }).slice(0, root.clipboardHistoryLimit).map(function(item) {
                                     return {
                                         kind: "clipboard",
                                         id: item.id,
@@ -369,16 +503,7 @@ Scope {
                                 })
                             }
                             const all = DesktopEntries.applications ? DesktopEntries.applications.values : []
-                            return LauncherSearch.applications(all, query, 40).map(function(entry) {
-                                return {
-                                    kind: "app",
-                                    entry: entry,
-                                    name: entry.name,
-                                    comment: entry.comment || "",
-                                    icon: entry.icon,
-                                    enabled: true
-                                }
-                            })
+                            return LauncherSearch.applicationItems(all, query)
                         }
 
                         delegate: ItemDelegate {
@@ -390,8 +515,15 @@ Scope {
                             hoverEnabled: true
                             highlighted: ListView.isCurrentItem
                             enabled: modelData.kind !== "action" || modelData.enabled
+                            property bool suppressLaunch: false
+                            readonly property var deleteAction: modelData.kind === "app"
+                                ? LauncherSearch.deleteAction(modelData.entry) : null
 
                             function launch() {
+                                if (resultDelegate.suppressLaunch) {
+                                    resultDelegate.suppressLaunch = false
+                                    return
+                                }
                                 root.activate(resultDelegate.modelData)
                             }
 
@@ -400,8 +532,10 @@ Scope {
 
                                 Image {
                                     id: resultIcon
-                                    width: 28
-                                    height: 28
+                                    width: 32
+                                    height: 32
+                                    smooth: true
+                                    mipmap: true
                                     anchors.left: parent.left
                                     anchors.leftMargin: Theme.spaceLg
                                     anchors.verticalCenter: parent.verticalCenter
@@ -421,10 +555,95 @@ Scope {
                                     font.pixelSize: Theme.fontSmall
                                 }
 
+                                Button {
+                                    id: deleteAppButton
+                                    anchors.right: parent.right
+                                    anchors.rightMargin: Theme.spaceLg
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: Theme.compactControlSize
+                                    height: Theme.compactControlSize
+                                    visible: resultDelegate.deleteAction !== null
+                                        && (resultDelegate.highlighted || resultDelegate.hovered)
+                                    focusPolicy: Qt.NoFocus
+                                    hoverEnabled: true
+                                    Accessible.name: resultDelegate.deleteAction
+                                        ? String(resultDelegate.deleteAction.name) : "Delete"
+                                    onPressed: resultDelegate.suppressLaunch = true
+                                    onCanceled: resultDelegate.suppressLaunch = false
+                                    onClicked: {
+                                        root.activateDesktopAction(resultDelegate.deleteAction)
+                                        resultDelegate.suppressLaunch = false
+                                    }
+
+                                    ToolTip {
+                                        id: deleteAppTip
+                                        visible: deleteAppButton.hovered && resultDelegate.deleteAction !== null
+                                        delay: 450
+                                        timeout: 5000
+                                        text: resultDelegate.deleteAction
+                                            ? String(resultDelegate.deleteAction.name) : "Delete"
+                                        y: -implicitHeight - Theme.spaceSm
+                                        leftPadding: Theme.spaceLg
+                                        rightPadding: Theme.spaceLg
+                                        topPadding: Theme.spaceMd
+                                        bottomPadding: Theme.spaceMd
+
+                                        contentItem: Text {
+                                            text: deleteAppTip.text
+                                            color: Theme.text
+                                            font.family: Theme.fontFamily
+                                            font.pixelSize: Theme.fontSmall
+                                        }
+
+                                        background: Rectangle {
+                                            color: Theme.surfaceRaised
+                                            border.color: Theme.accentMuted
+                                            border.width: Theme.borderWidth
+                                            radius: Math.max(6, Theme.radius)
+                                        }
+                                    }
+
+                                    contentItem: Item {
+                                        Image {
+                                            id: deleteAppIcon
+                                            anchors.centerIn: parent
+                                            width: 16
+                                            height: 16
+                                            visible: status === Image.Ready
+                                            source: Quickshell.iconPath("edit-delete", "user-trash")
+                                            fillMode: Image.PreserveAspectFit
+                                        }
+
+                                        Text {
+                                            anchors.fill: parent
+                                            visible: !deleteAppIcon.visible
+                                            text: "×"
+                                            color: deleteAppButton.hovered || deleteAppButton.down
+                                                ? Theme.accent : Theme.textMuted
+                                            font.family: Theme.fontFamily
+                                            font.pixelSize: Theme.fontTitle
+                                            font.weight: Font.DemiBold
+                                            horizontalAlignment: Text.AlignHCenter
+                                            verticalAlignment: Text.AlignVCenter
+                                        }
+                                    }
+
+                                    background: Rectangle {
+                                        color: deleteAppButton.down || deleteAppButton.hovered
+                                            ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.16)
+                                            : Theme.surfaceRaised
+                                        border.color: deleteAppButton.activeFocus || deleteAppButton.hovered
+                                            ? Theme.accent : Theme.borderInteractive
+                                        border.width: deleteAppButton.activeFocus ? Theme.focusWidth : Theme.borderWidth
+                                        radius: Theme.radius
+                                    }
+                                }
+
                                 Column {
                                     anchors.left: resultIcon.right
                                     anchors.leftMargin: Theme.spaceLg
-                                    anchors.right: unavailableLabel.visible ? unavailableLabel.left : parent.right
+                                    anchors.right: unavailableLabel.visible ? unavailableLabel.left
+                                        : deleteAppButton.visible ? deleteAppButton.left : parent.right
                                     anchors.rightMargin: Theme.spaceLg
                                     anchors.verticalCenter: parent.verticalCenter
                                     spacing: 1

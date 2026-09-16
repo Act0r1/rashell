@@ -12,7 +12,9 @@ class ConfigTest(unittest.TestCase):
     def test_default_config_contract(self) -> None:
         config = json.loads(CONFIG_PATH.read_text())
         theme_ids = {theme["id"] for theme in json.loads(THEMES_PATH.read_text())}
-        self.assertEqual(set(config), {"version", "theme", "wallpaper", "captureDirectory", "weatherLocation", "notificationDurationSeconds", "bar"})
+        keys = set(config)
+        keys.discard("trayPinnedIds")
+        self.assertEqual(keys, {"version", "theme", "wallpaper", "captureDirectory", "weatherLocation", "notificationDurationSeconds", "clipboardHistoryLimit", "bar"})
         self.assertEqual(config["version"], 1)
         self.assertIn(config["theme"], theme_ids)
         self.assertTrue(config["wallpaper"])
@@ -21,6 +23,9 @@ class ConfigTest(unittest.TestCase):
         self.assertIsInstance(config["notificationDurationSeconds"], int)
         self.assertGreaterEqual(config["notificationDurationSeconds"], 1)
         self.assertLessEqual(config["notificationDurationSeconds"], 60)
+        self.assertIsInstance(config["clipboardHistoryLimit"], int)
+        self.assertGreaterEqual(config["clipboardHistoryLimit"], 10)
+        self.assertLessEqual(config["clipboardHistoryLimit"], 750)
         self.assertEqual(set(config["bar"]), {"left", "center", "right"})
 
         modules = config["bar"]["left"] + config["bar"]["center"] + config["bar"]["right"]
@@ -37,10 +42,12 @@ class ConfigTest(unittest.TestCase):
         self.assertIn('sameKeys(candidate, ["version", "theme", "wallpaper", "bar"])', source)
         self.assertIn('sameKeys(candidate, ["version", "theme", "wallpaper", "captureDirectory", "bar"])', source)
         self.assertIn('sameKeys(candidate, ["version", "theme", "wallpaper", "captureDirectory", "weatherLocation", "bar"])', source)
+        self.assertIn('sameKeys(candidate, ["version", "theme", "wallpaper", "captureDirectory", "weatherLocation", "notificationDurationSeconds", "bar"])', source)
         self.assertIn("candidate.wallpaper = defaults.wallpaper", source)
         self.assertIn("candidate.captureDirectory = defaults.captureDirectory", source)
         self.assertIn("candidate.weatherLocation = defaults.weatherLocation", source)
         self.assertIn("candidate.notificationDurationSeconds = defaults.notificationDurationSeconds", source)
+        self.assertIn("candidate.clipboardHistoryLimit = defaults.clipboardHistoryLimit", source)
 
     def test_save_applies_config_without_waiting_for_file_watcher(self) -> None:
         source = CONFIG_STORE_PATH.read_text()
