@@ -1,11 +1,12 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Effects
+import QtQuick.Layouts
 import Quickshell
+import Quickshell.Io
 import Quickshell.Wayland
 import qs.core
-import qs.ui
 
 Scope {
     id: root
@@ -59,6 +60,11 @@ Scope {
         }
     }
 
+    SleepLock {
+        secure: sessionLock.secure
+        onLockRequested: if (!root.locked) root.lock()
+    }
+
     WlSessionLock {
         id: sessionLock
         locked: root.locked
@@ -69,183 +75,698 @@ Scope {
 
         WlSessionLockSurface {
             id: lockSurface
-            color: Theme.background
 
-            Image {
-                anchors.fill: parent
-                source: root.wallpaperSource
-                fillMode: Image.PreserveAspectCrop
-                asynchronous: true
-                cache: true
+            property var themeConfig: ({})
+            property string currentView: "clock"
+            property bool loginFailed: false
+            readonly property bool showPasswordView: currentView === "password"
+            readonly property color colPrimary: themeConfig.primaryColor || "#cba6f7"
+            readonly property color colOnPrimary: themeConfig.onPrimaryColor || "#1e1e2e"
+            readonly property color colSurface: themeConfig.surfaceColor || "#1e1e2e"
+            readonly property color colSurfaceContainer: themeConfig.surfaceContainerColor || "#181825"
+            readonly property color colOnSurface: themeConfig.onSurfaceColor || "#cdd6f4"
+            readonly property color colOnSurfaceVariant: themeConfig.onSurfaceVariantColor || "#9399b2"
+            readonly property color colBackground: themeConfig.backgroundColor || "#1e1e2e"
+            readonly property color colError: themeConfig.errorColor || "#f38ba8"
+            readonly property real blurRadius: isNaN(Number(themeConfig.blurRadius))
+                ? 64 : Number(themeConfig.blurRadius)
+            readonly property bool materialShapeChars: String(
+                themeConfig.materialShapeChars || "false"
+            ).toLowerCase() === "true"
+
+            color: colBackground
+
+            function parseTheme(text: string): var {
+                const values = {}
+                const lines = text.split(/\r?\n/)
+                let inGeneral = false
+                for (let index = 0; index < lines.length; index++) {
+                    const line = lines[index].trim()
+                    if (line.length === 0 || line.charAt(0) === "#" || line.charAt(0) === ";") continue
+                    if (line.charAt(0) === "[") {
+                        inGeneral = line === "[General]"
+                        continue
+                    }
+                    if (!inGeneral) continue
+                    const separator = line.indexOf("=")
+                    if (separator <= 0) continue
+                    values[line.slice(0, separator).trim()] = line.slice(separator + 1).trim()
+                }
+                return values
             }
 
-            Rectangle {
-                anchors.fill: parent
-                color: Qt.rgba(0.02, 0.015, 0.025, 0.7)
+            function symbolFont(): string {
+                return materialSymbolsFont.status === FontLoader.Ready ? materialSymbolsFont.name : ""
             }
 
-            Rectangle {
-                width: Math.min(540, lockSurface.width - 48)
-                height: 430
-                anchors.centerIn: parent
-                color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, 0.94)
-                border.color: Theme.borderInteractive
-                border.width: Theme.borderWidth
-                radius: Math.max(12, Theme.radius)
+            function switchToPassword(capturedText: string) {
+                currentView = "password"
+                Qt.callLater(function() {
+                    passwordBox.forceActiveFocus()
+                    if (capturedText.length === 1 && capturedText.charCodeAt(0) >= 32) {
+                        lockContext.password += capturedText
+                    }
+                })
+            }
 
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: passwordField.forceActiveFocus()
+            function attemptUnlock() {
+                if (lockContext.authenticating || lockContext.password.length === 0) return
+                loginFailed = false
+                lockContext.submit()
+            }
+
+            FileView {
+                id: themeFile
+
+                path: "/usr/share/sddm/themes/ii-pixel/theme.conf"
+                blockLoading: true
+                watchChanges: true
+                printErrors: false
+
+                onLoaded: lockSurface.themeConfig = lockSurface.parseTheme(text())
+                onFileChanged: reload()
+                onLoadFailed: lockSurface.themeConfig = ({})
+            }
+
+            FontLoader {
+                id: materialSymbolsFont
+                source: "fonts/MaterialSymbolsRounded.ttf"
+            }
+
+            Connections {
+                target: root
+
+                function onLockedChanged() {
+                    if (!root.locked) return
+                    lockSurface.currentView = "clock"
+                    lockSurface.loginFailed = false
+                    hintText.hintOpacity = 0.7
+                    Qt.callLater(function() {
+                        visualRoot.forceActiveFocus()
+                    })
+                }
+            }
+
+            Connections {
+                target: lockContext
+
+                function onPasswordChanged() {
+                    if (passwordBox.text !== lockContext.password) passwordBox.text = lockContext.password
                 }
 
-                Column {
-                    anchors {
-                        fill: parent
-                        margins: 36
+                function onFailedChanged() {
+                    if (!lockContext.failed) {
+                        lockSurface.loginFailed = false
+                        return
                     }
-                    spacing: Theme.spaceLg
+                    lockSurface.loginFailed = true
+                    shakeAnimation.restart()
+                    Qt.callLater(function() {
+                        passwordBox.forceActiveFocus()
+                    })
+                }
 
-                    Text {
-                        width: parent.width
-                        text: Qt.formatTime(root.now, "HH:mm")
-                        color: Theme.text
-                        font.family: Theme.fontFamily
-                        font.pixelSize: 58
-                        font.weight: Font.Light
-                        horizontalAlignment: Text.AlignHCenter
+                function onUnlocked() {
+                    unlockFadeAnimation.start()
+                }
+            }
+
+            MouseArea {
+                id: visualRoot
+
+                anchors.fill: parent
+                focus: true
+                hoverEnabled: true
+                acceptedButtons: Qt.LeftButton | Qt.RightButton
+
+                onClicked: function(mouse) {
+                    if (!lockSurface.showPasswordView) lockSurface.switchToPassword("")
+                    else passwordBox.forceActiveFocus()
+                }
+                onPositionChanged: {
+                    if (lockSurface.showPasswordView) passwordBox.forceActiveFocus()
+                }
+
+                Keys.onPressed: function(event) {
+                    if (event.key === Qt.Key_Escape) {
+                        if (lockContext.password.length > 0) lockContext.password = ""
+                        else if (lockSurface.showPasswordView) {
+                            lockSurface.currentView = "clock"
+                            visualRoot.forceActiveFocus()
+                        }
+                        event.accepted = true
+                        return
+                    }
+                    if (!lockSurface.showPasswordView) {
+                        lockSurface.switchToPassword(event.text || "")
+                        event.accepted = true
+                        return
+                    }
+                    if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                        lockSurface.attemptUnlock()
+                        event.accepted = true
+                        return
+                    }
+                    if (!passwordBox.activeFocus) passwordBox.forceActiveFocus()
+                }
+
+                Rectangle {
+                    anchors.fill: parent
+                    color: lockSurface.colBackground
+                    z: -2
+                }
+
+                Image {
+                    id: wallpaper
+
+                    anchors.fill: parent
+                    source: root.wallpaperSource
+                    fillMode: Image.PreserveAspectCrop
+                    asynchronous: true
+                    cache: true
+                    layer.enabled: true
+                    layer.effect: MultiEffect {
+                        blurEnabled: true
+                        blur: lockSurface.showPasswordView ? 1 : 0
+                        blurMax: Math.round(lockSurface.blurRadius)
+                        Behavior on blur {
+                            NumberAnimation { duration: 400; easing.type: Easing.OutCubic }
+                        }
+                    }
+                    transform: Scale {
+                        origin.x: wallpaper.width / 2
+                        origin.y: wallpaper.height / 2
+                        xScale: lockSurface.showPasswordView ? 1.15 : 1
+                        yScale: lockSurface.showPasswordView ? 1.15 : 1
+                        Behavior on xScale {
+                            NumberAnimation { duration: 500; easing.type: Easing.OutCubic }
+                        }
+                        Behavior on yScale {
+                            NumberAnimation { duration: 500; easing.type: Easing.OutCubic }
+                        }
+                    }
+                }
+
+                Rectangle {
+                    anchors.fill: parent
+                    gradient: Gradient {
+                        GradientStop { position: 0; color: Qt.rgba(0, 0, 0, 0.1) }
+                        GradientStop { position: 0.5; color: Qt.rgba(0, 0, 0, 0.05) }
+                        GradientStop { position: 1; color: Qt.rgba(0, 0, 0, 0.3) }
+                    }
+                }
+
+                Rectangle {
+                    anchors.fill: parent
+                    color: Qt.rgba(0, 0, 0, 0.4)
+                    opacity: lockSurface.showPasswordView ? 1 : 0
+                    Behavior on opacity {
+                        NumberAnimation { duration: 350; easing.type: Easing.OutCubic }
+                    }
+                }
+
+                Item {
+                    id: clockView
+
+                    anchors.fill: parent
+                    opacity: lockSurface.showPasswordView ? 0 : 1
+                    visible: opacity > 0
+                    scale: lockSurface.showPasswordView ? 0.92 : 1
+                    Behavior on opacity {
+                        NumberAnimation { duration: 400; easing.type: Easing.OutCubic }
+                    }
+                    Behavior on scale {
+                        NumberAnimation { duration: 450; easing.type: Easing.OutBack }
                     }
 
-                    Text {
-                        width: parent.width
-                        text: Qt.formatDate(root.now, "dddd, d MMMM")
-                        color: Theme.textMuted
-                        font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontTitle
-                        horizontalAlignment: Text.AlignHCenter
-                    }
-
-                    Rectangle {
-                        width: 64
-                        height: 64
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        radius: width / 2
-                        color: Theme.surfaceRaised
-                        border.color: Theme.accent
-                        border.width: 2
+                    ColumnLayout {
+                        anchors.centerIn: parent
+                        anchors.verticalCenterOffset: -80
+                        spacing: 8
 
                         Text {
-                            anchors.centerIn: parent
-                            text: root.displayName.charAt(0)
-                            color: Theme.accent
-                            font.family: Theme.fontFamily
-                            font.pixelSize: 30
-                            font.bold: true
+                            Layout.alignment: Qt.AlignHCenter
+                            text: Qt.formatTime(root.now, "hh:mm")
+                            font.pixelSize: 108
+                            font.weight: Font.DemiBold
+                            font.family: "Roboto"
+                            color: lockSurface.colOnSurface
+                            layer.enabled: true
+                            layer.effect: MultiEffect {
+                                shadowEnabled: true
+                                shadowBlur: 1
+                                shadowVerticalOffset: 3
+                                shadowColor: Qt.rgba(0, 0, 0, 0.5)
+                            }
+                        }
+
+                        Text {
+                            Layout.alignment: Qt.AlignHCenter
+                            text: Qt.formatDate(root.now, "dddd, d MMMM")
+                            font.pixelSize: 22
+                            color: lockSurface.colOnSurface
+                            layer.enabled: true
+                            layer.effect: MultiEffect {
+                                shadowEnabled: true
+                                shadowBlur: 1
+                                shadowVerticalOffset: 1
+                                shadowColor: Qt.rgba(0, 0, 0, 0.4)
+                            }
                         }
                     }
 
                     Text {
-                        width: parent.width
-                        text: root.displayName
-                        color: Theme.text
-                        font.family: Theme.fontFamily
-                        font.pixelSize: 20
-                        font.bold: true
-                        horizontalAlignment: Text.AlignHCenter
+                        id: hintText
+                        property real hintOpacity: 0.7
+
+                        anchors.bottom: parent.bottom
+                        anchors.bottomMargin: 40
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: "Press any key or click to unlock"
+                        font.pixelSize: 15
+                        color: lockSurface.colOnSurfaceVariant
+                        opacity: hintOpacity
+                        layer.enabled: true
+                        layer.effect: MultiEffect {
+                            shadowEnabled: true
+                            shadowBlur: 1
+                            shadowVerticalOffset: 1
+                            shadowColor: Qt.rgba(0, 0, 0, 0.3)
+                        }
+                        Behavior on hintOpacity {
+                            NumberAnimation { duration: 600; easing.type: Easing.OutCubic }
+                        }
+                        Timer {
+                            interval: 4000
+                            running: clockView.visible
+                            onTriggered: hintText.hintOpacity = 0
+                        }
+                    }
+                }
+
+                Item {
+                    id: passwordView
+
+                    anchors.fill: parent
+                    opacity: lockSurface.showPasswordView ? 1 : 0
+                    visible: opacity > 0
+                    Behavior on opacity {
+                        NumberAnimation { duration: 400; easing.type: Easing.OutCubic }
                     }
 
-                    Text {
-                        width: parent.width
-                        text: "PASSWORD"
-                        color: Theme.textMuted
-                        font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontSmall
-                        font.bold: true
-                        font.letterSpacing: 1.5
-                    }
+                    ColumnLayout {
+                        id: loginContent
+                        property real animationProgress: lockSurface.showPasswordView ? 1 : 0
 
-                    Row {
-                        width: parent.width
-                        height: 52
-                        spacing: Theme.spaceMd
+                        anchors.centerIn: parent
+                        spacing: 16
+                        Behavior on animationProgress {
+                            NumberAnimation { duration: 500; easing.type: Easing.OutCubic }
+                        }
 
-                        TextField {
-                            id: passwordField
-
-                            width: parent.width - submitButton.width - parent.spacing
-                            height: parent.height
-                            enabled: !lockContext.authenticating
-                            echoMode: lockContext.responseVisible || revealButton.checked
-                                ? TextInput.Normal : TextInput.Password
-                            passwordMaskDelay: 0
-                            placeholderText: "Enter your password"
-                            placeholderTextColor: Theme.textDisabled
-                            color: Theme.text
-                            selectionColor: Theme.accent
-                            selectedTextColor: Theme.textOnAccent
-                            font.family: Theme.fontFamily
-                            font.pixelSize: Theme.fontBody
-                            leftPadding: Theme.spaceLg
-                            rightPadding: revealButton.width + Theme.spaceLg
-                            selectByMouse: true
-                            Accessible.name: "Password"
-                            onTextEdited: lockContext.password = text
-                            onAccepted: lockContext.submit()
-
-                            background: Rectangle {
-                                color: Theme.surfaceRaised
-                                border.color: lockContext.failed ? Theme.danger
-                                    : passwordField.activeFocus ? Theme.accent : Theme.borderInteractive
-                                border.width: passwordField.activeFocus ? Theme.focusWidth : Theme.borderWidth
-                                radius: Math.max(8, Theme.radius)
+                        Item {
+                            Layout.alignment: Qt.AlignHCenter
+                            implicitWidth: 100
+                            implicitHeight: 100
+                            opacity: Math.min(1, loginContent.animationProgress * 3)
+                            scale: 0.8 + 0.2 * Math.min(1, loginContent.animationProgress * 3)
+                            Behavior on scale {
+                                NumberAnimation { duration: 350; easing.type: Easing.OutBack }
                             }
 
-                            ActionButton {
-                                id: revealButton
-
-                                width: 38
-                                height: 38
-                                anchors {
-                                    right: parent.right
-                                    rightMargin: 7
-                                    verticalCenter: parent.verticalCenter
+                            Rectangle {
+                                anchors.centerIn: parent
+                                width: 108
+                                height: 108
+                                radius: width / 2
+                                color: "transparent"
+                                border.color: lockSurface.colPrimary
+                                border.width: 3
+                                opacity: 0.8
+                                layer.enabled: true
+                                layer.effect: MultiEffect {
+                                    shadowEnabled: true
+                                    shadowBlur: 1
+                                    shadowVerticalOffset: 4
+                                    shadowColor: Qt.rgba(0, 0, 0, 0.4)
                                 }
-                                checkable: true
-                                text: checked ? "󰈉" : "󰈈"
-                                accessibleName: checked ? "Hide password" : "Show password"
-                                onClicked: passwordField.forceActiveFocus()
                             }
 
-                            Connections {
-                                target: lockContext
-                                function onPasswordChanged() {
-                                    if (passwordField.text !== lockContext.password) {
-                                        passwordField.text = lockContext.password
+                            Rectangle {
+                                anchors.fill: parent
+                                radius: width / 2
+                                color: lockSurface.colPrimary
+
+                                Image {
+                                    id: homeAvatar
+                                    anchors.fill: parent
+                                    source: "file://" + Quickshell.env("HOME") + "/.face.icon"
+                                    fillMode: Image.PreserveAspectCrop
+                                    asynchronous: true
+                                    cache: true
+                                    smooth: true
+                                    mipmap: true
+                                    visible: false
+                                }
+                                Image {
+                                    id: accountsAvatar
+                                    anchors.fill: parent
+                                    source: homeAvatar.status === Image.Ready ? ""
+                                        : "file:///var/lib/AccountsService/icons/" + lockContext.username
+                                    fillMode: Image.PreserveAspectCrop
+                                    asynchronous: true
+                                    cache: true
+                                    smooth: true
+                                    mipmap: true
+                                    visible: false
+                                }
+                                Rectangle {
+                                    id: avatarMask
+                                    anchors.fill: parent
+                                    radius: width / 2
+                                    visible: false
+                                    layer.enabled: true
+                                }
+                                MultiEffect {
+                                    anchors.fill: parent
+                                    source: homeAvatar.status === Image.Ready ? homeAvatar : accountsAvatar
+                                    maskEnabled: true
+                                    maskSource: avatarMask
+                                    visible: homeAvatar.status === Image.Ready || accountsAvatar.status === Image.Ready
+                                }
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: root.displayName.charAt(0).toUpperCase()
+                                    font.pixelSize: 40
+                                    font.weight: Font.Medium
+                                    color: lockSurface.colOnPrimary
+                                    visible: homeAvatar.status !== Image.Ready && accountsAvatar.status !== Image.Ready
+                                }
+                            }
+                        }
+
+                        Item {
+                            Layout.alignment: Qt.AlignHCenter
+                            Layout.topMargin: 8
+                            implicitWidth: userName.implicitWidth + 16
+                            implicitHeight: userName.implicitHeight + 8
+                            opacity: Math.min(1, Math.max(0, loginContent.animationProgress * 3 - 0.3))
+                            transform: Translate {
+                                y: (1 - Math.min(1, Math.max(0, loginContent.animationProgress * 3 - 0.3))) * 15
+                            }
+                            Text {
+                                id: userName
+                                anchors.centerIn: parent
+                                text: root.displayName
+                                font.pixelSize: 22
+                                font.weight: Font.Medium
+                                color: lockSurface.colOnSurface
+                                layer.enabled: true
+                                layer.effect: MultiEffect {
+                                    shadowEnabled: true
+                                    shadowBlur: 1
+                                    shadowVerticalOffset: 1
+                                    shadowColor: Qt.rgba(0, 0, 0, 0.4)
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            id: passwordPill
+                            property real staggerY: (
+                                1 - Math.min(1, Math.max(0, loginContent.animationProgress * 3 - 0.5))
+                            ) * 20
+                            property real shakeOffset: 0
+
+                            Layout.alignment: Qt.AlignHCenter
+                            Layout.topMargin: 12
+                            implicitWidth: 300
+                            implicitHeight: 52
+                            radius: height / 2
+                            color: Qt.rgba(
+                                lockSurface.colSurface.r,
+                                lockSurface.colSurface.g,
+                                lockSurface.colSurface.b,
+                                0.85
+                            )
+                            border.color: lockSurface.loginFailed ? lockSurface.colError
+                                : passwordBox.activeFocus ? lockSurface.colPrimary
+                                : Qt.rgba(
+                                    lockSurface.colOnSurface.r,
+                                    lockSurface.colOnSurface.g,
+                                    lockSurface.colOnSurface.b,
+                                    0.3
+                                )
+                            border.width: passwordBox.activeFocus ? 2 : 1
+                            opacity: Math.min(1, Math.max(0, loginContent.animationProgress * 3 - 0.5))
+                            transform: Translate {
+                                x: passwordPill.shakeOffset
+                                y: passwordPill.staggerY
+                            }
+                            layer.enabled: true
+                            layer.effect: MultiEffect {
+                                shadowEnabled: true
+                                shadowBlur: 1
+                                shadowVerticalOffset: 4
+                                shadowColor: Qt.rgba(0, 0, 0, 0.3)
+                            }
+
+                            SequentialAnimation {
+                                id: shakeAnimation
+                                NumberAnimation { target: passwordPill; property: "shakeOffset"; to: -20; duration: 50 }
+                                NumberAnimation { target: passwordPill; property: "shakeOffset"; to: 20; duration: 50 }
+                                NumberAnimation { target: passwordPill; property: "shakeOffset"; to: -10; duration: 40 }
+                                NumberAnimation { target: passwordPill; property: "shakeOffset"; to: 10; duration: 40 }
+                                NumberAnimation { target: passwordPill; property: "shakeOffset"; to: 0; duration: 30 }
+                            }
+
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.leftMargin: 20
+                                anchors.rightMargin: 8
+                                spacing: 8
+
+                                Item {
+                                    Layout.fillWidth: true
+                                    Layout.fillHeight: true
+                                    clip: true
+
+                                    Text {
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        text: lockSurface.loginFailed ? "Incorrect password" : "Password"
+                                        font.pixelSize: 16
+                                        color: lockSurface.loginFailed
+                                            ? lockSurface.colError : lockSurface.colOnSurfaceVariant
+                                        visible: passwordBox.text.length === 0
+                                    }
+                                    PixelDots {
+                                        anchors.left: parent.left
+                                        anchors.right: parent.right
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        dotCount: passwordBox.text.length
+                                        dotColor: lockSurface.colOnSurface
+                                        animColor: lockSurface.colPrimary
+                                        visible: lockSurface.materialShapeChars
+                                            && !lockContext.responseVisible
+                                            && passwordBox.text.length > 0
+                                    }
+                                    TextInput {
+                                        id: passwordBox
+                                        anchors.fill: parent
+                                        verticalAlignment: Text.AlignVCenter
+                                        echoMode: lockContext.responseVisible ? TextInput.Normal : TextInput.Password
+                                        color: lockSurface.materialShapeChars && !lockContext.responseVisible
+                                            ? "transparent" : lockSurface.colOnSurface
+                                        selectionColor: lockSurface.colPrimary
+                                        selectedTextColor: lockSurface.colOnPrimary
+                                        cursorVisible: false
+                                        cursorDelegate: Item {}
+                                        inputMethodHints: Qt.ImhSensitiveData | Qt.ImhNoAutoUppercase
+                                        enabled: !lockContext.authenticating
+                                        focus: true
+                                        font.pixelSize: 16
+                                        Accessible.name: "Enter your password"
+
+                                        onTextEdited: {
+                                            lockSurface.loginFailed = false
+                                            lockContext.password = text
+                                        }
+                                        Keys.onReturnPressed: lockSurface.attemptUnlock()
+                                        Keys.onEnterPressed: lockSurface.attemptUnlock()
+                                        Keys.onEscapePressed: {
+                                            if (lockContext.password.length > 0) lockContext.password = ""
+                                            else {
+                                                lockSurface.currentView = "clock"
+                                                visualRoot.forceActiveFocus()
+                                            }
+                                        }
+                                    }
+                                }
+
+                                Rectangle {
+                                    Layout.preferredWidth: 36
+                                    Layout.preferredHeight: 36
+                                    Layout.alignment: Qt.AlignVCenter
+                                    radius: width / 2
+                                    color: submitMouse.pressed ? Qt.darker(lockSurface.colPrimary, 1.2)
+                                        : submitMouse.containsMouse ? Qt.lighter(lockSurface.colPrimary, 1.1)
+                                        : lockSurface.colPrimary
+                                    Behavior on color { ColorAnimation { duration: 120 } }
+
+                                    MSymbol {
+                                        anchors.centerIn: parent
+                                        text: lockContext.authenticating ? "progress_activity" : "arrow_forward"
+                                        iconSize: 20
+                                        iconColor: lockSurface.colOnPrimary
+                                        symFont: lockSurface.symbolFont()
+                                        RotationAnimation on rotation {
+                                            running: lockContext.authenticating
+                                            loops: Animation.Infinite
+                                            from: 0
+                                            to: 360
+                                            duration: 1000
+                                        }
+                                    }
+                                    MouseArea {
+                                        id: submitMouse
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        enabled: !lockContext.authenticating
+                                        onClicked: lockSurface.attemptUnlock()
                                     }
                                 }
                             }
-
-                            Component.onCompleted: forceActiveFocus()
                         }
 
-                        ActionButton {
-                            id: submitButton
-                            width: 52
-                            height: parent.height
-                            text: lockContext.authenticating ? "…" : "→"
-                            selected: true
-                            enabled: !lockContext.authenticating && lockContext.password.length > 0
-                            accessibleName: "Unlock"
-                            onClicked: lockContext.submit()
+                        Text {
+                            Layout.alignment: Qt.AlignHCenter
+                            Layout.maximumWidth: 420
+                            text: lockSurface.loginFailed ? lockContext.message : ""
+                            color: lockSurface.colError
+                            font.pixelSize: 13
+                            horizontalAlignment: Text.AlignHCenter
+                            wrapMode: Text.Wrap
+                            opacity: text.length > 0 ? 1 : 0
+                            Behavior on opacity { NumberAnimation { duration: 160 } }
                         }
                     }
+                }
 
+                Row {
+                    anchors.bottom: parent.bottom
+                    anchors.right: parent.right
+                    anchors.bottomMargin: 24
+                    anchors.rightMargin: 24
+                    spacing: 8
+                    z: 10
+
+                    LockIconButton {
+                        icon: "dark_mode"
+                        tooltip: "Sleep"
+                        onClicked: Quickshell.execDetached(["systemctl", "suspend"])
+                    }
+                    LockIconButton {
+                        icon: "power_settings_new"
+                        tooltip: "Shut down"
+                        onClicked: Quickshell.execDetached(["systemctl", "poweroff"])
+                    }
+                    LockIconButton {
+                        icon: "restart_alt"
+                        tooltip: "Restart"
+                        onClicked: Quickshell.execDetached(["systemctl", "reboot"])
+                    }
+                }
+
+                Rectangle {
+                    id: unlockOverlay
+                    anchors.fill: parent
+                    color: lockSurface.colBackground
+                    opacity: 0
+                    z: 100
+                    NumberAnimation {
+                        id: unlockFadeAnimation
+                        target: unlockOverlay
+                        property: "opacity"
+                        from: 0
+                        to: 1
+                        duration: 300
+                        easing.type: Easing.InQuad
+                    }
+                }
+
+                Component.onCompleted: {
+                    lockSurface.currentView = "clock"
+                    Qt.callLater(function() {
+                        visualRoot.forceActiveFocus()
+                    })
+                }
+            }
+
+            component LockIconButton: Rectangle {
+                id: lockButton
+                required property string icon
+                property string tooltip: ""
+                signal clicked
+
+                width: 44
+                height: 44
+                radius: 12
+                color: {
+                    if (lockButtonMouse.pressed) {
+                        return Qt.rgba(lockSurface.colOnSurface.r, lockSurface.colOnSurface.g,
+                            lockSurface.colOnSurface.b, 0.3)
+                    }
+                    if (lockButtonMouse.containsMouse) {
+                        return Qt.rgba(lockSurface.colOnSurface.r, lockSurface.colOnSurface.g,
+                            lockSurface.colOnSurface.b, 0.15)
+                    }
+                    return Qt.rgba(lockSurface.colSurface.r, lockSurface.colSurface.g,
+                        lockSurface.colSurface.b, 0.3)
+                }
+                layer.enabled: true
+                layer.effect: MultiEffect {
+                    shadowEnabled: true
+                    shadowBlur: 1
+                    shadowVerticalOffset: 2
+                    shadowColor: Qt.rgba(0, 0, 0, 0.3)
+                }
+                Behavior on color { ColorAnimation { duration: 150 } }
+
+                MSymbol {
+                    anchors.centerIn: parent
+                    text: lockButton.icon
+                    iconSize: 22
+                    iconColor: lockSurface.colOnSurface
+                    symFont: lockSurface.symbolFont()
+                }
+                MouseArea {
+                    id: lockButtonMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: lockButton.clicked()
+                }
+                Rectangle {
+                    visible: lockButtonMouse.containsMouse && lockButton.tooltip.length > 0
+                    anchors.bottom: parent.top
+                    anchors.bottomMargin: 6
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    color: Qt.rgba(lockSurface.colSurface.r, lockSurface.colSurface.g,
+                        lockSurface.colSurface.b, 0.95)
+                    border.color: Qt.rgba(lockSurface.colOnSurface.r, lockSurface.colOnSurface.g,
+                        lockSurface.colOnSurface.b, 0.2)
+                    border.width: 1
+                    radius: 6
+                    width: tooltipLabel.implicitWidth + 16
+                    height: tooltipLabel.implicitHeight + 10
+                    z: 99
                     Text {
-                        width: parent.width
-                        text: lockContext.message
-                        color: lockContext.failed ? Theme.danger : Theme.textMuted
-                        font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontSmall
-                        horizontalAlignment: Text.AlignHCenter
+                        id: tooltipLabel
+                        anchors.centerIn: parent
+                        text: lockButton.tooltip
+                        font.pixelSize: 12
+                        color: lockSurface.colOnSurface
                     }
                 }
             }

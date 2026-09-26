@@ -16,6 +16,32 @@ class LockScreenTest(unittest.TestCase):
         self.assertIn('config: "swaylock"', context)
         self.assertIn("Enter your password", screen)
 
+    def test_lock_screen_uses_ii_pixel_visual_dependencies(self) -> None:
+        lock_dir = ROOT / "modules/lock"
+        screen = (lock_dir / "LockScreen.qml").read_text()
+
+        self.assertIn('path: "/usr/share/sddm/themes/ii-pixel/theme.conf"', screen)
+        self.assertIn("MultiEffect", screen)
+        self.assertIn("PixelDots", screen)
+        self.assertIn('["systemctl", "suspend"]', screen)
+        self.assertIn('["systemctl", "poweroff"]', screen)
+        self.assertIn('["systemctl", "reboot"]', screen)
+        self.assertNotIn("sessionModel", screen)
+        self.assertNotIn("VirtualKeyboard", screen)
+        self.assertTrue((lock_dir / "fonts/MaterialSymbolsRounded.ttf").is_file())
+        self.assertTrue((lock_dir / "shapes/LICENSE").is_file())
+
+    def test_lock_screen_locks_before_any_sleep(self) -> None:
+        screen = (ROOT / "modules/lock/LockScreen.qml").read_text()
+        sleep_lock = (ROOT / "modules/lock/SleepLock.qml").read_text()
+
+        self.assertIn("secure: sessionLock.secure", screen)
+        self.assertIn("onLockRequested: if (!root.locked) root.lock()", screen)
+        self.assertIn('"--mode=delay"', sleep_lock)
+        self.assertIn("running: !(root.preparingSleep && root.secure)", sleep_lock)
+        self.assertIn(".Manager.PrepareForSleep (true", sleep_lock)
+        self.assertIn("org.freedesktop.login1.Session.Lock", sleep_lock)
+
     def test_control_center_uses_the_rashell_lock_screen(self) -> None:
         panel = (ROOT / "modules/system/ControlPanel.qml").read_text()
 
