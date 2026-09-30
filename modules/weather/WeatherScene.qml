@@ -95,6 +95,6 @@ Rectangle {
         color: Qt.rgba(1, 1, 1, 0.72)
         font.family: Theme.fontFamily
         font.pixelSize: Theme.fontSmall
-        font.bold: true
+        font.weight: Theme.fontWeightStrong
     }
 }

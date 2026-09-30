@@ -50,7 +50,7 @@ Rectangle {
                     required property string modelData
                     text: modelData
                     color: modelData === "01" ? root.colors.accent : root.colors.textMuted
-                    font { family: Theme.fontFamily; pixelSize: Theme.fontSmall; bold: modelData === "01" }
+                    font { family: Theme.fontFamily; pixelSize: Theme.fontSmall; weight: modelData === "01" ? Theme.fontWeightStrong : Theme.fontWeightRegular }
                 }
             }
         }
@@ -108,14 +108,14 @@ Rectangle {
                 width: parent.width
                 text: "insaf ~"
                 color: root.colors.accent
-                font { family: Theme.fontFamily; pixelSize: Theme.fontBody; bold: true }
+                font { family: Theme.fontFamily; pixelSize: Theme.fontBody; weight: Theme.fontWeightStrong }
             }
 
             Text {
                 width: parent.width
                 text: root.themeName
                 color: root.terminalSettings.foreground || root.colors.text
-                font { family: Theme.fontFamily; pixelSize: Theme.fontTitle; bold: true }
+                font { family: Theme.fontFamily; pixelSize: Theme.fontTitle; weight: Theme.fontWeightStrong }
                 elide: Text.ElideRight
             }
 
@@ -162,7 +162,7 @@ Rectangle {
             Text {
                 text: "󰂚  Notification"
                 color: root.colors.accent
-                font { family: Theme.fontFamily; pixelSize: Theme.fontSmall; bold: true }
+                font { family: Theme.fontFamily; pixelSize: Theme.fontSmall; weight: Theme.fontWeightStrong }
             }
             Text {
                 text: "Everything in its place."
@@ -178,7 +178,7 @@ Rectangle {
                     anchors.centerIn: parent
                     text: "Open"
                     color: root.colors.textOnAccent
-                    font { family: Theme.fontFamily; pixelSize: Theme.fontSmall; bold: true }
+                    font { family: Theme.fontFamily; pixelSize: Theme.fontSmall; weight: Theme.fontWeightStrong }
                 }
             }
         }

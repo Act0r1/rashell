@@ -162,7 +162,7 @@ FocusScope {
                                 wrapMode: Text.Wrap
                                 font.family: Theme.fontFamily
                                 font.pixelSize: Theme.fontBody
-                                font.bold: true
+                                font.weight: Theme.fontWeightStrong
                             }
                             Text {
                                 width: parent.width

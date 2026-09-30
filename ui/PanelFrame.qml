@@ -39,7 +39,7 @@ Rectangle {
                 color: Theme.text
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontTitle
-                font.weight: Font.DemiBold
+                font.weight: Theme.fontWeightStrong
                 elide: Text.ElideRight
                 maximumLineCount: 1
             }

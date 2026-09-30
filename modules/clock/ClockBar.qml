@@ -38,7 +38,7 @@ Item {
             styleColor: "#c0000000"
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontBody
-            font.bold: true
+            font.weight: Theme.fontWeightStrong
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
         }

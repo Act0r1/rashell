@@ -153,7 +153,7 @@ FocusScope {
                         color: tile.active ? Theme.textOnAccent : Theme.text
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontBody
-                        font.bold: true
+                        font.weight: Theme.fontWeightStrong
                         elide: Text.ElideRight
                     }
                 }
@@ -213,7 +213,7 @@ FocusScope {
         color: Theme.textMuted
         font.family: Theme.fontFamily
         font.pixelSize: Theme.fontSmall
-        font.bold: true
+        font.weight: Theme.fontWeightStrong
     }
 
     component PowerButton: ActionButton {
@@ -245,7 +245,7 @@ FocusScope {
                     color: action.selected ? Theme.textOnAccent : action.danger ? Theme.danger : Theme.text
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSmall
-                    font.weight: action.selected ? Font.DemiBold : Font.Normal
+                    font.weight: action.selected ? Theme.fontWeightStrong : Theme.fontWeightRegular
                 }
             }
         }
@@ -412,7 +412,7 @@ FocusScope {
                                     color: Theme.accent
                                     font.family: Theme.fontFamily
                                     font.pixelSize: Theme.fontTitle
-                                    font.bold: true
+                                    font.weight: Theme.fontWeightStrong
                                 }
                             }
 
@@ -425,7 +425,7 @@ FocusScope {
                                     color: Theme.text
                                     font.family: Theme.fontFamily
                                     font.pixelSize: Theme.fontBody
-                                    font.bold: true
+                                    font.weight: Theme.fontWeightStrong
                                 }
                                 Text {
                                     width: parent.width
@@ -475,7 +475,7 @@ FocusScope {
                                 color: Theme.text
                                 font.family: Theme.fontFamily
                                 font.pixelSize: Theme.fontBody
-                                font.bold: true
+                                font.weight: Theme.fontWeightStrong
                                 elide: Text.ElideRight
                             }
 

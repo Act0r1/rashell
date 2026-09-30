@@ -85,6 +85,8 @@ QtObject {
     readonly property var fontFamilies: Qt.fontFamilies()
     readonly property string fontFamily: fontFamilies.indexOf(selectedFontFamily) !== -1
         ? selectedFontFamily : "Adwaita Sans"
+    readonly property int fontWeightRegular: Font.Normal
+    readonly property int fontWeightStrong: Font.DemiBold
     readonly property int fontSmall: 12
     readonly property int fontBody: 14
     readonly property int fontTitle: 17

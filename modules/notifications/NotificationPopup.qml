@@ -79,7 +79,7 @@ Scope {
                                     elide: Text.ElideRight
                                     font.family: Theme.fontFamily
                                     font.pixelSize: Theme.fontSmall
-                                    font.bold: true
+                                    font.weight: Theme.fontWeightStrong
                                 }
                             }
                             Text {
@@ -92,7 +92,7 @@ Scope {
                                 elide: Text.ElideRight
                                 font.family: Theme.fontFamily
                                 font.pixelSize: Theme.fontBody
-                                font.bold: true
+                                font.weight: Theme.fontWeightStrong
                             }
                             Text {
                                 width: parent.width

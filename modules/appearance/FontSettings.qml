@@ -122,7 +122,7 @@ GridLayout {
                         color: root.selectedFamily === choice.modelData ? Theme.accent : Theme.text
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontBody
-                        font.bold: root.selectedFamily === choice.modelData
+                        font.weight: root.selectedFamily === choice.modelData ? Theme.fontWeightStrong : Theme.fontWeightRegular
                         elide: Text.ElideRight
                     }
                     Text {
@@ -165,7 +165,7 @@ GridLayout {
             color: Theme.text
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontDisplay
-            font.bold: true
+            font.weight: Theme.fontWeightStrong
             elide: Text.ElideRight
         }
 
@@ -197,7 +197,7 @@ GridLayout {
                     color: Theme.text
                     font.family: root.previewFamily
                     font.pixelSize: Theme.fontTitle
-                    font.bold: true
+                    font.weight: Theme.fontWeightStrong
                     wrapMode: Text.WordWrap
                 }
                 Text {
@@ -214,7 +214,7 @@ GridLayout {
                     color: Theme.text
                     font.family: root.previewFamily
                     font.pixelSize: Theme.fontBody
-                    font.bold: true
+                    font.weight: Theme.fontWeightStrong
                     wrapMode: Text.WordWrap
                 }
                 Text {

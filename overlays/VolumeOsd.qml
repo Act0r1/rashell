@@ -61,7 +61,7 @@ Scope {
                             color: root.audioState.outputMuted ? Theme.danger : Theme.accent
                             font.family: Theme.fontFamily
                             font.pixelSize: Theme.fontBody
-                            font.bold: true
+                            font.weight: Theme.fontWeightStrong
                         }
 
                         Rectangle {

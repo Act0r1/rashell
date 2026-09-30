@@ -34,7 +34,7 @@ Column {
                 color: Theme.text
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontBody
-                font.weight: Font.DemiBold
+                font.weight: Theme.fontWeightStrong
                 wrapMode: Text.WordWrap
             }
             Text {

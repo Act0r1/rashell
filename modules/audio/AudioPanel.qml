@@ -43,7 +43,7 @@ FocusScope {
             color: Theme.text
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontBody
-            font.weight: Font.Medium
+            font.weight: Theme.fontWeightStrong
             verticalAlignment: Text.AlignVCenter
         }
     }
@@ -64,7 +64,7 @@ FocusScope {
             color: Theme.text
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontBody
-            font.weight: deviceButton.selected ? Font.Medium : Font.Normal
+            font.weight: deviceButton.selected ? Theme.fontWeightStrong : Theme.fontWeightRegular
             elide: Text.ElideRight
             maximumLineCount: 1
             horizontalAlignment: Text.AlignLeft
@@ -80,7 +80,7 @@ FocusScope {
             color: Theme.accent
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontBody
-            font.weight: Font.DemiBold
+            font.weight: Theme.fontWeightStrong
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
         }

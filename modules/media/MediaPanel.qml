@@ -168,7 +168,7 @@ FocusScope {
                             color: Theme.accent
                             font.family: Theme.fontFamily
                             font.pixelSize: Theme.fontSmall
-                            font.bold: true
+                            font.weight: Theme.fontWeightStrong
                             font.letterSpacing: 1
                         }
 
@@ -183,7 +183,7 @@ FocusScope {
                         maximumLineCount: 2
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontDisplay
-                        font.bold: true
+                        font.weight: Theme.fontWeightStrong
                     }
 
                     Text {
@@ -193,7 +193,7 @@ FocusScope {
                         elide: Text.ElideRight
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontBody
-                        font.bold: true
+                        font.weight: Theme.fontWeightStrong
                     }
 
                     Text {

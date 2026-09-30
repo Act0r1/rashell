@@ -332,7 +332,7 @@ Scope {
                                 elide: Text.ElideRight
                                 font.family: Theme.fontFamily
                                 font.pixelSize: Theme.fontSmall
-                                font.weight: root.mode === tabButton.modelData.mode ? Font.DemiBold : Font.Normal
+                                font.weight: root.mode === tabButton.modelData.mode ? Theme.fontWeightStrong : Theme.fontWeightRegular
                                 horizontalAlignment: Text.AlignHCenter
                                 verticalAlignment: Text.AlignVCenter
                             }
@@ -518,7 +518,7 @@ Scope {
                                                 ? Theme.accent : Theme.textMuted
                                             font.family: Theme.fontFamily
                                             font.pixelSize: Theme.fontTitle
-                                            font.weight: Font.Medium
+                                            font.weight: Theme.fontWeightStrong
                                             horizontalAlignment: Text.AlignHCenter
                                             verticalAlignment: Text.AlignVCenter
                                         }
@@ -551,7 +551,7 @@ Scope {
                                         elide: Text.ElideRight
                                         font.family: Theme.fontFamily
                                         font.pixelSize: Theme.fontBody
-                                        font.weight: Font.Medium
+                                        font.weight: Theme.fontWeightStrong
                                     }
 
                                     Text {
@@ -619,7 +619,7 @@ Scope {
                             horizontalAlignment: Text.AlignHCenter
                             font.family: Theme.fontFamily
                             font.pixelSize: Theme.fontTitle
-                            font.weight: Font.Medium
+                            font.weight: Theme.fontWeightStrong
                         }
 
                         Text {
@@ -698,7 +698,7 @@ Scope {
                             color: Theme.text
                             font.family: Theme.fontFamily
                             font.pixelSize: Theme.fontBody
-                            font.weight: Font.DemiBold
+                            font.weight: Theme.fontWeightStrong
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
                         }

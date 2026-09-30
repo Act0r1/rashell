@@ -57,7 +57,7 @@ FocusScope {
                                 color: Theme.accent
                                 font.family: Theme.fontFamily
                                 font.pixelSize: Theme.fontTitle
-                                font.bold: true
+                                font.weight: Theme.fontWeightStrong
                             }
                         }
                     }

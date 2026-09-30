@@ -48,7 +48,7 @@ Rectangle {
             color: Theme.text
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontBody
-            font.bold: true
+            font.weight: Theme.fontWeightStrong
         }
 
         Grid {

@@ -149,7 +149,7 @@ FocusScope {
                     color: Theme.accent
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontTitle
-                    font.bold: true
+                    font.weight: Theme.fontWeightStrong
                     font.letterSpacing: 2
                 }
             }
@@ -182,7 +182,7 @@ FocusScope {
                         color: Theme.textMuted
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSmall
-                        font.bold: true
+                        font.weight: Theme.fontWeightStrong
                     }
                 }
             }
@@ -215,7 +215,7 @@ FocusScope {
                         color: dayCell.selected ? Theme.textOnAccent : Theme.text
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontBody
-                        font.bold: dayCell.current || dayCell.selected
+                        font.weight: dayCell.current || dayCell.selected ? Theme.fontWeightStrong : Theme.fontWeightRegular
                     }
 
                     Rectangle {
@@ -255,7 +255,7 @@ FocusScope {
             color: Theme.accentMuted
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSmall
-            font.bold: true
+            font.weight: Theme.fontWeightStrong
             elide: Text.ElideRight
         }
 
@@ -346,7 +346,7 @@ FocusScope {
             color: Theme.textMuted
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSmall
-            font.bold: true
+            font.weight: Theme.fontWeightStrong
         }
 
         ListView {
@@ -384,7 +384,7 @@ FocusScope {
                         color: reminderRow.modelData.fired ? Theme.textMuted : Theme.accent
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSmall
-                        font.bold: true
+                        font.weight: Theme.fontWeightStrong
                     }
 
                     Text {

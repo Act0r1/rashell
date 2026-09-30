@@ -225,7 +225,7 @@ FocusScope {
                             color: Theme.textOnAccent
                             font.family: Theme.fontFamily
                             font.pixelSize: Theme.fontSmall
-                            font.weight: Font.DemiBold
+                            font.weight: Theme.fontWeightStrong
                         }
                     }
                 }
@@ -240,7 +240,7 @@ FocusScope {
                     styleColor: Qt.alpha(Theme.background, 0.9)
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSmall
-                    font.weight: device.selected ? Font.Medium : Font.Normal
+                    font.weight: device.selected ? Theme.fontWeightStrong : Theme.fontWeightRegular
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.Wrap
                     maximumLineCount: 2

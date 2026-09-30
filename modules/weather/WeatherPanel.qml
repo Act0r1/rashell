@@ -180,7 +180,7 @@ FocusScope {
                                 color: "white"
                                 font.family: Theme.fontFamily
                                 font.pixelSize: Theme.fontTitle
-                                font.bold: true
+                                font.weight: Theme.fontWeightStrong
                                 style: Text.Raised
                                 styleColor: Qt.rgba(0, 0, 0, 0.55)
                             }
@@ -215,7 +215,7 @@ FocusScope {
                             color: Qt.rgba(1, 1, 1, 0.86)
                             font.family: Theme.fontFamily
                             font.pixelSize: Theme.fontBody
-                            font.bold: true
+                            font.weight: Theme.fontWeightStrong
                         }
 
                         Text {
@@ -251,7 +251,7 @@ FocusScope {
                                     color: "white"
                                     font.family: Theme.fontFamily
                                     font.pixelSize: root.heroTemperatureSize
-                                    font.bold: true
+                                    font.weight: Theme.fontWeightStrong
                                     font.letterSpacing: -2
                                     style: Text.Raised
                                     styleColor: Qt.rgba(0, 0, 0, 0.62)
@@ -337,7 +337,7 @@ FocusScope {
                                             color: "white"
                                             font.family: Theme.fontFamily
                                             font.pixelSize: Theme.fontBody
-                                            font.bold: true
+                                            font.weight: Theme.fontWeightStrong
                                         }
 
                                         Text {
@@ -415,7 +415,7 @@ FocusScope {
                                     color: Theme.text
                                     font.family: Theme.fontFamily
                                     font.pixelSize: Theme.fontBody
-                                    font.bold: true
+                                    font.weight: Theme.fontWeightStrong
                                 }
 
                                 Text {
@@ -614,7 +614,7 @@ FocusScope {
                                     color: Theme.text
                                     font.family: Theme.fontFamily
                                     font.pixelSize: Theme.fontBody
-                                    font.bold: true
+                                    font.weight: Theme.fontWeightStrong
                                 }
                             }
                         }
@@ -649,7 +649,7 @@ FocusScope {
                         color: Theme.accentMuted
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSmall
-                        font.bold: true
+                        font.weight: Theme.fontWeightStrong
                         verticalAlignment: Text.AlignVCenter
                     }
 

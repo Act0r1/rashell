@@ -189,7 +189,7 @@ FocusScope {
             color: Theme.accent
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSmall
-            font.bold: true
+            font.weight: Theme.fontWeightStrong
             font.letterSpacing: 1
             elide: Text.ElideRight
         }
@@ -261,7 +261,7 @@ FocusScope {
                 color: Theme.accentMuted
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSmall
-                font.bold: true
+                font.weight: Theme.fontWeightStrong
                 elide: Text.ElideRight
             }
 

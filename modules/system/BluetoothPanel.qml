@@ -115,7 +115,7 @@ FocusScope {
                 color: Theme.text
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontBody
-                font.weight: Font.Medium
+                font.weight: Theme.fontWeightStrong
                 elide: Text.ElideRight
                 maximumLineCount: 1
             }
@@ -242,7 +242,7 @@ FocusScope {
                 color: Theme.text
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontBody
-                font.weight: Font.Medium
+                font.weight: Theme.fontWeightStrong
                 verticalAlignment: Text.AlignVCenter
             }
 
@@ -259,7 +259,7 @@ FocusScope {
                     color: Theme.accent
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSmall
-                    font.weight: Font.Medium
+                    font.weight: Theme.fontWeightStrong
                 }
             }
         }
@@ -368,7 +368,7 @@ FocusScope {
                     color: powerSwitch.enabled ? Theme.text : Theme.textDisabled
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontBody
-                    font.bold: powerSwitch.checked
+                    font.weight: powerSwitch.checked ? Theme.fontWeightStrong : Theme.fontWeightRegular
                     leftPadding: Theme.spaceLg
                     rightPadding: 48 + Theme.spaceLg * 2
                     elide: Text.ElideRight
@@ -495,7 +495,7 @@ FocusScope {
                             color: Theme.text
                             font.family: Theme.fontFamily
                             font.pixelSize: Theme.fontBody
-                            font.weight: Font.Medium
+                            font.weight: Theme.fontWeightStrong
                             horizontalAlignment: Text.AlignHCenter
                             wrapMode: Text.WordWrap
                         }

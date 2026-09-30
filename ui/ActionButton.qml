@@ -54,7 +54,7 @@ Button {
             : control.danger ? Theme.danger : control.enabled ? Theme.text : Theme.textDisabled
         font.family: Theme.fontFamily
         font.pixelSize: Theme.fontBody
-        font.bold: control.selected
+        font.weight: control.selected ? Theme.fontWeightStrong : Theme.fontWeightRegular
         elide: Text.ElideRight
         maximumLineCount: 1
         clip: true

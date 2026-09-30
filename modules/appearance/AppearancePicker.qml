@@ -148,7 +148,7 @@ Scope {
                         Text {
                             text: "Appearance"
                             color: Theme.text
-                            font { family: Theme.fontFamily; pixelSize: Theme.fontDisplay; bold: true }
+                            font { family: Theme.fontFamily; pixelSize: Theme.fontDisplay; weight: Theme.fontWeightStrong }
                         }
                         Text {
                             text: root.showFonts ? "Typography for your panel, menus and notifications"
@@ -308,7 +308,7 @@ Scope {
                                             Layout.fillWidth: true
                                             text: choice.modelData.name
                                             color: root.selectedId === choice.modelData.id ? Theme.accent : Theme.text
-                                            font { family: Theme.fontFamily; pixelSize: Theme.fontSmall; bold: root.selectedId === choice.modelData.id }
+                                            font { family: Theme.fontFamily; pixelSize: Theme.fontSmall; weight: root.selectedId === choice.modelData.id ? Theme.fontWeightStrong : Theme.fontWeightRegular }
                                             elide: Text.ElideRight
                                         }
                                         Text {
@@ -341,7 +341,7 @@ Scope {
                                 Text {
                                     text: "DESKTOP PREVIEW"
                                     color: Theme.textMuted
-                                    font { family: Theme.fontFamily; pixelSize: Theme.fontSmall; bold: true }
+                                    font { family: Theme.fontFamily; pixelSize: Theme.fontSmall; weight: Theme.fontWeightStrong }
                                 }
                                 Item { Layout.fillWidth: true }
                                 Text {
@@ -369,7 +369,7 @@ Scope {
                                     Layout.fillWidth: true
                                     text: root.selectedTheme.name
                                     color: Theme.text
-                                    font { family: Theme.fontFamily; pixelSize: content.compact ? 20 : 28; bold: true }
+                                    font { family: Theme.fontFamily; pixelSize: content.compact ? 20 : 28; weight: Theme.fontWeightStrong }
                                     elide: Text.ElideRight
                                 }
                                 Text {

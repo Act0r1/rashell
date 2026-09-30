@@ -94,7 +94,7 @@ FocusScope {
                             color: Theme.text
                             font.family: Theme.fontFamily
                             font.pixelSize: Theme.fontTitle
-                            font.bold: true
+                            font.weight: Theme.fontWeightStrong
                         }
 
                         Text {
@@ -266,7 +266,7 @@ FocusScope {
                             color: Theme.text
                             font.family: Theme.fontFamily
                             font.pixelSize: Theme.fontBody
-                            font.bold: true
+                            font.weight: Theme.fontWeightStrong
                             elide: Text.ElideMiddle
                             textFormat: Text.PlainText
                         }

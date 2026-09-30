@@ -71,7 +71,7 @@ FocusScope {
                         color: Theme.text
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontTitle
-                        font.bold: true
+                        font.weight: Theme.fontWeightStrong
                         wrapMode: Text.WordWrap
                     }
 

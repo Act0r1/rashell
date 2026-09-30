@@ -24,7 +24,7 @@ Item {
             color: root.state.cpuPercent >= 90 ? Theme.danger : Theme.text
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontTitle
-            font.bold: true
+            font.weight: Theme.fontWeightStrong
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
         }

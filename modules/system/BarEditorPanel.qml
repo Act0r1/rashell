@@ -371,7 +371,7 @@ Scope {
             color: Theme.text
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontBody
-            font.weight: Font.DemiBold
+            font.weight: Theme.fontWeightStrong
         }
 
         Text {
@@ -486,7 +486,7 @@ Scope {
                         color: Theme.text
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontTitle
-                        font.weight: Font.DemiBold
+                        font.weight: Theme.fontWeightStrong
                     }
 
                     CloseButton {
@@ -603,7 +603,7 @@ Scope {
                                 color: Theme.text
                                 font.family: Theme.fontFamily
                                 font.pixelSize: Theme.fontBody
-                                font.weight: Font.DemiBold
+                                font.weight: Theme.fontWeightStrong
                             }
 
                             Text {

@@ -134,7 +134,7 @@ Scope {
                         color: Theme.accent
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontTitle
-                        font.bold: true
+                        font.weight: Theme.fontWeightStrong
                         font.letterSpacing: 2
                     }
 
@@ -239,7 +239,7 @@ Scope {
                                     color: column.active ? Theme.accent : Theme.textMuted
                                     font.family: Theme.fontFamily
                                     font.pixelSize: Theme.fontSmall
-                                    font.bold: true
+                                    font.weight: Theme.fontWeightStrong
                                     style: Text.Outline
                                     styleColor: Qt.rgba(0, 0, 0, 0.75)
                                 }
@@ -288,7 +288,7 @@ Scope {
                                             color: Theme.text
                                             font.family: Theme.fontFamily
                                             font.pixelSize: Theme.fontTitle
-                                            font.weight: Font.DemiBold
+                                            font.weight: Theme.fontWeightStrong
                                             elide: Text.ElideRight
                                             width: parent.width
                                         }

@@ -96,7 +96,7 @@ FocusScope {
                 color: Theme.accent
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSmall
-                font.bold: true
+                font.weight: Theme.fontWeightStrong
             }
 
             Row {
@@ -145,7 +145,7 @@ FocusScope {
                 color: Theme.accent
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSmall
-                font.bold: true
+                font.weight: Theme.fontWeightStrong
             }
 
             Row {
@@ -241,7 +241,7 @@ FocusScope {
                 color: Theme.accent
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSmall
-                font.bold: true
+                font.weight: Theme.fontWeightStrong
             }
 
             Row {
