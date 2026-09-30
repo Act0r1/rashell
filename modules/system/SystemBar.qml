@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import Quickshell
 import qs.core
+import qs.ui
 
 Item {
     id: root
@@ -18,15 +19,13 @@ Item {
         Accessible.name: "System monitor, CPU " + root.state.cpuPercent + " percent, memory " + root.state.memoryPercent + " percent"
         Accessible.role: Accessible.Button
 
-        contentItem: Text {
+        verticalPadding: (height - Theme.fontTitle) / 2
+        contentItem: ShellIcon {
             id: status
-            text: "󰻠"
-            color: root.state.cpuPercent >= 90 ? Theme.danger : Theme.text
-            font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontTitle
-            font.weight: Theme.fontWeightStrong
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
+            name: "cpu"
+            tint: root.state.cpuPercent >= 90 ? Theme.danger : Theme.text
+            implicitWidth: Theme.fontTitle
+            implicitHeight: Theme.fontTitle
         }
 
         background: Rectangle {

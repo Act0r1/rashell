@@ -5,6 +5,7 @@ import QtQuick.Controls
 import Quickshell
 import Quickshell.Services.SystemTray
 import qs.core
+import qs.ui
 
 Item {
     id: root
@@ -242,11 +243,12 @@ Item {
             border.width: Theme.borderWidth
             radius: Theme.radius
 
-            Text {
+            ShellIcon {
                 anchors.centerIn: parent
-                text: "+"
-                color: Theme.accent
-                font.pixelSize: Theme.fontTitle
+                name: "plus"
+                tint: Theme.accent
+                implicitWidth: Theme.fontTitle
+                implicitHeight: Theme.fontTitle
             }
         }
 

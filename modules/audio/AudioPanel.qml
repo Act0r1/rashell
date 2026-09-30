@@ -71,18 +71,16 @@ FocusScope {
             verticalAlignment: Text.AlignVCenter
         }
 
-        Text {
-            x: Theme.spaceLg
-            width: Theme.spaceXl
-            height: parent.height
-            text: "✓"
+        ShellIcon {
+            x: Theme.spaceLg + (Theme.spaceXl - width) / 2
+            width: implicitWidth
+            height: implicitHeight
+            anchors.verticalCenter: parent.verticalCenter
+            name: "check"
             visible: deviceButton.selected
-            color: Theme.accent
-            font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontBody
-            font.weight: Theme.fontWeightStrong
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
+            tint: Theme.accent
+            implicitWidth: Theme.fontBody
+            implicitHeight: Theme.fontBody
         }
     }
 

@@ -173,12 +173,12 @@ FocusScope {
                                     elide: Text.ElideMiddle
                                 }
 
-                                Text {
+                                ShellIcon {
                                     id: versionArrow
-                                    text: "→"
-                                    color: Theme.textMuted
-                                    font.family: Theme.fontFamily
-                                    font.pixelSize: Theme.fontSmall
+                                    name: "arrow-right"
+                                    tint: Theme.textMuted
+                                    implicitWidth: Theme.fontSmall
+                                    implicitHeight: Theme.fontSmall
                                 }
 
                                 Text {

@@ -208,23 +208,41 @@ Scope {
             spacing: Theme.spaceXs
 
             ActionButton {
+                id: moveEarlierButton
                 width: Theme.controlHeight
                 height: Theme.controlHeight
                 leftPadding: 0
                 rightPadding: 0
                 flat: true
-                text: "‹"
+                verticalPadding: (height - Theme.fontBody) / 2
+                contentItem: ShellIcon {
+                    name: "chevron-left"
+                    tint: moveEarlierButton.selected && !moveEarlierButton.subtleSelected ? Theme.textOnAccent
+                        : moveEarlierButton.selected ? Theme.accent
+                        : moveEarlierButton.danger ? Theme.danger : moveEarlierButton.enabled ? Theme.text : Theme.textDisabled
+                    implicitWidth: Theme.fontBody
+                    implicitHeight: Theme.fontBody
+                }
                 enabled: card.moduleIndex > 0
                 accessibleName: "Move " + root.moduleNames[card.moduleId] + " earlier"
                 onClicked: root.moveWithin(card.moduleId, card.zoneName, -1)
             }
             ActionButton {
+                id: moveLaterButton
                 width: Theme.controlHeight
                 height: Theme.controlHeight
                 leftPadding: 0
                 rightPadding: 0
                 flat: true
-                text: "›"
+                verticalPadding: (height - Theme.fontBody) / 2
+                contentItem: ShellIcon {
+                    name: "chevron-right"
+                    tint: moveLaterButton.selected && !moveLaterButton.subtleSelected ? Theme.textOnAccent
+                        : moveLaterButton.selected ? Theme.accent
+                        : moveLaterButton.danger ? Theme.danger : moveLaterButton.enabled ? Theme.text : Theme.textDisabled
+                    implicitWidth: Theme.fontBody
+                    implicitHeight: Theme.fontBody
+                }
                 enabled: card.moduleIndex < card.moduleCount - 1
                 accessibleName: "Move " + root.moduleNames[card.moduleId] + " later"
                 onClicked: root.moveWithin(card.moduleId, card.zoneName, 1)

@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import qs.core
+import qs.ui
 
 GridLayout {
     id: root
@@ -125,12 +126,12 @@ GridLayout {
                         font.weight: root.selectedFamily === choice.modelData ? Theme.fontWeightStrong : Theme.fontWeightRegular
                         elide: Text.ElideRight
                     }
-                    Text {
+                    ShellIcon {
                         visible: root.currentFamily === choice.modelData
-                        text: "✓"
-                        color: Theme.accent
-                        font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontBody
+                        name: "check"
+                        tint: Theme.accent
+                        implicitWidth: Theme.fontBody
+                        implicitHeight: Theme.fontBody
                     }
                 }
                 background: Rectangle {

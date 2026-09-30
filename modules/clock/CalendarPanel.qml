@@ -133,7 +133,15 @@ FocusScope {
 
             ActionButton {
                 id: previousButton
-                text: "<"
+                verticalPadding: (height - Theme.fontBody) / 2
+                contentItem: ShellIcon {
+                    name: "chevron-left"
+                    tint: previousButton.selected && !previousButton.subtleSelected ? Theme.textOnAccent
+                        : previousButton.selected ? Theme.accent
+                        : previousButton.danger ? Theme.danger : previousButton.enabled ? Theme.text : Theme.textDisabled
+                    implicitWidth: Theme.fontBody
+                    implicitHeight: Theme.fontBody
+                }
                 accessibleName: "Previous month"
                 KeyNavigation.right: nextButton
                 onClicked: root.moveMonth(-1)
@@ -156,7 +164,15 @@ FocusScope {
 
             ActionButton {
                 id: nextButton
-                text: ">"
+                verticalPadding: (height - Theme.fontBody) / 2
+                contentItem: ShellIcon {
+                    name: "chevron-right"
+                    tint: nextButton.selected && !nextButton.subtleSelected ? Theme.textOnAccent
+                        : nextButton.selected ? Theme.accent
+                        : nextButton.danger ? Theme.danger : nextButton.enabled ? Theme.text : Theme.textDisabled
+                    implicitWidth: Theme.fontBody
+                    implicitHeight: Theme.fontBody
+                }
                 accessibleName: "Next month"
                 KeyNavigation.left: previousButton
                 onClicked: root.moveMonth(1)
@@ -403,7 +419,15 @@ FocusScope {
                         id: deleteButton
                         anchors.verticalCenter: parent.verticalCenter
                         width: Theme.compactControlSize
-                        text: "×"
+                        verticalPadding: (height - Theme.fontBody) / 2
+                        contentItem: ShellIcon {
+                            name: "x"
+                            tint: deleteButton.selected && !deleteButton.subtleSelected ? Theme.textOnAccent
+                                : deleteButton.selected ? Theme.accent
+                                : deleteButton.danger ? Theme.danger : deleteButton.enabled ? Theme.text : Theme.textDisabled
+                            implicitWidth: Theme.fontBody
+                            implicitHeight: Theme.fontBody
+                        }
                         danger: true
                         accessibleName: "Delete reminder " + reminderRow.modelData.text
                         onClicked: root.clockState.removeReminder(reminderRow.modelData.id)

@@ -191,18 +191,16 @@ FocusScope {
                     anchors.fill: parent
                     visible: deviceRow.canForget
                     opacity: rowHover.hovered || activeFocus ? 1 : 0.28
-                    text: "󰆴"
                     flat: true
                     danger: hovered || activeFocus
                     accessibleName: "Forget " + deviceRow.displayName
                         + (deviceRow.unnamed ? ", " + deviceRow.address : "")
-                    contentItem: Text {
-                        text: forgetAction.text
-                        color: forgetAction.danger ? Theme.danger : Theme.textMuted
-                        font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontBody
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
+                    verticalPadding: (height - Theme.fontBody) / 2
+                    contentItem: ShellIcon {
+                        name: "trash-2"
+                        tint: forgetAction.danger ? Theme.danger : Theme.textMuted
+                        implicitWidth: Theme.fontBody
+                        implicitHeight: Theme.fontBody
                     }
                     onClicked: BluetoothState.forgetDevice(deviceRow.device)
                 }
@@ -478,13 +476,13 @@ FocusScope {
                         width: parent.width - Theme.spaceXl * 2
                         spacing: Theme.spaceMd
 
-                        Text {
-                            width: parent.width
-                            text: "󰂯"
-                            color: Theme.accent
-                            font.family: Theme.fontFamily
-                            font.pixelSize: Theme.fontDisplay
-                            horizontalAlignment: Text.AlignHCenter
+                        ShellIcon {
+                            width: implicitWidth
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            name: "bluetooth"
+                            tint: Theme.accent
+                            implicitWidth: Theme.fontDisplay
+                            implicitHeight: Theme.fontDisplay
                         }
 
                         Text {

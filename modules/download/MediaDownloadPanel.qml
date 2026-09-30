@@ -75,12 +75,12 @@ FocusScope {
                         color: Theme.selectedSurface
                         border.color: Theme.accentMuted
 
-                        Text {
+                        ShellIcon {
                             anchors.centerIn: parent
-                            text: "↓"
-                            color: Theme.accent
-                            font.family: Theme.fontFamily
-                            font.pixelSize: Theme.fontDisplay
+                            name: "arrow-down"
+                            tint: Theme.accent
+                            implicitWidth: Theme.fontDisplay
+                            implicitHeight: Theme.fontDisplay
                         }
                     }
 

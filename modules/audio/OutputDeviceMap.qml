@@ -219,13 +219,12 @@ FocusScope {
 
                         Behavior on opacity { NumberAnimation { duration: Theme.motionSurface; easing.type: Theme.motionEasing } }
 
-                        Text {
+                        ShellIcon {
                             anchors.centerIn: parent
-                            text: "✓"
-                            color: Theme.textOnAccent
-                            font.family: Theme.fontFamily
-                            font.pixelSize: Theme.fontSmall
-                            font.weight: Theme.fontWeightStrong
+                            name: "check"
+                            tint: Theme.textOnAccent
+                            implicitWidth: Theme.fontSmall
+                            implicitHeight: Theme.fontSmall
                         }
                     }
                 }

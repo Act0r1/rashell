@@ -311,12 +311,12 @@ Scope {
                                             font { family: Theme.fontFamily; pixelSize: Theme.fontSmall; weight: root.selectedId === choice.modelData.id ? Theme.fontWeightStrong : Theme.fontWeightRegular }
                                             elide: Text.ElideRight
                                         }
-                                        Text {
+                                        ShellIcon {
                                             visible: root.configStore.theme === choice.modelData.id
-                                            text: "✓"
-                                            color: Theme.accent
-                                            font.family: Theme.fontFamily
-                                            font.pixelSize: Theme.fontBody
+                                            name: "check"
+                                            tint: Theme.accent
+                                            implicitWidth: Theme.fontBody
+                                            implicitHeight: Theme.fontBody
                                         }
                                     }
                                 }

@@ -70,7 +70,15 @@ FocusScope {
                 ActionButton {
                     id: decreaseDuration
                     width: Theme.controlHeight
-                    text: "−"
+                    verticalPadding: (height - Theme.fontBody) / 2
+                    contentItem: ShellIcon {
+                        name: "minus"
+                        tint: decreaseDuration.selected && !decreaseDuration.subtleSelected ? Theme.textOnAccent
+                            : decreaseDuration.selected ? Theme.accent
+                            : decreaseDuration.danger ? Theme.danger : decreaseDuration.enabled ? Theme.text : Theme.textDisabled
+                        implicitWidth: Theme.fontBody
+                        implicitHeight: Theme.fontBody
+                    }
                     accessibleName: "Decrease notification popup duration"
                     enabled: root.notificationState.popupDurationSeconds > 1
                     onClicked: root.notificationState.setPopupDurationSeconds(
@@ -90,7 +98,15 @@ FocusScope {
                 ActionButton {
                     id: increaseDuration
                     width: Theme.controlHeight
-                    text: "+"
+                    verticalPadding: (height - Theme.fontBody) / 2
+                    contentItem: ShellIcon {
+                        name: "plus"
+                        tint: increaseDuration.selected && !increaseDuration.subtleSelected ? Theme.textOnAccent
+                            : increaseDuration.selected ? Theme.accent
+                            : increaseDuration.danger ? Theme.danger : increaseDuration.enabled ? Theme.text : Theme.textDisabled
+                        implicitWidth: Theme.fontBody
+                        implicitHeight: Theme.fontBody
+                    }
                     accessibleName: "Increase notification popup duration"
                     enabled: root.notificationState.popupDurationSeconds < 60
                     onClicked: root.notificationState.setPopupDurationSeconds(

@@ -510,17 +510,14 @@ Scope {
                                             fillMode: Image.PreserveAspectFit
                                         }
 
-                                        Text {
-                                            anchors.fill: parent
+                                        ShellIcon {
+                                            anchors.centerIn: parent
                                             visible: !deleteAppIcon.visible
-                                            text: "×"
-                                            color: deleteAppButton.hovered || deleteAppButton.down
+                                            name: "x"
+                                            tint: deleteAppButton.hovered || deleteAppButton.down
                                                 ? Theme.accent : Theme.textMuted
-                                            font.family: Theme.fontFamily
-                                            font.pixelSize: Theme.fontTitle
-                                            font.weight: Theme.fontWeightStrong
-                                            horizontalAlignment: Text.AlignHCenter
-                                            verticalAlignment: Text.AlignVCenter
+                                            implicitWidth: Theme.fontTitle
+                                            implicitHeight: Theme.fontTitle
                                         }
                                     }
 
@@ -663,7 +660,6 @@ Scope {
                         Button {
                             width: Theme.compactControlSize
                             height: Theme.compactControlSize
-                            text: "−"
                             hoverEnabled: true
                             Accessible.name: "Show fewer clipboard items"
                             enabled: root.clipboardHistoryLimit > 10
@@ -681,13 +677,12 @@ Scope {
                                 opacity: parent.enabled ? 1 : 0.45
                             }
 
-                            contentItem: Text {
-                                text: parent.text
-                                color: Theme.text
-                                font.family: Theme.fontFamily
-                                font.pixelSize: Theme.fontTitle
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
+                            verticalPadding: (height - Theme.fontTitle) / 2
+                            contentItem: ShellIcon {
+                                name: "minus"
+                                tint: Theme.text
+                                implicitWidth: Theme.fontTitle
+                                implicitHeight: Theme.fontTitle
                             }
                         }
 
@@ -706,7 +701,6 @@ Scope {
                         Button {
                             width: Theme.compactControlSize
                             height: Theme.compactControlSize
-                            text: "+"
                             hoverEnabled: true
                             Accessible.name: "Show more clipboard items"
                             enabled: root.clipboardHistoryLimit < 750
@@ -724,13 +718,12 @@ Scope {
                                 opacity: parent.enabled ? 1 : 0.45
                             }
 
-                            contentItem: Text {
-                                text: parent.text
-                                color: Theme.text
-                                font.family: Theme.fontFamily
-                                font.pixelSize: Theme.fontTitle
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
+                            verticalPadding: (height - Theme.fontTitle) / 2
+                            contentItem: ShellIcon {
+                                name: "plus"
+                                tint: Theme.text
+                                implicitWidth: Theme.fontTitle
+                                implicitHeight: Theme.fontTitle
                             }
                         }
                     }
