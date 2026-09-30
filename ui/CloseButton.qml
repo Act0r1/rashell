@@ -39,6 +39,6 @@ Button {
             : control.hovered || control.visualFocus ? Theme.hoverSurface : "transparent"
         border.color: control.visualFocus ? Theme.focus : "transparent"
         border.width: control.visualFocus ? Theme.focusWidth : 0
-        radius: control.compact ? Math.min(Theme.radius, 6) : Theme.radius
+        radius: control.compact ? Math.min(Theme.radiusSmall, 6) : Theme.radiusSmall
     }
 }

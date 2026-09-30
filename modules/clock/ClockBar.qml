@@ -35,7 +35,7 @@ Item {
             text: Qt.formatDateTime(root.state.now, root.minimal ? "HH:mm" : "HH:mm:ss  ddd, dd MMM")
             color: Theme.text
             style: root.minimal ? Text.Raised : Text.Normal
-            styleColor: "#c0000000"
+            styleColor: Qt.alpha(Theme.background, 0.75)
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontBody
             font.weight: Theme.fontWeightStrong

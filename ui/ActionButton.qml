@@ -43,7 +43,7 @@ Button {
             color: Theme.surfaceRaised
             border.color: Theme.accentMuted
             border.width: Theme.borderWidth
-            radius: Math.max(6, Theme.radius)
+            radius: Theme.radiusSmall
         }
     }
 
@@ -75,6 +75,6 @@ Button {
             : control.hovered ? Theme.borderInteractive : Theme.border
         border.width: control.visualFocus ? Theme.focusWidth
             : !control.flat || control.hovered || control.down ? Theme.borderWidth : 0
-        radius: Theme.radius
+        radius: Theme.radiusSmall
     }
 }

@@ -157,8 +157,8 @@ FocusScope {
                     startX: device.lineStartX
                     startY: device.lineStartY
 
-                    Behavior on strokeColor { ColorAnimation { duration: 280; easing.type: Easing.InOutCubic } }
-                    Behavior on strokeWidth { NumberAnimation { duration: 280; easing.type: Easing.InOutCubic } }
+                    Behavior on strokeColor { ColorAnimation { duration: Theme.motionSurface; easing.type: Theme.motionEasing } }
+                    Behavior on strokeWidth { NumberAnimation { duration: Theme.motionSurface; easing.type: Theme.motionEasing } }
 
                     PathCubic {
                         x: device.lineEndX
@@ -180,7 +180,7 @@ FocusScope {
                     height: 76
                     scale: device.down ? 0.95 : device.activeFocus ? 1.1 : device.hovered ? 1.06 : 1
 
-                    Behavior on scale { NumberAnimation { duration: 320; easing.type: Easing.OutCubic } }
+                    Behavior on scale { NumberAnimation { duration: Theme.motionSurface; easing.type: Theme.motionEasing } }
 
                     Rectangle {
                         anchors.fill: parent
@@ -194,8 +194,8 @@ FocusScope {
                         color: Qt.alpha(Theme.accent, device.selected ? 0.12 : device.hovered ? 0.07 : 0)
                         border.color: Qt.alpha(Theme.accent, device.selected ? 0.52 : device.hovered ? 0.24 : 0)
 
-                        Behavior on color { ColorAnimation { duration: 260; easing.type: Easing.InOutCubic } }
-                        Behavior on border.color { ColorAnimation { duration: 260; easing.type: Easing.InOutCubic } }
+                        Behavior on color { ColorAnimation { duration: Theme.motionSurface; easing.type: Theme.motionEasing } }
+                        Behavior on border.color { ColorAnimation { duration: Theme.motionSurface; easing.type: Theme.motionEasing } }
                     }
 
                     OutputArtwork {
@@ -205,7 +205,7 @@ FocusScope {
                         kind: root.audioState.outputKind(device.modelData)
                         opacity: device.selected || device.hovered || device.activeFocus ? 1 : 0.8
 
-                        Behavior on opacity { NumberAnimation { duration: 260; easing.type: Easing.InOutCubic } }
+                        Behavior on opacity { NumberAnimation { duration: Theme.motionSurface; easing.type: Theme.motionEasing } }
                     }
 
                     Rectangle {
@@ -217,7 +217,7 @@ FocusScope {
                         color: Theme.accent
                         opacity: device.selected ? 1 : 0
 
-                        Behavior on opacity { NumberAnimation { duration: 220; easing.type: Easing.InOutCubic } }
+                        Behavior on opacity { NumberAnimation { duration: Theme.motionSurface; easing.type: Theme.motionEasing } }
 
                         Text {
                             anchors.centerIn: parent
@@ -246,7 +246,7 @@ FocusScope {
                     maximumLineCount: 2
                     elide: Text.ElideRight
 
-                    Behavior on color { ColorAnimation { duration: 240; easing.type: Easing.InOutCubic } }
+                    Behavior on color { ColorAnimation { duration: Theme.motionSurface; easing.type: Theme.motionEasing } }
                 }
             }
 
@@ -281,12 +281,12 @@ FocusScope {
 
         Behavior on x {
             enabled: root.animateFocus
-            NumberAnimation { duration: 300; easing.type: Easing.InOutCubic }
+            NumberAnimation { duration: Theme.motionSurface; easing.type: Theme.motionEasing }
         }
         Behavior on y {
             enabled: root.animateFocus
-            NumberAnimation { duration: 300; easing.type: Easing.InOutCubic }
+            NumberAnimation { duration: Theme.motionSurface; easing.type: Theme.motionEasing }
         }
-        Behavior on opacity { NumberAnimation { duration: 180; easing.type: Easing.InOutCubic } }
+        Behavior on opacity { NumberAnimation { duration: Theme.motionSurface; easing.type: Theme.motionEasing } }
     }
 }

@@ -30,6 +30,6 @@ ToolTip {
         color: Theme.surface
         border.color: Theme.borderInteractive
         border.width: Theme.borderWidth
-        radius: Theme.radius
+        radius: Theme.radiusSmall
     }
 }

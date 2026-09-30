@@ -198,8 +198,8 @@ Scope {
 
                                 Behavior on width {
                                     NumberAnimation {
-                                        duration: 420
-                                        easing.type: Easing.OutCubic
+                                        duration: Theme.motionSurface
+                                        easing.type: Theme.motionEasing
                                     }
                                 }
 
@@ -213,7 +213,7 @@ Scope {
                                     opacity: column.active ? 1 : 0.5
 
                                     Behavior on opacity {
-                                        NumberAnimation { duration: 420 }
+                                        NumberAnimation { duration: Theme.motionSurface }
                                     }
                                 }
 
@@ -257,7 +257,7 @@ Scope {
                                     styleColor: Qt.rgba(0, 0, 0, 0.85)
 
                                     Behavior on opacity {
-                                        NumberAnimation { duration: 300 }
+                                        NumberAnimation { duration: Theme.motionSurface }
                                     }
                                 }
 
@@ -273,7 +273,7 @@ Scope {
                                     }
 
                                     Behavior on opacity {
-                                        NumberAnimation { duration: 300 }
+                                        NumberAnimation { duration: Theme.motionSurface }
                                     }
 
                                     Column {

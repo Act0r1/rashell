@@ -145,7 +145,7 @@ Item {
                         + 2 * groupGap + 2 * Theme.spaceMd - width)
                         / Math.max(1, leftGroup.mediaCount + centerGroup.mediaCount + rightGroup.mediaCount)
                     anchors.fill: parent
-                    color: root.configStore.barMinimal ? "#80000000" : Theme.surface
+                    color: root.configStore.barMinimal ? Qt.alpha(Theme.background, 0.5) : Theme.surface
 
                     Rectangle {
                         visible: !root.configStore.barMinimal

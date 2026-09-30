@@ -43,7 +43,7 @@ Item {
                     text: root.state.icon
                     color: Theme.accent
                     style: root.minimal ? Text.Raised : Text.Normal
-                    styleColor: "#c0000000"
+                    styleColor: Qt.alpha(Theme.background, 0.75)
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontTitle
                 }
@@ -53,7 +53,7 @@ Item {
                     text: root.state.temperatureText
                     color: root.state.available ? Theme.text : Theme.textMuted
                     style: root.minimal ? Text.Raised : Text.Normal
-                    styleColor: "#c0000000"
+                    styleColor: Qt.alpha(Theme.background, 0.75)
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontBody
                     font.weight: Theme.fontWeightStrong

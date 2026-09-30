@@ -45,7 +45,7 @@ Scope {
             opacity: root.opened ? 1 : 0
             enabled: root.opened
 
-            Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.InOutCubic } }
+            Behavior on opacity { NumberAnimation { duration: Theme.motionSurface; easing.type: Theme.motionEasing } }
 
             Rectangle {
                 anchors.fill: parent

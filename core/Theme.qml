@@ -109,6 +109,10 @@ QtObject {
     readonly property int edgeMargin: metrics.edgeMargin
     readonly property int barHorizontalMargin: edgeMargin
     readonly property int radius: metrics.radius
+    readonly property int radiusSmall: 8
+    readonly property int motionFast: 120
+    readonly property int motionSurface: 220
+    readonly property int motionEasing: Easing.OutCubic
     readonly property int borderWidth: 1
     readonly property int focusWidth: 2
     readonly property int sliderTrackHeight: metrics.sliderTrackHeight

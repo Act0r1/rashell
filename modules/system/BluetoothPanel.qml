@@ -358,7 +358,7 @@ FocusScope {
                         color: powerSwitch.checked ? Theme.textOnAccent : Theme.textMuted
 
                         Behavior on x {
-                            NumberAnimation { duration: 120 }
+                            NumberAnimation { duration: Theme.motionFast }
                         }
                     }
                 }
