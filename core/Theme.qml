@@ -72,11 +72,11 @@ QtObject {
     readonly property color success: palette.success || palette.accent
     readonly property color warning: palette.warning || palette.accent
     readonly property color info: palette.info || palette.accent
-    readonly property color hoverSurface: Qt.tint(surface, Qt.alpha(accent, 0.04))
-    readonly property color pressedSurface: Qt.tint(surface, Qt.alpha(accent, 0.08))
-    readonly property color selectedSurface: Qt.tint(surface, Qt.alpha(accent, 0.06))
-    readonly property color selectedHoverSurface: Qt.tint(surface, Qt.alpha(accent, 0.08))
-    readonly property color selectedPressedSurface: Qt.tint(surface, Qt.alpha(accent, 0.10))
+    readonly property color hoverSurface: Qt.tint(surface, Qt.alpha(accent, 0.06))
+    readonly property color pressedSurface: Qt.tint(surface, Qt.alpha(accent, 0.16))
+    readonly property color selectedSurface: Qt.tint(surface, Qt.alpha(accent, 0.10))
+    readonly property color selectedHoverSurface: Qt.tint(surface, Qt.alpha(accent, 0.13))
+    readonly property color selectedPressedSurface: Qt.tint(surface, Qt.alpha(accent, 0.20))
     readonly property color accentHover: Qt.lighter(accent, 1.08)
     readonly property color accentPressed: Qt.darker(accent, 1.08)
     readonly property color dangerSurface: Qt.tint(surface, Qt.alpha(danger, 0.10))
