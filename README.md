@@ -12,10 +12,9 @@ A personal Quickshell desktop shell for Hyprland, built around the controls used
 - Control center with Wi-Fi, a Bluetooth device panel, wallpaper access, capture, audio, system status, lock, suspend, and confirmed power actions
 - Wallpaper ownership, calendar, session controls, and Hyprland workspace switching
 - Last-known-good JSON configuration reload
-- Theme concepts from `rashell-themes.html`: `oilslick`, `muninn`, `nevermore`, and `talon`
-- Legacy `ember`, `raven`, and `jade` themes remain available
+- Six built-in dark themes: `raven`, `dusk`, `tokyonight`, `tokyostorm`, `ayu-dark`, and `ayu-mirage`
 
-The documents under [`docs/architecture`](docs/architecture/) describe the original minimal baseline. The current shell intentionally supersedes that boundary with a fixed set of first-party daily-use features.
+Most documents under [`docs/architecture`](docs/architecture/) describe the original minimal baseline. The [visual system reference](docs/architecture/visual-system.md) documents the current tokens and primitives. The current shell extends the baseline with first-party daily-use features.
 
 ## Screenshots
 
@@ -26,12 +25,6 @@ The documents under [`docs/architecture`](docs/architecture/) describe the origi
 | Audio | Calendar |
 |---|---|
 | ![Audio](docs/screenshots/pass2/audio.webp) | ![Calendar](docs/screenshots/pass2/calendar.webp) |
-
-### Themes
-
-| Oil Slick | Muninn | Nevermore | Talon |
-|---|---|---|---|
-| ![Oil Slick](docs/screenshots/themes/oilslick.webp) | ![Muninn](docs/screenshots/themes/muninn.webp) | ![Nevermore](docs/screenshots/themes/nevermore.webp) | ![Talon](docs/screenshots/themes/talon.webp) |
 
 ## Run and remove
 
@@ -48,17 +41,19 @@ Rashell requires Quickshell 0.3.1 or newer, Hyprland, PipeWire, NetworkManager, 
 
 ## Configuration
 
-Edit `config.json` or provide an absolute path with `RASHELL_CONFIG`. `muninn` is the default old-gold identity.
+Edit `config.json` or provide an absolute path with `RASHELL_CONFIG`. `ayu-dark` is the default theme.
 
 ```bash
 just themes
-just theme oilslick
-just theme muninn
-just theme nevermore
-just theme talon
+just theme ayu-dark
+just theme raven
+just theme dusk
+just theme tokyonight
+just theme tokyostorm
+just theme ayu-mirage
 ```
 
-Theme changes hot-reload while Rashell is running. `ember`, `raven`, and `jade` remain accepted for compatibility. Set `captureDirectory` in `config.json` to choose where screenshots, edited screenshots, and videos are saved.
+Theme changes hot-reload while Rashell is running. Set `captureDirectory` in `config.json` to choose where screenshots, edited screenshots, and videos are saved.
 
 ## IPC
 

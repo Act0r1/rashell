@@ -1,375 +1,270 @@
-# Decision: Rashell’s canonical visual language and theme boundary
+# Rashell visual system
 
-**Status:** Resolved by GitHub issue #7  
-**Scope:** First coherent milestone
+Current implementation reference. Sources: [`Theme.qml`](../../core/Theme.qml),
+[`themes.json`](../../core/themes.json), [`ConfigStore.qml`](../../core/ConfigStore.qml),
+and the shared [`ui`](../../ui/) primitives. Values below are QML pixels unless marked otherwise.
 
-## Context
+## Theme catalog and resolution
 
-Rashell already has a clear visual direction:
+| ID | Name |
+|---|---|
+| `raven` | Raven |
+| `dusk` | Dusk |
+| `tokyonight` | Tokyo Night |
+| `tokyostorm` | Tokyo Storm |
+| `ayu-dark` | Ayu Dark |
+| `ayu-mirage` | Ayu Mirage |
 
-- near-black layered surfaces;
-- amber/gold as the primary accent;
-- warm off-white text;
-- one-pixel borders;
-- square geometry with radii no larger than two pixels;
-- monospace typography;
-- compact controls and dense task panels.
+All six entries have `kind: "dark"`. `ConfigStore.defaults.theme` and
+`Theme.activeName` default to `ayu-dark`; config validation accepts only `Theme.names`.
+`shell.qml` binds `activeName` and `selectedFontFamily` to the effective configuration.
 
-This direction appears consistently in `README.md`, repository history, the current `core/Theme.qml`, and the audio, workspace, calendar, and bar prototypes. The visual grammar remains fixed while three built-in dark palettes provide deliberate variation.
+`catalogFile` loads `core/themes.json`; `catalog` parses it, `names` extracts IDs,
+and `palettes` indexes palettes by ID. `themeInfo(name)` returns the matching entry,
+then Ayu Dark, then the first entry if Ayu Dark is absent. `paletteFor(name)` falls
+back to Ayu Dark for an unknown name and returns a copy with these effective overrides:
 
-The problem is not choosing another style. It is defining which parts of the existing style are canonical, making interaction states consistent and accessible, and preventing future components from introducing arbitrary colors or geometry.
+- `accentMuted = source.accentSecondary || source.accentMuted`;
+- `danger = source.dangerText || source.danger`;
+- `borderInteractive = source.borderControl || source.borderInteractive`.
 
-## Decision
+`palette` is `paletteFor(activeName)`. Every catalog palette contains these 19 keys:
+`background`, `surface`, `surfaceRaised`, `accent`, `accentMuted`, `accentSecondary`,
+`text`, `textMuted`, `textDisabled`, `textOnAccent`, `border`, `borderInteractive`,
+`danger`, `textOnDanger`, `dangerText`, `borderControl`, `success`, `warning`, `info`.
+The catalog also carries `description`, `syntax`, and `terminal` data; these are
+not additional shell color tokens. Read palette literals in the catalog rather
+than assuming a fixed amber identity.
 
-Rashell will have **one canonical visual system** for its first coherent version.
-
-`Theme.qml` remains the single internal source for semantic colors, typography, shared spacing, common dimensions, and motion values. Components choose semantic roles and follow the component/state grammar defined here.
-
-The first coherent version exposes three built-in themes selected by validated configuration and hot-reloaded with the effective config. It does not support external theme files, discovery, per-module styling, or arbitrary palette loading.
-
-Token ownership does not imply that every token is user-overridable:
-
-- **Canonical and fixed:** geometry, density, state grammar, component composition, focus behavior, and surface hierarchy.
-- **Theme-owned values:** semantic colors, typography, common spacing, shared dimensions, and motion durations.
-- **Supported variation:** complete built-in semantic dark-palette substitution.
-- **Not supported:** arbitrary component layouts, radii, density, state mappings, light themes, or per-widget overrides.
-
-## Canonical visual principles
-
-### 1. Dark surfaces establish hierarchy
-
-Rashell uses three near-black layers:
-
-1. desktop/background;
-2. normal shell surface;
-3. raised or interactive surface.
-
-Hierarchy comes from small luminance differences and borders—not shadows, blur, gradients, transparency effects, or glass styling.
-
-### 2. Amber is scarce and meaningful
-
-Bright amber identifies:
-
-- the current or selected value;
-- an active/open destination;
-- progress or level;
-- the highest-priority heading;
-- keyboard focus when it is not on an amber-filled item.
-
-Most content remains warm off-white or muted beige. Large panels must not become amber blocks.
-
-### 3. Geometry is square and thin
-
-- Borders are pixel-aligned and normally one pixel.
-- Standard radius is two pixels.
-- Small slider handles may use a one-pixel radius.
-- Pills, highly rounded cards, floating bubbles, and circular icon buttons are not part of Rashell’s grammar.
-- Keyboard focus may use a two-pixel indicator as an accessibility exception.
-
-### 4. Typography carries structure
-
-All Rashell-owned UI uses monospace typography.
-
-- Titles and important values are bold.
-- Section labels are uppercase with restrained letter spacing.
-- Descriptions and errors use normal sentence casing.
-- Numeric values remain aligned and stable.
-- Icons must not replace text where their meaning is ambiguous.
-
-Typography should create hierarchy without requiring large type or excessive vertical space.
-
-### 5. Dense does not mean cryptic
-
-Panels should show one bounded task with compact spacing and short labels. Density must not remove:
-
-- visible focus;
-- meaningful hit targets;
-- explicit unavailable states;
-- accessible names;
-- keyboard navigation;
-- enough room for localized or unexpectedly long device names.
-
-### 6. State is never communicated by color alone
-
-Persistent states use at least two channels:
-
-- selected device: amber fill plus `>` or an explicit `IN USE` label;
-- muted audio: danger color plus `MUTE` or `OFF`;
-- unavailable integration: muted presentation plus explicit unavailable text;
-- error: danger styling plus a readable message;
-- keyboard focus: a visible outline or cursor independent of hover.
-
-### 7. Persistent surfaces orient; transient surfaces act
-
-The bar stays visually quiet and summarizes state. Panels contain detailed controls. OSDs provide short, non-interactive feedback.
-
-A panel should look related to its opening bar control without making the bar itself resemble a collection of cards.
-
-### 8. Motion is restrained
-
-Motion clarifies a state transition but is not decoration.
-
-- No bounce, spring, scale, or overshoot.
-- No animated palette transitions.
-- Focus, selection, errors, and domain-state changes appear immediately.
-- Panels and OSDs may use a short opacity transition.
-- Reduced-motion mode removes nonessential animation.
-
-## Semantic token schema
-
-The names below follow the existing `Theme.qml` style. They are internal API for the milestone, not a public extension ABI.
+## Tokens
 
 ### Colors
 
-| Token | Reference value | Meaning |
-|---|---:|---|
-| `background` | `#080806` | Shell canvas and inverse text on bright fills |
-| `surface` | `#0d0c08` | Bar, panel, and OSD background |
-| `surfaceRaised` | `#141108` | Hovered, pressed, or active control background |
-| `accent` | `#ffbf18` | Selection, active destination, progress, primary heading |
-| `accentMuted` | `#a48734` | Secondary amber labels and restrained emphasis |
-| `text` | `#d6c58f` | Primary text |
-| `textMuted` | `#9a8c62` | Secondary readable text |
-| `textDisabled` | `#756a49` | Disabled content only |
-| `textOnAccent` | `#080806` | Text and symbols on `accent` |
-| `border` | `#3d3212` | Decorative separators and container borders |
-| `borderInteractive` | `#735f22` | Functional control boundaries |
-| `focus` | `#ffbf18` | Focus indicator on dark surfaces |
-| `danger` | `#e35b45` | Error, failed action, and explicit negative status |
-| `textOnDanger` | `#080806` | Text on a danger-filled compact indicator |
+Unless noted, each token reads the same-named key from the effective `palette`.
 
-The current muted text and muted accent values are too low-contrast for small functional text. The revised roles preserve the existing appearance while keeping normal secondary text above a 4.5:1 contrast target. The old `textMuted` value becomes `textDisabled`.
+| Token | Role / resolution |
+|---|---|
+| `background` | Canvas and dark backing |
+| `surface` | Normal panel/control surface |
+| `surfaceRaised` | Raised content, including ActionButton tooltips |
+| `accent` | Selection, active emphasis, level fill |
+| `accentMuted`, `accentSecondary` | Both read effective `palette.accentMuted` |
+| `text` | Primary content |
+| `textMuted` | Secondary content |
+| `textDisabled` | Disabled content |
+| `textOnAccent` | Content on solid accent fill |
+| `border` | Normal frame/control border |
+| `borderInteractive` | Interactive boundary; uses the override above |
+| `focus` | Alias of `palette.accent` |
+| `danger` | Negative/error emphasis; uses the override above |
+| `textOnDanger` | Content on danger fill |
+| `success`, `warning`, `info` | Semantic status colors; each falls back to `palette.accent` if missing |
 
-`border` may remain subtle when decorative. Any border that is the only visible boundary of an interactive control must use `borderInteractive` or another role with at least 3:1 contrast.
+Derived surfaces use `Qt.tint(surface, Qt.alpha(color, alpha))`:
 
-No success, warning, informational, scrim, or shadow tokens are added until a milestone component actually needs them.
+| Token | Tint color | Alpha |
+|---|---|---:|
+| `hoverSurface` | `accent` | 0.06 |
+| `pressedSurface` | `accent` | 0.16 |
+| `selectedSurface` | `accent` | 0.10 |
+| `selectedHoverSurface` | `accent` | 0.13 |
+| `selectedPressedSurface` | `accent` | 0.20 |
+| `dangerSurface` | `danger` | 0.10 |
+
+`accentHover = Qt.lighter(accent, 1.08)` and
+`accentPressed = Qt.darker(accent, 1.08)`.
 
 ### Typography
 
-| Token | Value | Use |
-|---|---:|---|
-| `fontFamily` | `monospace` | Every Rashell-owned label and value |
-| `fontSmall` | `11` | Metadata, section labels, secondary state |
-| `fontBody` | `13` | Controls, rows, percentages, calendar days |
-| `fontTitle` | `15` | Clock, panel title, primary value |
-| `fontWeightRegular` | regular | Normal content |
-| `fontWeightStrong` | bold | Titles, current values, explicit status |
-| `trackingLabel` | `1` | Compact uppercase labels |
-| `trackingSection` | `2` | Panel headings and section labels |
+`selectedFontFamily` defaults to `"Adwaita Sans"`, as does the configuration.
+`fontFamilies` is `Qt.fontFamilies()`. `fontFamily` uses the selected family only
+if present in that list; otherwise it returns `"Adwaita Sans"`. That fallback
+string does not guarantee the font is installed.
 
-Components must not introduce display fonts, proportional body fonts, or additional type scales during the first coherent version.
+| Token | Value |
+|---|---|
+| `fontSmall` | 12 |
+| `fontBody` | 14 |
+| `fontTitle` | 17 |
+| `fontDisplay` | 24 |
+| `fontHero` | 40 |
+| `fontWeightRegular` | `Font.Normal` |
+| `fontWeightStrong` | `Font.DemiBold` |
 
-### Spacing
+### Spacing and geometry
 
-| Token | Value | Typical use |
-|---|---:|---|
-| `spaceXs` | `2` | Adjacent list rows and calendar cells |
-| `spaceSm` | `4` | Bar widgets and tightly related controls |
-| `spaceMd` | `8` | Content within a compact control |
-| `spaceLg` | `12` | Sections and horizontal control padding |
-| `spaceXl` | `16` | Panel padding |
+| Token | Value |
+|---|---|
+| `spaceXs`, `spaceSm`, `spaceMd`, `spaceLg`, `spaceXl` | 2, 4, 8, 12, 16 |
+| `panelGap` | 8 |
+| `panelPadding` | 16 |
+| `controlHeight` | 32 |
+| `compactControlSize` | 30 |
+| `rowHeight` | 40 |
+| `barHeight` | 40 |
+| `edgeMargin` | 4 for `raven`, otherwise 0 |
+| `barHorizontalMargin` | `edgeMargin` |
+| `radius` | 12; outer panels (`PanelFrame`) |
+| `radiusSmall` | 8; inner controls and tooltips |
+| `borderWidth` | 1 |
+| `focusWidth` | 2 |
+| `sliderTrackHeight` | 8 |
 
-`panelGap` remains a semantic ten-pixel distance between a bar trigger and its panel. Components should use this small scale rather than adding arbitrary six-, fourteen-, or twenty-four-pixel gaps.
-
-### Shared dimensions
-
-| Token | Value | Use |
-|---|---:|---|
-| `barHeight` | `44` | Visible bar surface |
-| `edgeMargin` | `12` | Vertical screen-to-bar gutter |
-| `barHorizontalMargin` | `36` | Horizontal screen-to-bar gutter |
-| `controlHeight` | `34` | Normal bar control |
-| `compactControlSize` | `28` | Close and compact navigation controls |
-| `rowHeight` | `40` | Selectable panel row |
-| `panelPadding` | `16` | Panel content inset |
-| `panelGap` | `10` | Anchor-to-panel distance |
-| `borderWidth` | `1` | Normal border and separator |
-| `focusWidth` | `2` | Keyboard-focus indicator |
-| `radius` | `2` | Standard corner radius |
-| `sliderTrackHeight` | `6` | Continuous-value track |
-
-Panel widths and content-specific sizes remain component defaults, not global theme tokens. The calendar may prefer 360 pixels and audio 460 pixels, but both must clamp or adapt to the target output.
+`metricsFor(name)` converts the name to a string and returns
+`{ radius: 12, barHeight: 40, edgeMargin: name === "raven" ? 4 : 0, sliderTrackHeight: 8 }`.
+`metrics = metricsFor(activeName)` supplies those four tokens. This function does
+not validate names: an unknown name gets zero margin even though its palette
+falls back to Ayu Dark. Component-specific dimensions are not all global tokens.
 
 ### Motion
 
-| Token | Value | Use |
-|---|---:|---|
-| `motionFast` | `80 ms` | Hover and pressed-state color transitions |
-| `motionSurface` | `120 ms` | Panel and OSD opacity transitions |
-| `motionEasing` | out-cubic | Nonessential surface transitions |
-| `motionReduced` | `0 ms` | Effective duration under reduced motion |
+| Token | Value |
+|---|---|
+| `motionFast` | 120 ms |
+| `motionSurface` | 220 ms |
+| `motionEasing` | `Easing.OutCubic` |
 
-Selection, keyboard focus, errors, mute state, and live values must not wait for animation. OSD visibility time is behavioral policy rather than a theme token; the initial target is approximately 1.2 seconds after the last update.
+These are shared transition values, not an automatic animation policy.
+The primitives below do not declare animated state transitions. There is no
+`motionReduced` token in `Theme.qml`; do not infer a global reduced-motion mode.
 
-## Component and state grammar
+## Shared primitives
 
-Components use a small shared state model instead of defining audio-specific, calendar-specific, or workspace-specific colors.
+### ActionButton
 
-| State | Background | Border | Content |
+`ActionButton` is a Qt Quick Controls `Button`, non-flat by default, with
+`radiusSmall`, height `compactControlSize`, and width at least that size or
+content width plus twice `spaceLg`. Content uses `fontFamily`/`fontBody`, one-line
+elision, configurable alignment (center by default), and strong weight when selected.
+
+For an ordinary enabled, non-selected, non-danger button:
+
+| State | Fill | Border | Text |
 |---|---|---|---|
-| Rest | Transparent within a surface | `borderInteractive` when a boundary is needed | `text` |
-| Hover | `surfaceRaised` | `borderInteractive` | No layout or font-weight change |
-| Pressed | `surfaceRaised` | `accentMuted` | Immediate; no movement or scaling |
-| Active/open | `surfaceRaised` | `accent` | Explicit open or active marker |
-| Selected/current | `accent` | `accent` | `textOnAccent` plus a textual/shape cue |
-| Disabled | Transparent or unchanged surface | `border` | `textDisabled`; no hover or press response |
-| Loading | Stable surface | `border` | Concise `textMuted` status |
-| Error | Normal dark surface | `danger` | `danger` message or label |
-| Keyboard focus | Existing state remains visible | Two-pixel focus indicator | Never replaced by hover |
+| Rest | `surface`, or transparent if `flat` | `border` | `text` |
+| Hover | `hoverSurface` | `borderInteractive` | `text` |
+| Pressed (`down`) | `pressedSurface` | `accent` | `text` |
+| Selected | `accent` / `accentHover` / `accentPressed` | `accent` | `textOnAccent` |
+| Selected + `subtleSelected` | `selectedSurface` / `selectedHoverSurface` / `selectedPressedSurface` | `accent` | `accent` |
 
-State composition follows these rules:
+The selected triples are rest / hover / pressed; pressed takes precedence over
+hover. `subtleSelected` has no effect without `selected`.
 
-1. Disabled suppresses hover and pressed styling.
-2. Selection persists while hovered or focused.
-3. Error styling is not erased by hover.
-4. Focus is an overlay, not an alternative to selection or hover.
-5. On an amber-filled selected item, focus uses a dark inset indicator or cursor so it remains distinguishable from the fill.
-6. Pointer hover never masquerades as keyboard focus.
-7. Non-interactive content must not gain hover styling.
+Composition follows the actual bindings:
 
-## Reference components
+- Fill precedence: solid selected, subtle selected, down, hovered, flat/rest.
+- Border color precedence: `visualFocus`, danger, selected/down, hovered, rest.
+  Danger sets the border to `danger` but does not add a danger fill.
+- Text precedence: solid selected, subtle selected, danger, enabled, disabled.
+  Thus `danger` text wins over disabled, and selected text wins over danger.
+- Disabled ordinary text uses `textDisabled`. There is no explicit disabled fill,
+  border, or opacity branch, and no `enabled` guard in the fill expression;
+  input behavior comes from the underlying `Button`.
+- Focus uses `focusWidth` and `focus`, except solid selection uses `textOnAccent`
+  for its focus border. It leaves the existing fill intact.
+- Otherwise border width is `borderWidth` when non-flat, hovered, or down, and
+  zero for flat rest. Selection/danger alone do not make a flat rest border visible.
 
-### Bar
+`accessibleName` defaults to `text`; the role is `Accessible.Button`.
+`toolTipText` defaults to the accessible name. The tooltip appears on hover when
+nonempty, with 450 ms delay and 5000 ms timeout, above the button by `spaceSm`.
+It uses `surfaceRaised`, an `accentMuted` border, `radiusSmall`, `fontSmall`,
+horizontal `spaceLg` padding and vertical `spaceMd` padding.
 
-The bar uses:
+### PanelFrame and CloseButton
 
-- a transparent outer window;
-- twelve-pixel top and bottom gutters;
-- thirty-six-pixel horizontal gutters;
-- a 44-pixel `surface` frame;
-- one-pixel `border`;
-- two-pixel radius;
-- 34-pixel controls separated by four pixels.
+`PanelFrame` supplies a `surface` background, `borderWidth`/`border` outline,
+`radius`, and `panelPadding` inset. Its required title uses `text`, `fontTitle`,
+and `fontWeightStrong`, with elision. Default `contentWidth` is 360; the body is a
+column with `spaceLg` spacing. Implicit height is header height + body implicit
+height + twice `panelPadding` + `spaceLg`. The header is at least
+`compactControlSize` tall and accommodates the close button. Closing emits
+`closeRequested()`; the frame itself does not implement dismissal or keyboard routing.
 
-Workspace buttons use a 32-pixel visual width. The focused workspace uses an amber fill, dark text, and bold weight. Occupied and empty workspaces remain distinguishable without pretending that either is focused.
+`CloseButton` is `controlHeight` square, or a literal 24 square when `compact`.
+Its X is drawn from two rotated rectangles, not an icon font or `ShellIcon`.
+Rest uses transparent fill and `textMuted`; hover, down, or focus makes the X
+`text`. Down uses `pressedSurface`; hover/focus uses `hoverSurface`. Only focus
+adds a `focusWidth`/`focus` border. Radius is `radiusSmall`, capped at 6 when
+compact. It exposes an accessible button name (`"Close"` by default).
 
-The clock remains visually centered. Its open calendar state uses `surfaceRaised` with an amber border rather than turning the entire clock amber.
+### LevelSlider
 
-Audio shows an honest unavailable label instead of `0%` when PipeWire or the default output is absent. Muted state includes `MUTE` or `OFF`; red alone is insufficient.
+`LevelSlider` defaults to range 0–1, step 0.05, and height `controlHeight`.
+The track is `sliderTrackHeight` tall with `borderInteractive` backing; fill uses
+`accent` (disabled: `textDisabled`) and follows `position`, reversing its origin
+when mirrored. The `spaceXl` square handle follows `visualPosition` and uses
+`text` at rest, `accent` while pressed/hovered/focused, or `textDisabled` when disabled.
+Its border is `background`/`borderWidth`, or `focus`/`focusWidth` when focused.
+Track and handle radii are capped at half their respective size, making them round.
+Accessible role is slider, name defaults to `"Level"`, and description defaults to
+rounded `value * 100` plus `" percent"`; override that description for other ranges.
 
-### Anchored panels
+### ShellIcon and BarToolTip
 
-All panels share:
+`ShellIcon` renders Lucide SVG markup from its embedded `glyphs` map, with
+`name: "sliders-horizontal"`, `tint: Theme.text`, and implicit size 18 × 18.
+It replaces `currentColor` with the tint, encodes a data URL, preserves aspect
+ratio, and requests twice the display size. Unknown names fall back to
+`sliders-horizontal`. The component does not load the asset directory at runtime.
 
-- `surface` background;
-- one-pixel outer border;
-- two-pixel radius;
-- sixteen-pixel padding;
-- uppercase amber heading;
-- visible 28-pixel close control;
-- one-pixel section separators;
-- predictable keyboard focus;
-- stable loading, empty, and error frames.
+To add an icon, add its SVG to `assets/icons/lucide/` (retain the license), then
+add matching SVG text under its name in `ShellIcon.qml`'s `glyphs` map. Keep
+`currentColor` for tinting. Adding only the asset does not register it. Use
+`ShellIcon { name: "…"; tint: Theme.text }` in the component and give the
+surrounding control an accessible name. The map also contains an inline `monitor`
+icon with no matching asset file.
 
-The frame remains available when its domain service fails, so Escape and the close control always work.
+`BarToolTip` uses a separate popup window below its parent, 500 ms delay,
+5000 ms timeout, `spaceMd` margins/padding, and a maximum implicit width of 320.
+Text uses `fontSmall`, wrapping/elision up to three lines. Its surface uses
+`surface`, `borderInteractive`, `borderWidth`, and `radiusSmall`.
 
-#### Audio panel
+## Known exceptions and migration work
 
-The initial audio panel prefers a 460-pixel width.
+- `modules/lock` has its own ii-pixel language: Roboto, bundled Material Symbols
+  Rounded, shape effects, and local animations (including OutBack easing).
+  It is not governed uniformly by the shell primitives above.
+- Decorative/ambient motion is not fully tokenized: weather scenes use local
+  durations (for example 1100 ms in `GlassPane.qml` and long cloud loops in
+  `CityScene.qml`); the recording pulse in `ScreenshotBar.qml` uses 600 ms legs.
+- Nerd Font/private-use glyphs remain pending migration to Lucide. The audit
+  below counts **matching source lines**, not unique icons or glyph occurrences.
+  It includes appearance, audio, media, and tray in addition to weather, control
+  center, Bluetooth device types/status, network, and screenshot controls.
 
-- Volume controls show a six-pixel bordered track and a compact rectangular handle.
-- The percentage remains visible beside the slider.
-- Device rows are 40 pixels high.
-- The selected device uses amber fill, dark text, and `IN USE` or an equivalent marker.
-- Missing input devices remove the input section.
-- Action failures appear inline without closing the panel.
-- The deferred application-stream section is not rendered as a placeholder.
+Reproduce the glyph inventory with:
 
-#### Calendar panel
+```sh
+git grep -nP '[\x{F0000}-\x{FFFFD}\x{E000}-\x{F8FF}]' -- '*.qml' ':!modules/lock'
+```
 
-The calendar prefers a 360-by-390-pixel frame.
+| File | Matching lines |
+|---|---:|
+| `modules/appearance/AppearancePicker.qml` | 1 |
+| `modules/appearance/DesktopPreview.qml` | 2 |
+| `modules/audio/AudioPanel.qml` | 3 |
+| `modules/media/MediaBar.qml` | 1 |
+| `modules/system/BluetoothPanel.qml` | 3 |
+| `modules/system/BluetoothState.qml` | 7 |
+| `modules/system/ControlPanel.qml` | 15 |
+| `modules/system/NetworkPanel.qml` | 6 |
+| `modules/system/ScreenshotBar.qml` | 1 |
+| `modules/system/ScreenshotPanel.qml` | 5 |
+| `modules/system/TrayBar.qml` | 1 |
+| `modules/weather/WeatherState.qml` | 16 |
 
-- Month navigation uses compact square controls.
-- Today uses amber fill and dark text.
-- Weekday labels use muted small text.
-- Calendar days are reference content in the first coherent version; non-actionable days must not show hover or pressed states.
-- Month changes retain a stable grid and focus order.
+## Rules for new components
 
-### Volume OSD
-
-The volume OSD is a compact, click-through, non-focus-stealing surface on the output where the action originated.
-
-It contains:
-
-- a short label such as `VOL` or `MUTE`;
-- the numeric percentage when available;
-- the same six-pixel level track used by the audio panel;
-- a near-black surface, one-pixel border, two-pixel radius, and twelve-pixel padding.
-
-It updates in place while adjustments continue, begins its timeout after the last update, and uses only a short opacity transition. Muted and unavailable states include text rather than relying on color or an empty meter.
-
-## Accessibility requirements
-
-The canonical theme itself must be accessible; accessibility is not deferred to a separate theme.
-
-- Normal and secondary functional text target at least 4.5:1 contrast.
-- Functional boundaries and focus indicators target at least 3:1 contrast.
-- Decorative borders are not used as the sole cue for an interactive control.
-- Every keyboard-focusable control has a visible focus state.
-- Tab order follows visual order; lists additionally support arrows or `j`/`k`.
-- Continuous controls support left/right or `h`/`l`.
-- Enter and Space activate the focused control.
-- Interactive hit areas are at least 28 by 28 pixels; selectable rows remain 40 pixels high.
-- Every symbolic control has an accessible name, role, current state, and value where relevant.
-- Disabled controls do not respond to pointer or keyboard input.
-- Hover-only actions are prohibited.
-- Long device names elide visually but retain their complete accessible name.
-- Panels must remain usable under compositor scaling and must scroll or adapt instead of clipping controls.
-- Reduced motion sets nonessential transition durations to zero.
-- Errors, selection, mute, and unavailable states always have a non-color cue.
-
-## Supported theme variation
-
-### First coherent version
-
-Rashell ships three built-in dark themes:
-
-- `ember` — near-black with amber/gold accent; default and canonical screenshot direction;
-- `raven` — near-black blue with periwinkle accent;
-- `jade` — near-black green with jade accent.
-
-The `theme` key selects one name. A valid config hot reload changes the complete semantic palette atomically. All themes must satisfy the same contrast and non-color state requirements.
-
-Themes do not control:
-
-- component structure;
-- spacing or density;
-- border widths or radius;
-- panel placement and dimensions;
-- state precedence;
-- focus visibility;
-- accessibility behavior;
-- animations beyond the shared duration roles.
-
-## Token policy
-
-New visual tokens are added only when:
-
-1. at least two components share the role; or
-2. a distinct role is required for state clarity or accessibility.
-
-Components must not add raw colors, private palette objects, or component-specific hover colors. Transparent fill and content-driven sizes are permitted where they express structure rather than theme.
-
-## Explicit non-goals
-
-The first coherent version does not include:
-
-- light themes or automatic light/dark switching;
-- external theme files, discovery, or user-defined palette schemas;
-- wallpaper-derived, Material-generated, or community palettes;
-- a theme marketplace, installer, or compatibility ecosystem;
-- whole-system theming of Hyprland, terminals, editors, or applications;
-- per-widget colors, CSS-like overrides, or user-supplied QML delegates;
-- configurable radii, borderlessness, density modes, or alternative panel chrome;
-- gradients, shadows, blur, glass surfaces, or decorative translucency;
-- icon-pack selection or a new icon-font dependency;
-- animated palette changes, spring motion, or a general animation framework;
-- success, warning, chart, notification, or modal token families before included components require them;
-- visual placeholders for deferred features such as application-stream mixing;
-- treating the current internal token names as a public plugin API.
-
----
-
-## Concise closing comment
-
-> **Decision:** Rashell’s first coherent version has one canonical visual grammar and three built-in dark themes—`ember`, `raven`, and `jade`. `Theme.qml` owns semantic colors plus fixed typography, spacing, dimensions, and state behavior. Configuration may select a built-in palette, while geometry, density, focus, accessibility, and component composition remain fixed. Every palette must meet contrast requirements and every important state has a non-color cue. External themes, light mode, per-widget styling, palette generation, marketplace, and whole-system theming remain unsupported.
+- Use semantic `Theme` colors, spacing, dimensions, typography, and motion tokens;
+  do not add raw hex colors or literal font sizes. Transparent structural fills
+  and content-specific geometry are distinct from palette choices.
+- Use `radius` for outer panel frames and `radiusSmall` for inner controls.
+  Reuse shared primitives before inventing another state grammar.
+- Use `ShellIcon` for new icons, with accessible names on symbolic controls.
+- Keep state understandable without color alone: pair status colors with readable
+  labels, symbols, or shape/weight changes. This is a component responsibility,
+  not a verified guarantee across the shell; `ActionButton` does not add a status
+  label automatically. Preserve visible focus and explicit unavailable/error text.
+- Use layered surfaces and typography for hierarchy, with bounded tasks and short
+  labels. Do not treat the lock screen or ambient scenes as the default grammar.
