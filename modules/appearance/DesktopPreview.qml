@@ -10,6 +10,9 @@ Rectangle {
     required property var metrics
     required property string wallpaper
     required property string themeName
+    property var terminalProfile: ({})
+    readonly property var terminalSettings: terminalProfile.settings || ({})
+    readonly property var terminalAnsi: terminalProfile.ansi || []
 
     color: colors.background
     border.color: colors.borderInteractive
@@ -79,7 +82,7 @@ Rectangle {
         y: previewBar.height + 28
         width: Math.min(root.width - 48, root.width * 0.72)
         height: Math.max(140, root.height - previewBar.height - 62)
-        color: root.colors.surface
+        color: root.terminalSettings.background || root.colors.background
         radius: root.metrics.radius
         border.color: root.colors.borderInteractive
         border.width: 1
@@ -111,7 +114,7 @@ Rectangle {
             Text {
                 width: parent.width
                 text: root.themeName
-                color: root.colors.text
+                color: root.terminalSettings.foreground || root.colors.text
                 font { family: Theme.fontFamily; pixelSize: Theme.fontTitle; bold: true }
                 elide: Text.ElideRight
             }
@@ -128,13 +131,14 @@ Rectangle {
             Row {
                 spacing: 5
                 Repeater {
-                    model: ["accent", "accentMuted", "text", "textMuted", "danger"]
+                    model: root.terminalAnsi.length === 16 ? root.terminalAnsi.slice(1, 7)
+                        : [root.colors.danger, root.colors.accent, root.colors.accentMuted, root.colors.text, root.colors.textMuted]
                     Rectangle {
                         required property string modelData
                         width: 22
                         height: 12
                         radius: 2
-                        color: root.colors[modelData]
+                        color: modelData
                     }
                 }
             }

@@ -14,6 +14,8 @@ Item {
     readonly property string label: trayItem
         ? String(trayItem.tooltipTitle || trayItem.title || trayItem.id || "Application") : "Application"
 
+    readonly property string fallbackLabel: Array.from(label.trim())[0]?.toUpperCase() || "?"
+
     implicitWidth: showLabel ? 220 : 32
     implicitHeight: Theme.controlHeight
     activeFocusOnTab: true
@@ -58,7 +60,7 @@ Item {
         radius: Theme.radius
         color: mouse.containsMouse ? Theme.surfaceRaised : "transparent"
         border.color: root.activeFocus ? Theme.focus : "transparent"
-        border.width: Theme.borderWidth
+        border.width: root.activeFocus ? Theme.focusWidth : Theme.borderWidth
     }
 
     Item {
@@ -79,11 +81,11 @@ Item {
 
         Text {
             anchors.centerIn: parent
-            visible: icon.status === Image.Error || icon.status === Image.Null
-            text: "·"
-            color: Theme.textMuted
+            visible: icon.status !== Image.Ready
+            text: root.fallbackLabel
+            color: Theme.text
             font.family: Theme.fontFamily
-            font.pixelSize: 18
+            font.pixelSize: Theme.fontBody
             font.bold: true
         }
     }

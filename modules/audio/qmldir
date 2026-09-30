@@ -2,3 +2,6 @@ module qs.modules.audio
 AudioState 1.0 AudioState.qml
 AudioBar 1.0 AudioBar.qml
 AudioPanel 1.0 AudioPanel.qml
+OutputArtwork 1.0 OutputArtwork.qml
+OutputDeviceMap 1.0 OutputDeviceMap.qml
+OutputPicker 1.0 OutputPicker.qml

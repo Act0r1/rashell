@@ -317,12 +317,14 @@ Scope {
             for (let index = 1; index < payload.daily.time.length && days.length < 5; index++) {
                 const code = Math.round(Number(payload.daily.weather_code[index]) || 0)
                 const date = new Date(String(payload.daily.time[index]) + "T12:00:00")
+                const minimum = payload.daily.temperature_2m_min ? payload.daily.temperature_2m_min[index] : null
+                const maximum = payload.daily.temperature_2m_max ? payload.daily.temperature_2m_max[index] : null
                 days.push({
                     day: Qt.formatDate(date, "ddd"),
                     icon: iconForWmo(code),
                     description: describeWmo(code),
-                    minimum: Math.round(Number(payload.daily.temperature_2m_min[index]) || 0),
-                    maximum: Math.round(Number(payload.daily.temperature_2m_max[index]) || 0)
+                    minimum: typeof minimum === "number" && isFinite(minimum) ? Math.round(minimum) : null,
+                    maximum: typeof maximum === "number" && isFinite(maximum) ? Math.round(maximum) : null
                 })
             }
             dailyForecast = days

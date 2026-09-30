@@ -13,8 +13,19 @@ class LockScreenTest(unittest.TestCase):
         self.assertIn("WlSessionLock", screen)
         self.assertIn("WlSessionLockSurface", screen)
         self.assertIn("PamContext", context)
-        self.assertIn('config: "swaylock"', context)
+        self.assertIn('config: "rashell-lock"', context)
         self.assertIn("Enter your password", screen)
+
+    def test_wrong_password_is_instant_with_rashell_cooldown(self) -> None:
+        pam = (ROOT / "modules/lock/pam/rashell-lock").read_text()
+        context = (ROOT / "modules/lock/LockContext.qml").read_text()
+
+        self.assertIn("pam_unix.so", pam)
+        self.assertIn("nodelay", pam)
+        self.assertIn("count < 3 ? 0", context)
+        self.assertIn("Math.min(30000", context)
+        self.assertIn("if (cooldownSeconds > 0)", context)
+        self.assertIn("interval: 1000", context)
 
     def test_lock_screen_uses_ii_pixel_visual_dependencies(self) -> None:
         lock_dir = ROOT / "modules/lock"

@@ -23,14 +23,15 @@ Slider {
         y: control.topPadding + control.availableHeight / 2 - height / 2
         width: control.availableWidth
         height: Theme.sliderTrackHeight
-        color: Theme.surfaceRaised
-        border.color: Theme.borderInteractive
-        border.width: Theme.borderWidth
+        color: Theme.borderInteractive
+        radius: Math.min(Theme.radius, height / 2)
 
         Rectangle {
-            width: control.visualPosition * parent.width
+            x: control.mirrored ? parent.width - width : 0
+            width: control.position * parent.width
             height: parent.height
-            color: Theme.accent
+            radius: parent.radius
+            color: control.enabled ? Theme.accent : Theme.textDisabled
         }
 
     }
@@ -38,12 +39,13 @@ Slider {
     handle: Rectangle {
         x: control.leftPadding + control.visualPosition * (control.availableWidth - width)
         y: control.topPadding + control.availableHeight / 2 - height / 2
-        width: 12
-        height: 20
-        color: control.pressed || control.activeFocus ? Theme.accent : Theme.text
-        border.color: control.activeFocus ? Theme.focus : Theme.background
-        border.width: control.activeFocus ? Theme.focusWidth : Theme.borderWidth
-        radius: 1
+        width: Theme.spaceXl
+        height: Theme.spaceXl
+        color: !control.enabled ? Theme.textDisabled
+            : control.pressed || control.hovered || control.visualFocus ? Theme.accent : Theme.text
+        border.color: control.visualFocus ? Theme.focus : Theme.background
+        border.width: control.visualFocus ? Theme.focusWidth : Theme.borderWidth
+        radius: Math.min(Theme.radius, width / 2)
     }
 
 }

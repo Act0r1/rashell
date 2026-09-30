@@ -112,7 +112,7 @@ Item {
 
                 background: Rectangle {
                     color: button.current ? Theme.accent
-                        : button.urgent ? Qt.alpha(Theme.accent, button.hovered || button.down ? 0.36 : 0.24)
+                        : button.urgent ? (button.down ? Theme.selectedPressedSurface : button.hovered ? Theme.selectedHoverSurface : Theme.selectedSurface)
                         : button.hovered || button.down ? Theme.surfaceRaised : "transparent"
                     border.color: button.current || button.urgent ? Theme.accent : button.occupied ? Theme.borderInteractive : Theme.border
                     border.width: button.urgent ? Theme.focusWidth : Theme.borderWidth

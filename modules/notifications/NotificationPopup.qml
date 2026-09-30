@@ -62,18 +62,25 @@ Scope {
                         spacing: Theme.spaceSm
 
                         Column {
-                            width: parent.width - closeButton.width - Theme.spaceMd
+                            width: parent.width
                             spacing: Theme.spaceSm
 
-                            Text {
-                                width: parent.width
-                                text: root.notificationState.popupAppName
-                                textFormat: Text.PlainText
-                                color: Theme.accent
-                                elide: Text.ElideRight
-                                font.family: Theme.fontFamily
-                                font.pixelSize: Theme.fontSmall
-                                font.bold: true
+                            Item {
+                                width: parent.width - closeButton.width - Theme.spaceMd
+                                height: Math.max(Theme.compactControlSize, closeButton.implicitHeight)
+
+                                Text {
+                                    anchors.left: parent.left
+                                    anchors.right: parent.right
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    text: root.notificationState.popupAppName
+                                    textFormat: Text.PlainText
+                                    color: Theme.accent
+                                    elide: Text.ElideRight
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: Theme.fontSmall
+                                    font.bold: true
+                                }
                             }
                             Text {
                                 width: parent.width
@@ -111,40 +118,43 @@ Scope {
                             }
                             onCompleted: root.notificationState.hidePopup()
                         }
-                    }
 
-                    Rectangle {
-                        id: timeoutTrack
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        anchors.bottom: parent.bottom
-                        anchors.leftMargin: Theme.spaceSm
-                        anchors.rightMargin: Theme.spaceSm
-                        anchors.bottomMargin: Theme.spaceSm
-                        height: 3
-                        color: Theme.border
-                        radius: height / 2
+                        Item {
+                            width: parent.width
+                            height: Theme.spaceMd + 2
 
-                        Rectangle {
-                            width: parent.width * Math.max(0, Math.min(1,
-                                root.notificationState.popupProgress))
-                            height: parent.height
-                            color: Theme.accent
-                            radius: parent.radius
+                            Rectangle {
+                                anchors.bottom: parent.bottom
+                                width: parent.width
+                                height: 2
+                                color: Theme.border
+                                radius: height / 2
+
+                                Rectangle {
+                                    width: parent.width * Math.max(0, Math.min(1,
+                                        root.notificationState.popupProgress))
+                                    height: parent.height
+                                    color: Theme.accent
+                                    radius: parent.radius
+                                }
+                            }
                         }
                     }
 
                     CloseButton {
                         id: closeButton
+                        compact: true
                         anchors.top: parent.top
                         anchors.right: parent.right
                         anchors.margins: 8
                         accessibleName: "Dismiss notification"
                         onClicked: {
-                            root.notificationState.dismissNotification(root.notificationState.latest)
+                            const notification = root.notificationState.latest
                             root.notificationState.hidePopup()
+                            root.notificationState.dismissNotification(notification)
                         }
                     }
+
                 }
             }
         }

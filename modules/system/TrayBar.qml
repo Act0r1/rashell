@@ -12,7 +12,8 @@ Item {
     required property var coordinator
     required property string outputName
 
-    readonly property var items: SystemTray.items ? Array.from(SystemTray.items.values) : []
+    readonly property var items: SystemTray.items
+        ? Array.from(SystemTray.items.values).filter(item => item !== null && item !== undefined) : []
     readonly property var pinnedIds: configStore.trayPinnedIds
     readonly property var pinnedItems: {
         if (pinnedIds === null) return items.slice(0, 3)
@@ -236,7 +237,7 @@ Item {
             visible: root.draggedItem !== null && root.pinnedItems.length === 0
             width: visible ? 32 : 0
             height: Theme.controlHeight
-            color: barDrop.containsDrag ? Theme.accentMuted : Theme.surfaceRaised
+            color: barDrop.containsDrag ? Theme.selectedSurface : Theme.surfaceRaised
             border.color: Theme.accent
             border.width: Theme.borderWidth
             radius: Theme.radius

@@ -20,7 +20,7 @@ Item {
     required property var controlState
     required property var tokenState
     required property var notificationState
-    required property var sessionModeState
+    required property var sessionState
     required property var textCaptureState
     required property var barEditor
     required property var lockScreen
@@ -45,7 +45,7 @@ Item {
         required property var controlState
         required property var tokenState
         required property var notificationState
-        required property var sessionModeState
+        required property var sessionState
         required property var textCaptureState
         required property var barEditor
         required property var lockScreen
@@ -55,7 +55,22 @@ Item {
         required property var feedback
         required property var configStore
 
-        spacing: 3
+        property real mediaWidthReduction: 0
+        readonly property real naturalWidth: {
+            let total = 0
+            let count = 0
+            for (let index = 0; index < children.length; index++) {
+                const child = children[index]
+                if (child.implicitWidth > 0) {
+                    total += child.implicitWidth
+                    count++
+                }
+            }
+            return total + Math.max(0, count - 1) * spacing
+        }
+        readonly property int mediaCount: mediaState.available && moduleIds.indexOf("rashell.media") >= 0 ? 1 : 0
+
+        spacing: Theme.spaceXs
 
         Repeater {
             model: moduleRow.moduleIds
@@ -63,6 +78,8 @@ Item {
             ModuleSlot {
                 required property string modelData
                 moduleId: modelData
+                width: moduleId === "rashell.media" && !emptyModule
+                    ? Math.max(Theme.controlHeight, implicitWidth - moduleRow.mediaWidthReduction) : implicitWidth
                 outputName: moduleRow.outputName
                 workspaceState: moduleRow.workspaceState
                 clockState: moduleRow.clockState
@@ -75,7 +92,7 @@ Item {
                 controlState: moduleRow.controlState
                 tokenState: moduleRow.tokenState
                 notificationState: moduleRow.notificationState
-                sessionModeState: moduleRow.sessionModeState
+                sessionState: moduleRow.sessionState
                 textCaptureState: moduleRow.textCaptureState
                 barEditor: moduleRow.barEditor
                 lockScreen: moduleRow.lockScreen
@@ -97,7 +114,7 @@ Item {
 
                 required property var modelData
                 screen: modelData
-                implicitHeight: Theme.barHeight
+                implicitHeight: root.configStore.barMinimal ? 26 : Theme.barHeight
                 color: "transparent"
                 exclusionMode: ExclusionMode.Auto
 
@@ -108,7 +125,7 @@ Item {
 
                 IdleInhibitor {
                     window: barWindow
-                    enabled: root.sessionModeState.inhibitIdle
+                    enabled: root.sessionState.keepAwake
                 }
 
                 Item {
@@ -121,10 +138,17 @@ Item {
                 }
 
                 Rectangle {
+                    id: barSurface
+                    readonly property real groupGap: Theme.spaceMd
+                    readonly property real mediaReduction: Math.max(0,
+                        leftGroup.naturalWidth + centerGroup.naturalWidth + rightGroup.naturalWidth
+                        + 2 * groupGap + 2 * Theme.spaceMd - width)
+                        / Math.max(1, leftGroup.mediaCount + centerGroup.mediaCount + rightGroup.mediaCount)
                     anchors.fill: parent
-                    color: Theme.surface
+                    color: root.configStore.barMinimal ? "#80000000" : Theme.surface
 
                     Rectangle {
+                        visible: !root.configStore.barMinimal
                         anchors.left: parent.left
                         anchors.right: parent.right
                         anchors.bottom: parent.bottom
@@ -133,10 +157,12 @@ Item {
                     }
 
                     ModuleRow {
+                        id: leftGroup
+                        mediaWidthReduction: barSurface.mediaReduction
                         anchors.left: parent.left
-                        anchors.leftMargin: 8
+                        anchors.leftMargin: Theme.spaceMd
                         anchors.verticalCenter: parent.verticalCenter
-                        moduleIds: root.configStore.leftModules
+                        moduleIds: root.configStore.barMinimal ? [] : root.configStore.leftModules
                         configStore: root.configStore
                         lockScreen: root.lockScreen
                         outputName: barWindow.modelData.name
@@ -151,7 +177,7 @@ Item {
                         controlState: root.controlState
                         tokenState: root.tokenState
                         notificationState: root.notificationState
-                        sessionModeState: root.sessionModeState
+                        sessionState: root.sessionState
                         textCaptureState: root.textCaptureState
                         barEditor: root.barEditor
                         wallpaperPicker: root.wallpaperPicker
@@ -161,8 +187,14 @@ Item {
                     }
 
                     ModuleRow {
-                        anchors.centerIn: parent
-                        moduleIds: root.configStore.centerModules
+                        id: centerGroup
+                        mediaWidthReduction: barSurface.mediaReduction
+                        anchors.verticalCenter: parent.verticalCenter
+                        x: root.configStore.barMinimal ? (parent.width - width) / 2
+                            : Math.max(leftGroup.x + leftGroup.width + barSurface.groupGap,
+                            Math.min((parent.width - width) / 2,
+                                rightGroup.x - width - barSurface.groupGap))
+                        moduleIds: root.configStore.barMinimal ? ["rashell.weather", "rashell.clock"] : root.configStore.centerModules
                         configStore: root.configStore
                         lockScreen: root.lockScreen
                         outputName: barWindow.modelData.name
@@ -177,7 +209,7 @@ Item {
                         controlState: root.controlState
                         tokenState: root.tokenState
                         notificationState: root.notificationState
-                        sessionModeState: root.sessionModeState
+                        sessionState: root.sessionState
                         textCaptureState: root.textCaptureState
                         barEditor: root.barEditor
                         wallpaperPicker: root.wallpaperPicker
@@ -187,10 +219,12 @@ Item {
                     }
 
                     ModuleRow {
+                        id: rightGroup
+                        mediaWidthReduction: barSurface.mediaReduction
                         anchors.right: parent.right
-                        anchors.rightMargin: 8
+                        anchors.rightMargin: Theme.spaceMd
                         anchors.verticalCenter: parent.verticalCenter
-                        moduleIds: root.configStore.rightModules
+                        moduleIds: root.configStore.barMinimal ? [] : root.configStore.rightModules
                         configStore: root.configStore
                         lockScreen: root.lockScreen
                         outputName: barWindow.modelData.name
@@ -205,7 +239,7 @@ Item {
                         controlState: root.controlState
                         tokenState: root.tokenState
                         notificationState: root.notificationState
-                        sessionModeState: root.sessionModeState
+                        sessionState: root.sessionState
                         textCaptureState: root.textCaptureState
                         barEditor: root.barEditor
                         wallpaperPicker: root.wallpaperPicker

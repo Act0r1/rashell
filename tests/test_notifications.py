@@ -48,11 +48,11 @@ class NotificationActionsTest(unittest.TestCase):
         self.assertNotIn("popupVisible && root.notificationState.latest !== null", popup)
         self.assertIn("root.notificationState.popupAppName", popup)
 
-    def test_empty_notifications_are_ignored(self) -> None:
+    def test_notifications_without_visible_text_are_ignored(self) -> None:
         state = (ROOT / "modules/notifications/NotificationState.qml").read_text()
 
-        self.assertIn('if (appName === "" && summary === "" && body === "") return', state)
-        self.assertLess(state.index('if (appName === ""'), state.index("notification.tracked = true"))
+        self.assertIn('if (summary === "" && body === "") return', state)
+        self.assertLess(state.index('if (summary === ""'), state.index("notification.tracked = true"))
 
     def test_popup_notifications_are_queued_instead_of_replacing_each_other(self) -> None:
         state = (ROOT / "modules/notifications/NotificationState.qml").read_text()
@@ -60,6 +60,12 @@ class NotificationActionsTest(unittest.TestCase):
         self.assertIn("property var popupQueue: []", state)
         self.assertIn("popupQueue = popupQueue.concat([notification])", state)
         self.assertIn("showPopup(popupQueue[0])", state)
+
+    def test_popup_close_button_is_anchored_to_the_window_surface(self) -> None:
+        popup = (ROOT / "modules/notifications/NotificationPopup.qml").read_text()
+
+        self.assertIn("anchors.top: parent.top\n                        anchors.right: parent.right", popup)
+        self.assertIn("anchors.margins: 8", popup)
 
 
 if __name__ == "__main__":

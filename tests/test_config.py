@@ -14,6 +14,8 @@ class ConfigTest(unittest.TestCase):
         theme_ids = {theme["id"] for theme in json.loads(THEMES_PATH.read_text())}
         keys = set(config)
         keys.discard("trayPinnedIds")
+        keys.discard("fontFamily")
+        keys.discard("barMinimal")
         self.assertEqual(keys, {"version", "theme", "wallpaper", "captureDirectory", "weatherLocation", "notificationDurationSeconds", "clipboardHistoryLimit", "bar"})
         self.assertEqual(config["version"], 1)
         self.assertIn(config["theme"], theme_ids)

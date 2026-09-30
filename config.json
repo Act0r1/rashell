@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "theme": "raven",
-  "wallpaper": "/home/yeager/Pictures/Wallpapers/among-trees-campsite.jpg",
+  "theme": "ayu-dark",
+  "wallpaper": "/home/yeager/Pictures/Wallpapers/ii-pixel-background.jpg",
   "captureDirectory": "~/Pictures/Screenshots",
   "weatherLocation": "Kazan",
   "notificationDurationSeconds": 8,
@@ -23,6 +23,7 @@
       "rashell.bluetooth",
       "rashell.notifications",
       "rashell.audio",
+      "rashell.monitor-input",
       "rashell.tokens",
       "rashell.control",
       "rashell.updates"
@@ -32,5 +33,7 @@
     "chrome_status_icon_1",
     "indicator-solaar",
     "steam"
-  ]
+  ],
+  "fontFamily": "Adwaita Sans",
+  "barMinimal": false
 }

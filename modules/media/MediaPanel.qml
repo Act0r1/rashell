@@ -9,6 +9,54 @@ FocusScope {
     required property var coordinator
     required property var mediaState
 
+    component MediaIcon: Image {
+        id: icon
+        required property string pathData
+        property color tint: Theme.textMuted
+        sourceSize.width: width * 2
+        sourceSize.height: height * 2
+        source: "data:image/svg+xml;utf8," + encodeURIComponent(
+            "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='"
+            + tint.toString() + "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='"
+            + pathData + "'/></svg>")
+    }
+
+    component PlaybackButton: Button {
+        id: control
+        required property string pathData
+        property bool primary: false
+        property string accessibleName: ""
+        implicitWidth: primary ? 56 : 48
+        implicitHeight: implicitWidth
+        padding: 0
+        hoverEnabled: true
+        Accessible.name: accessibleName
+        Accessible.role: Accessible.Button
+        ToolTip.visible: hovered
+        ToolTip.delay: 450
+        ToolTip.text: accessibleName
+
+        contentItem: Item {
+            MediaIcon {
+                anchors.centerIn: parent
+                width: 24
+                height: 24
+                pathData: control.pathData
+                tint: control.primary ? Theme.accent
+                    : control.hovered || control.down ? Theme.text : Theme.textMuted
+                opacity: control.enabled ? 1 : 0.4
+            }
+        }
+
+        background: Rectangle {
+            radius: width / 2
+            color: control.primary ? (control.down ? Theme.selectedPressedSurface : control.hovered ? Theme.selectedHoverSurface : Theme.selectedSurface)
+                : control.down ? Theme.pressedSurface : control.hovered ? Theme.hoverSurface : "transparent"
+            border.color: control.visualFocus ? Theme.focus : "transparent"
+            border.width: control.visualFocus ? Theme.focusWidth : 0
+        }
+    }
+
     function formatTime(seconds) {
         const total = Math.max(0, Math.floor(Number(seconds) || 0));
         const minutes = Math.floor(total / 60);
@@ -38,8 +86,11 @@ FocusScope {
 
         anchors.fill: parent
         contentWidth: 480
-        title: "NOW PLAYING"
-        onCloseRequested: root.coordinator.close("close-control")
+        title: "Now playing"
+        onCloseRequested: {
+            root.mediaState.dismiss()
+            root.coordinator.close("close-control")
+        }
 
         Text {
             width: parent.width
@@ -86,13 +137,12 @@ FocusScope {
                         visible: status === Image.Ready
                     }
 
-                    Text {
+                    MediaIcon {
                         anchors.centerIn: parent
                         visible: albumArt.status !== Image.Ready
-                        text: "󰎇"
-                        color: Theme.textMuted
-                        font.family: Theme.fontFamily
-                        font.pixelSize: 40
+                        width: 36
+                        height: 36
+                        pathData: "M9 18V5l12-2v13M9 9l12-2M9 18a3 3 0 1 1-3-3c1.7 0 3 1.3 3 3Zm12-2a3 3 0 1 1-3-3c1.7 0 3 1.3 3 3Z"
                     }
 
                 }
@@ -223,37 +273,33 @@ FocusScope {
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: Theme.spaceLg
 
-            ActionButton {
+            PlaybackButton {
                 id: previousButton
 
-                width: 48
-                height: 42
-                text: "󰒮"
+                anchors.verticalCenter: parent.verticalCenter
+                pathData: "M5 5v14M19 5 9 12l10 7V5Z"
                 accessibleName: "Previous track"
                 enabled: root.mediaState.player && root.mediaState.player.canGoPrevious
                 KeyNavigation.right: playButton
                 onClicked: root.mediaState.previous()
             }
 
-            ActionButton {
+            PlaybackButton {
                 id: playButton
 
-                width: 60
-                height: 46
-                text: root.mediaState.playing ? "󰏤" : "󰐊"
+                pathData: root.mediaState.playing ? "M9 5v14M15 5v14" : "M8 5.5v13L18 12 8 5.5Z"
                 accessibleName: root.mediaState.playing ? "Pause" : "Play"
-                selected: true
+                primary: true
                 KeyNavigation.left: previousButton
                 KeyNavigation.right: nextButton
                 onClicked: root.mediaState.playPause()
             }
 
-            ActionButton {
+            PlaybackButton {
                 id: nextButton
 
-                width: 48
-                height: 42
-                text: "󰒭"
+                anchors.verticalCenter: parent.verticalCenter
+                pathData: "M19 5v14M5 5l10 7-10 7V5Z"
                 accessibleName: "Next track"
                 enabled: root.mediaState.player && root.mediaState.player.canGoNext
                 KeyNavigation.left: playButton

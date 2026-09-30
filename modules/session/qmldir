@@ -1,4 +1,2 @@
 module qs.modules.session
-SessionModeState 1.0 SessionModeState.qml
-ModeControls 1.0 ModeControls.qml
-ModePanel 1.0 ModePanel.qml
+SessionState 1.0 SessionState.qml

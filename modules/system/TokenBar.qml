@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import Quickshell
 import qs.core
+import qs.ui
 
 Item {
     id: root
@@ -15,35 +16,38 @@ Item {
         id: button
         anchors.fill: parent
         hoverEnabled: true
+        padding: 0
         Accessible.name: "Token usage " + root.state.compact(root.state.totalTokens)
 
-        contentItem: Row {
-            id: tokenContent
-            spacing: Theme.spaceSm
+        contentItem: Item {
+            Row {
+                id: tokenContent
+                anchors.centerIn: parent
+                spacing: Theme.spaceSm
 
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                text: "󰧑"
-                color: Theme.accent
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontTitle
-            }
+                ShellIcon {
+                    anchors.verticalCenter: parent.verticalCenter
+                    name: "brain-circuit"
+                    tint: Theme.textMuted
+                }
 
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                text: root.state.compact(root.state.totalTokens)
-                color: Theme.accent
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontTitle
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: root.state.compact(root.state.totalTokens)
+                    color: Theme.text
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontBody
+                }
             }
         }
+
         background: Rectangle {
             readonly property bool active: root.coordinator.opened
                 && root.coordinator.activePanelId === "tokens"
                 && root.coordinator.anchorItem === root
             color: active || button.hovered || button.down ? Theme.surfaceRaised : "transparent"
-            border.color: active ? Theme.accent : "transparent"
-            border.width: Theme.borderWidth
+            border.color: button.activeFocus ? Theme.focus : active ? Theme.accent : "transparent"
+            border.width: button.activeFocus ? Theme.focusWidth : Theme.borderWidth
             radius: Theme.radius
         }
         onClicked: root.coordinator.toggle(

@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import Quickshell
 import qs.core
+import qs.ui
 
 Item {
     id: root
@@ -15,18 +16,34 @@ Item {
         id: button
         anchors.fill: parent
         hoverEnabled: true
-        Accessible.name: root.state.updates + " available updates"
+        padding: 0
+        Accessible.name: root.state.updatesRefreshing ? "Checking repository updates"
+            : root.state.updatesError ? "Update check failed: " + root.state.updatesError
+            : root.state.updates + " repository updates available"
         Accessible.role: Accessible.Button
 
-        contentItem: Text {
-            id: status
-            text: "󰏔" + (root.state.updates > 0 ? " " + root.state.updates : "")
-            color: root.state.updates > 0 ? Theme.accent : Theme.textMuted
-            font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontTitle
-            font.bold: true
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
+        contentItem: Item {
+            Row {
+                id: status
+                anchors.centerIn: parent
+                spacing: 6
+
+                ShellIcon {
+                    anchors.verticalCenter: parent.verticalCenter
+                    name: root.state.updatesRefreshing ? "rotate-cw" : "download"
+                    tint: root.state.updatesError ? Theme.danger
+                        : root.state.updates > 0 ? Theme.text : Theme.textMuted
+                }
+
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: root.state.updatesError !== "" || root.state.updates > 0
+                    text: root.state.updatesError ? "!" : String(root.state.updates)
+                    color: root.state.updatesError ? Theme.danger : Theme.text
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontBody
+                }
+            }
         }
 
         background: Rectangle {
@@ -34,8 +51,8 @@ Item {
                 && root.coordinator.activePanelId === "updates"
                 && root.coordinator.anchorItem === root
             color: active || button.hovered || button.down ? Theme.surfaceRaised : "transparent"
-            border.color: active ? Theme.accent : "transparent"
-            border.width: Theme.borderWidth
+            border.color: button.activeFocus ? Theme.focus : active ? Theme.accent : "transparent"
+            border.width: button.activeFocus ? Theme.focusWidth : Theme.borderWidth
             radius: Theme.radius
         }
 

@@ -30,6 +30,38 @@ FocusScope {
     implicitWidth: frame.implicitWidth
     implicitHeight: frame.implicitHeight
     property bool editingLocation: false
+    readonly property var dailyForecast: Array.isArray(weatherState.dailyForecast) ? weatherState.dailyForecast : []
+    readonly property var dailyScale: {
+        let minimum = Infinity
+        let maximum = -Infinity
+        for (const day of dailyForecast) {
+            const range = dailyRange(day)
+            if (!range) continue
+            minimum = Math.min(minimum, range.minimum)
+            maximum = Math.max(maximum, range.maximum)
+        }
+        return isFinite(minimum) && isFinite(maximum) ? { minimum, maximum } : null
+    }
+
+    function dailyTemperature(value) {
+        return typeof value === "number" && isFinite(value) ? value : null
+    }
+
+    function dailyRange(day) {
+        const minimum = dailyTemperature(day ? day.minimum : null)
+        const maximum = dailyTemperature(day ? day.maximum : null)
+        if (minimum === null || maximum === null) return null
+        return { minimum: Math.min(minimum, maximum), maximum: Math.max(minimum, maximum) }
+    }
+
+    function dailyPosition(value) {
+        if (!dailyScale || dailyScale.minimum === dailyScale.maximum) return 0.5
+        const span = dailyScale.maximum - dailyScale.minimum
+        const position = isFinite(span)
+            ? (value - dailyScale.minimum) / span
+            : (value / 2 - dailyScale.minimum / 2) / (dailyScale.maximum / 2 - dailyScale.minimum / 2)
+        return isFinite(position) ? Math.max(0, Math.min(1, position)) : 0.5
+    }
 
     function beginLocationEdit() {
         cityField.text = configStore.weatherLocation
@@ -194,7 +226,7 @@ FocusScope {
                             visible: root.weatherState.cityTimeAvailable
                             color: Qt.rgba(1, 1, 1, 0.66)
                             font.family: Theme.fontFamily
-                            font.pixelSize: 9
+                            font.pixelSize: 11
                         }
 
                         Column {
@@ -271,15 +303,15 @@ FocusScope {
                                 model: [
                                     {
                                         value: root.weatherState.windMetersPerSecond.toFixed(1) + " m/s",
-                                        label: "WIND"
+                                        label: "Wind"
                                     },
                                     {
                                         value: root.weatherState.humidityPercent + "%",
-                                        label: "HUMIDITY"
+                                        label: "Humidity"
                                     },
                                     {
                                         value: root.weatherState.precipitationMm.toFixed(1) + " mm",
-                                        label: "RAIN"
+                                        label: "Rain"
                                     }
                                 ]
 
@@ -311,8 +343,7 @@ FocusScope {
                                             text: statChip.modelData.label
                                             color: Qt.rgba(1, 1, 1, 0.72)
                                             font.family: Theme.fontFamily
-                                            font.pixelSize: 9
-                                            font.letterSpacing: 1
+                                            font.pixelSize: 11
                                         }
                                     }
                                 }
@@ -363,7 +394,7 @@ FocusScope {
                                     text: hourCell.modelData.time
                                     color: Theme.textMuted
                                     font.family: Theme.fontFamily
-                                    font.pixelSize: 10
+                                    font.pixelSize: 11
                                 }
 
                                 Text {
@@ -391,7 +422,7 @@ FocusScope {
                                     text: hourCell.modelData.probability + "%"
                                     color: hourCell.modelData.probability > 0 ? Theme.accentMuted : Theme.textMuted
                                     font.family: Theme.fontFamily
-                                    font.pixelSize: 10
+                                    font.pixelSize: 11
                                 }
                             }
                         }
@@ -472,14 +503,19 @@ FocusScope {
 
                 Column {
                     width: parent.width
-                    height: Math.max(34, root.weatherState.dailyForecast.length * 34)
+                    height: Math.max(34, root.dailyForecast.length * 34)
 
                     Repeater {
                         model: root.weatherState.dailyForecast
 
                         Item {
+                            id: dailyRow
                             required property var modelData
-                            required property int index
+                            readonly property var interval: root.dailyRange(modelData)
+                            readonly property var minimum: interval ? interval.minimum
+                                : root.dailyTemperature(modelData ? modelData.minimum : null)
+                            readonly property var maximum: interval ? interval.maximum
+                                : root.dailyTemperature(modelData ? modelData.maximum : null)
                             width: parent.width
                             height: 34
 
@@ -489,7 +525,7 @@ FocusScope {
                                     verticalCenter: parent.verticalCenter
                                 }
                                 width: 46
-                                text: modelData.day
+                                text: dailyRow.modelData ? dailyRow.modelData.day : "—"
                                 color: Theme.text
                                 font.family: Theme.fontFamily
                                 font.pixelSize: Theme.fontBody
@@ -502,7 +538,7 @@ FocusScope {
                                     verticalCenter: parent.verticalCenter
                                 }
                                 width: 28
-                                text: modelData.icon
+                                text: dailyRow.modelData ? dailyRow.modelData.icon : ""
                                 color: Theme.textMuted
                                 font.family: Theme.fontFamily
                                 font.pixelSize: Theme.fontTitle
@@ -512,10 +548,11 @@ FocusScope {
                                 anchors {
                                     left: parent.left
                                     leftMargin: 88
+                                    right: dailyValues.left
+                                    rightMargin: Theme.spaceMd
                                     verticalCenter: parent.verticalCenter
                                 }
-                                width: 220
-                                text: modelData.description
+                                text: dailyRow.modelData ? dailyRow.modelData.description : ""
                                 color: Theme.textMuted
                                 font.family: Theme.fontFamily
                                 font.pixelSize: Theme.fontSmall
@@ -523,6 +560,7 @@ FocusScope {
                             }
 
                             Row {
+                                id: dailyValues
                                 anchors {
                                     right: parent.right
                                     verticalCenter: parent.verticalCenter
@@ -530,32 +568,47 @@ FocusScope {
                                 spacing: Theme.spaceMd
 
                                 Text {
-                                    text: modelData.minimum + "°"
-                                    color: Theme.textDisabled
+                                    width: 44
+                                    horizontalAlignment: Text.AlignRight
+                                    elide: Text.ElideRight
+                                    text: dailyRow.minimum !== null ? dailyRow.minimum + "°" : "—"
+                                    color: Theme.textMuted
                                     font.family: Theme.fontFamily
                                     font.pixelSize: Theme.fontBody
                                 }
 
                                 Rectangle {
+                                    id: dailyTrack
                                     anchors.verticalCenter: parent.verticalCenter
-                                    width: 38
-                                    height: 4
-                                    radius: 2
-                                    color: Theme.border
+                                    width: 72
+                                    height: 6
+                                    radius: 3
+                                    color: dailyRow.interval !== null ? Theme.border : "transparent"
+                                    readonly property real startPosition: dailyRow.interval
+                                        ? root.dailyPosition(dailyRow.interval.minimum) : 0.5
+                                    readonly property real endPosition: dailyRow.interval
+                                        ? root.dailyPosition(dailyRow.interval.maximum) : 0.5
+                                    readonly property bool singleTemperature: dailyRow.interval !== null
+                                        && dailyRow.interval.minimum === dailyRow.interval.maximum
 
                                     Rectangle {
-                                        anchors.centerIn: parent
-                                        width: 12 + (index * 7) % 20
-                                        height: parent.height
-                                        radius: 2
+                                        visible: dailyRow.interval !== null
+                                        x: 3 + dailyTrack.startPosition * (dailyTrack.width - 6)
+                                            - (dailyTrack.singleTemperature ? 3 : 0)
+                                        y: (dailyTrack.height - height) / 2
+                                        width: dailyTrack.singleTemperature ? 6
+                                            : Math.max(0, dailyTrack.endPosition - dailyTrack.startPosition) * (dailyTrack.width - 6)
+                                        height: dailyTrack.singleTemperature ? 6 : 4
+                                        radius: height / 2
                                         color: Theme.accent
                                     }
                                 }
 
                                 Text {
-                                    width: 30
+                                    width: 44
                                     horizontalAlignment: Text.AlignRight
-                                    text: modelData.maximum + "°"
+                                    elide: Text.ElideRight
+                                    text: dailyRow.maximum !== null ? dailyRow.maximum + "°" : "—"
                                     color: Theme.text
                                     font.family: Theme.fontFamily
                                     font.pixelSize: Theme.fontBody
@@ -567,7 +620,7 @@ FocusScope {
 
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
-                        visible: root.weatherState.dailyForecast.length === 0
+                        visible: root.dailyForecast.length === 0
                         text: "Daily forecast unavailable"
                         color: Theme.textDisabled
                         font.family: Theme.fontFamily
@@ -590,7 +643,7 @@ FocusScope {
                     Text {
                         width: 38
                         height: parent.height
-                        text: "CITY"
+                        text: "City"
                         color: Theme.accentMuted
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSmall

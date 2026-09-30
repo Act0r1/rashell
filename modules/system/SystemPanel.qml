@@ -198,6 +198,18 @@ FocusScope {
 
                 MetricCard {
                     width: (parent.width - parent.spacing) / 2
+                    label: "GPU MEMORY"
+                    value: root.systemState.gpuMemoryTotalBytes > 0
+                        ? root.systemState.gpuMemoryPercent + "%" : "N/A"
+                    detail: root.systemState.gpuMemoryTotalBytes > 0
+                        ? root.systemState.formatBytes(root.systemState.gpuMemoryUsedBytes, "")
+                            + " / " + root.systemState.formatBytes(root.systemState.gpuMemoryTotalBytes, "")
+                        : "GPU MEMORY UNAVAILABLE"
+                    progress: root.systemState.gpuMemoryPercent / 100
+                }
+
+                MetricCard {
+                    width: (parent.width - parent.spacing) / 2
                     label: "TEMPERATURE"
                     value: root.systemState.temperatureCelsius >= 0
                         ? Math.round(root.systemState.temperatureCelsius) + " °C" : "N/A"

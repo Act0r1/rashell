@@ -24,3 +24,6 @@ NetworkPanel 1.0 NetworkPanel.qml
 BarEditorPanel 1.0 BarEditorPanel.qml
 TokenBar 1.0 TokenBar.qml
 TokenPanel 1.0 TokenPanel.qml
+MonitorInputState 1.0 MonitorInputState.qml
+MonitorInputBar 1.0 MonitorInputBar.qml
+MonitorInputPanel 1.0 MonitorInputPanel.qml

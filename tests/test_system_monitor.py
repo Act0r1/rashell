@@ -12,9 +12,13 @@ class SystemMonitorTest(unittest.TestCase):
         self.assertIn("property var cpuHistory", source)
         self.assertIn("property real temperatureCelsius", source)
         self.assertIn("property real uptimeSeconds", source)
+        self.assertIn("property real gpuMemoryUsedBytes", source)
+        self.assertIn("property real gpuMemoryTotalBytes", source)
         self.assertIn("readonly property alias topProcesses", source)
         self.assertIn("/proc/uptime", source)
         self.assertIn("/sys/class/hwmon/hwmon*/temp*_input", source)
+        self.assertIn("nvidia-smi", source)
+        self.assertIn("mem_info_vram_used", source)
         self.assertIn("ps -eo pid=,ppid=,pcpu=,rss=,comm=", source)
         self.assertIn("state.cpuHistory.slice(-29)", source)
 
@@ -41,6 +45,7 @@ class SystemMonitorTest(unittest.TestCase):
 
         self.assertIn('label: "CPU"', source)
         self.assertIn('label: "MEMORY"', source)
+        self.assertIn('label: "GPU MEMORY"', source)
         self.assertIn('label: "TEMPERATURE"', source)
         self.assertIn('label: "DISK"', source)
         self.assertIn("root.systemState.cpuHistory", source)

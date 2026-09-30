@@ -24,7 +24,7 @@ Item {
     required property var controlState
     required property var tokenState
     required property var notificationState
-    required property var sessionModeState
+    required property var sessionState
     required property var textCaptureState
     required property var configStore
     required property var barEditor
@@ -45,7 +45,7 @@ Item {
     readonly property bool known: [
         "rashell.workspaces", "rashell.clock", "rashell.weather", "rashell.audio", "rashell.media",
         "rashell.screenshot", "rashell.keyboard", "rashell.tray", "rashell.bluetooth",
-        "rashell.system", "rashell.control", "rashell.tokens", "rashell.notifications", "rashell.updates"
+        "rashell.system", "rashell.control", "rashell.tokens", "rashell.notifications", "rashell.updates", "rashell.monitor-input"
     ].indexOf(moduleId) !== -1
 
     Component {
@@ -59,6 +59,11 @@ Item {
     Component {
         id: clockComponent
         ClockBar {
+            minimal: root.configStore.barMinimal
+            onExitMinimalRequested: {
+                root.coordinator.close("bar-mode")
+                root.configStore.setBarMinimal(false)
+            }
             state: root.clockState
             coordinator: root.coordinator
             outputName: root.outputName
@@ -68,6 +73,7 @@ Item {
     Component {
         id: weatherComponent
         WeatherBar {
+            minimal: root.configStore.barMinimal
             state: root.weatherState
             coordinator: root.coordinator
             configStore: root.configStore
@@ -155,6 +161,11 @@ Item {
     }
 
     Component {
+        id: monitorInputComponent
+        MonitorInputBar { coordinator: root.coordinator; outputName: root.outputName }
+    }
+
+    Component {
         id: controlComponent
         ControlBar {
             coordinator: root.coordinator
@@ -163,7 +174,7 @@ Item {
             systemState: root.systemState
             controlState: root.controlState
             notificationState: root.notificationState
-            sessionModeState: root.sessionModeState
+            sessionState: root.sessionState
             textCaptureState: root.textCaptureState
             configStore: root.configStore
             barEditor: root.barEditor
@@ -190,6 +201,7 @@ Item {
             : root.moduleId === "rashell.system" ? systemComponent
             : root.moduleId === "rashell.control" ? controlComponent
             : root.moduleId === "rashell.tokens" ? tokensComponent
+            : root.moduleId === "rashell.monitor-input" ? monitorInputComponent
             : root.moduleId === "rashell.updates" ? updatesComponent : null
     }
 

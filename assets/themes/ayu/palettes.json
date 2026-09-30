@@ -1,0 +1,111 @@
+{
+  "source": "https://github.com/ayu-theme/ayu-colors",
+  "version": "9.0.0",
+  "terminalMapping": "https://github.com/ayu-theme/vscode-ayu/blob/444ef92911cb75c3933c8003e3a7c79b6b6c914f/src/template.ts",
+  "themes": {
+    "ayu-dark": {
+      "base16": {
+        "base00": "#0d1017",
+        "base01": "#141821",
+        "base02": "#161a24",
+        "base03": "#5b6876",
+        "base04": "#555e73",
+        "base05": "#bfbdb6",
+        "base06": "#bfbdb6",
+        "base07": "#bfbdb6",
+        "base08": "#f07178",
+        "base09": "#ff8f40",
+        "base0A": "#ffb454",
+        "base0B": "#aad94c",
+        "base0C": "#95e6cb",
+        "base0D": "#59c2ff",
+        "base0E": "#d2a6ff",
+        "base0F": "#e6c08a"
+      },
+      "ansi": [
+        "#1b1f29",
+        "#ea6c73",
+        "#70bf56",
+        "#f9af4f",
+        "#53bdfa",
+        "#cda1fa",
+        "#90e1c6",
+        "#c7c7c7",
+        "#686868",
+        "#f07178",
+        "#aad94c",
+        "#ffb454",
+        "#59c2ff",
+        "#d2a6ff",
+        "#95e6cb",
+        "#ffffff"
+      ],
+      "settings": {
+        "background": "#0d1017",
+        "foreground": "#bfbdb6",
+        "cursor-color": "#e6b450",
+        "cursor-text": "#0d1017",
+        "selection-background": "#193155",
+        "selection-foreground": "#bfbdb6",
+        "split-divider-color": "#e6b450",
+        "unfocused-split-fill": "#0d1017",
+        "search-background": "#4c4126",
+        "search-foreground": "#bfbdb6",
+        "search-selected-background": "#e6b450",
+        "search-selected-foreground": "#0d1017"
+      }
+    },
+    "ayu-mirage": {
+      "base16": {
+        "base00": "#1f2430",
+        "base01": "#282e3b",
+        "base02": "#1a1f29",
+        "base03": "#6e7c8e",
+        "base04": "#707a8c",
+        "base05": "#cccac2",
+        "base06": "#cccac2",
+        "base07": "#cccac2",
+        "base08": "#f28779",
+        "base09": "#ffad66",
+        "base0A": "#ffd173",
+        "base0B": "#d5ff80",
+        "base0C": "#95e6cb",
+        "base0D": "#73d0ff",
+        "base0E": "#dfbfff",
+        "base0F": "#ffdfb3"
+      },
+      "ansi": [
+        "#171b24",
+        "#ed8274",
+        "#87d96c",
+        "#facc6e",
+        "#6dcbfa",
+        "#dabafa",
+        "#90e1c6",
+        "#c7c7c7",
+        "#686868",
+        "#f28779",
+        "#d5ff80",
+        "#ffd173",
+        "#73d0ff",
+        "#dfbfff",
+        "#95e6cb",
+        "#ffffff"
+      ],
+      "settings": {
+        "background": "#1f2430",
+        "foreground": "#cccac2",
+        "cursor-color": "#ffcc66",
+        "cursor-text": "#1f2430",
+        "selection-background": "#2b4768",
+        "selection-foreground": "#cccac2",
+        "split-divider-color": "#ffcc66",
+        "unfocused-split-fill": "#1f2430",
+        "search-background": "#736950",
+        "search-foreground": "#cccac2",
+        "search-selected-background": "#ffcc66",
+        "search-selected-foreground": "#1f2430"
+      }
+    }
+  }
+}

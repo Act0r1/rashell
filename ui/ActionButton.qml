@@ -8,9 +8,11 @@ Button {
     property bool selected: false
     property bool subtleSelected: false
     property bool danger: false
+    property int alignment: Text.AlignHCenter
     property string accessibleName: text
     property string toolTipText: accessibleName
 
+    flat: false
     implicitHeight: Theme.compactControlSize
     implicitWidth: Math.max(Theme.compactControlSize, contentItem.implicitWidth + Theme.spaceLg * 2)
     hoverEnabled: true
@@ -56,17 +58,23 @@ Button {
         elide: Text.ElideRight
         maximumLineCount: 1
         clip: true
-        horizontalAlignment: Text.AlignHCenter
+        horizontalAlignment: control.alignment
         verticalAlignment: Text.AlignVCenter
     }
 
     background: Rectangle {
-        color: control.selected && !control.subtleSelected ? Theme.accent
-            : control.selected || control.down || control.hovered ? Theme.surfaceRaised : "transparent"
-        border.color: control.activeFocus ? Theme.focus
-            : control.selected ? Theme.accent
-            : control.danger ? Theme.danger : Theme.borderInteractive
-        border.width: control.activeFocus ? Theme.focusWidth : Theme.borderWidth
+        color: control.selected && !control.subtleSelected
+            ? (control.down ? Theme.accentPressed : control.hovered ? Theme.accentHover : Theme.accent)
+            : control.selected ? (control.down ? Theme.selectedPressedSurface : control.hovered ? Theme.selectedHoverSurface : Theme.selectedSurface)
+            : control.down ? Theme.pressedSurface
+            : control.hovered ? Theme.hoverSurface
+            : control.flat ? "transparent" : Theme.surface
+        border.color: control.visualFocus ? (control.selected && !control.subtleSelected ? Theme.textOnAccent : Theme.focus)
+            : control.danger ? Theme.danger
+            : control.selected || control.down ? Theme.accent
+            : control.hovered ? Theme.borderInteractive : Theme.border
+        border.width: control.visualFocus ? Theme.focusWidth
+            : !control.flat || control.hovered || control.down ? Theme.borderWidth : 0
         radius: Theme.radius
     }
 }

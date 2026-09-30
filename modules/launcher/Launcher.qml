@@ -2,10 +2,12 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import qs.core
+import qs.ui
 import "LauncherSearch.js" as LauncherSearch
 
 Scope {
@@ -188,8 +190,8 @@ Scope {
 
         Rectangle {
             id: card
-            width: Math.min(620, window.width - Theme.spaceXl * 2)
-            height: Math.min(560, window.height - Theme.spaceXl * 4)
+            width: Math.min(680, window.width - Theme.spaceXl * 2)
+            height: Math.min(600, window.height - Theme.spaceXl * 4)
             anchors.centerIn: parent
             color: Theme.surface
             border.color: Theme.border
@@ -201,91 +203,19 @@ Scope {
                 onClicked: event => event.accepted = true
             }
 
-            Column {
+            ColumnLayout {
                 anchors.fill: parent
                 anchors.margins: Theme.spaceXl
                 spacing: Theme.spaceLg
 
-                Item {
-                    width: parent.width
-                    height: Theme.controlHeight
-
-                    Text {
-                        anchors.left: parent.left
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: "Launcher"
-                        color: Theme.text
-                        font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontTitle + 2
-                        font.weight: Font.DemiBold
-                    }
-
-                    Text {
-                        anchors.right: parent.right
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: "ctrl+tab switch"
-                        color: Theme.textDisabled
-                        font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontSmall
-                    }
-                }
-
-                Row {
-                    id: tabRow
-                    width: parent.width
-                    height: Theme.compactControlSize
-                    spacing: Theme.spaceSm
-
-                    Repeater {
-                        model: [
-                            { mode: "apps", label: "Applications" },
-                            { mode: "clipboard", label: "Clipboard" },
-                            { mode: "actions", label: "Actions" },
-                            { mode: "projects", label: "Projects" }
-                        ]
-
-                        Button {
-                            id: tabButton
-                            required property var modelData
-                            width: (tabRow.width - tabRow.spacing * 3) / 4
-                            height: tabRow.height
-                            text: modelData.label
-                            onClicked: root.setMode(modelData.mode)
-
-                            background: Rectangle {
-                                color: root.mode === tabButton.modelData.mode
-                                    ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.16) : "transparent"
-                                border.color: root.mode === tabButton.modelData.mode ? Theme.accent : Theme.border
-                                border.width: Theme.borderWidth
-                                radius: Theme.radius
-                            }
-
-                            contentItem: Text {
-                                text: tabButton.text
-                                color: root.mode === tabButton.modelData.mode ? Theme.accent : Theme.textMuted
-                                elide: Text.ElideRight
-                                font.family: Theme.fontFamily
-                                font.pixelSize: Theme.fontSmall
-                                fontSizeMode: Text.Fit
-                                minimumPixelSize: 9
-                                font.weight: Font.Medium
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
-                            }
-                        }
-                    }
-                }
-
-                Row {
-                    id: searchRow
-                    width: parent.width
-                    height: 44
-                    spacing: Theme.spaceSm
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Theme.spaceLg
 
                     TextField {
                         id: search
-                        width: parent.width - (sliceStepper.visible ? sliceStepper.width + parent.spacing : 0)
-                        height: parent.height
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: Theme.rowHeight + Theme.spaceXl
                         placeholderText: root.mode === "apps" ? "Search applications…"
                             : root.mode === "clipboard" ? "Search clipboard…"
                             : root.mode === "actions" ? "Search actions…"
@@ -294,32 +224,46 @@ Scope {
                         color: Theme.text
                         selectionColor: Theme.accent
                         selectedTextColor: Theme.textOnAccent
-                        leftPadding: Theme.spaceLg
-                        rightPadding: 44
+                        leftPadding: Theme.controlHeight + Theme.spaceMd
+                        rightPadding: Theme.spaceMd
                         font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontBody
+                        font.pixelSize: Theme.fontTitle + Theme.spaceXs
                         focus: root.opened
+                        Accessible.name: placeholderText
 
                         onTextChanged: Qt.callLater(function() {
                             results.currentIndex = results.count > 0 ? 0 : -1
                         })
 
-                        background: Rectangle {
-                            color: Theme.surfaceRaised
-                            border.color: search.activeFocus ? Theme.accent : Theme.border
-                            border.width: search.activeFocus ? Theme.focusWidth : Theme.borderWidth
-                            radius: Theme.radius
-                        }
+                        background: Item {}
 
-                        Text {
-                            anchors.right: parent.right
-                            anchors.rightMargin: Theme.spaceLg
+                        Item {
+                            anchors.left: parent.left
+                            anchors.leftMargin: Theme.spaceMd
                             anchors.verticalCenter: parent.verticalCenter
-                            visible: root.mode !== "clipboard"
-                            text: "/"
-                            color: Theme.textDisabled
-                            font.family: Theme.fontFamily
-                            font.pixelSize: Theme.fontSmall
+                            width: 20
+                            height: 20
+
+                            Rectangle {
+                                width: 13
+                                height: 13
+                                radius: width / 2
+                                color: "transparent"
+                                border.color: search.activeFocus ? Theme.accent : Theme.textMuted
+                                border.width: 1.5
+                                antialiasing: true
+                            }
+                            Rectangle {
+                                x: 12
+                                y: 13
+                                width: 8
+                                height: 1.5
+                                radius: 1
+                                rotation: 45
+                                transformOrigin: Item.Left
+                                color: search.activeFocus ? Theme.accent : Theme.textMuted
+                                antialiasing: true
+                            }
                         }
 
                         Keys.onPressed: event => {
@@ -346,77 +290,49 @@ Scope {
                         }
                     }
 
-                    Row {
-                        id: sliceStepper
-                        visible: root.mode === "clipboard"
-                        height: parent.height
-                        spacing: Theme.spaceXs
+                    CloseButton {
+                        accessibleName: "Close launcher"
+                        onClicked: root.close()
+                    }
+                }
 
+                RowLayout {
+                    id: tabRow
+                    Layout.fillWidth: true
+                    spacing: Theme.spaceSm
+
+                    Repeater {
+                        model: [
+                            { mode: "apps", label: "Applications" },
+                            { mode: "clipboard", label: "Clipboard" },
+                            { mode: "actions", label: "Actions" },
+                            { mode: "projects", label: "Projects" }
+                        ]
                         Button {
-                            width: Theme.compactControlSize
-                            height: parent.height
-                            text: "−"
-                            enabled: root.clipboardHistoryLimit > 10
-                            onClicked: {
-                                root.adjustClipboardHistoryLimit(-10)
-                                search.forceActiveFocus()
-                            }
+                            id: tabButton
+                            required property var modelData
+                            Layout.fillWidth: true
+                            Layout.preferredWidth: 1
+                            Layout.preferredHeight: Theme.controlHeight
+                            text: modelData.label
+                            hoverEnabled: true
+                            onClicked: root.setMode(modelData.mode)
 
                             background: Rectangle {
-                                color: parent.hovered
-                                    ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.16) : Theme.surfaceRaised
-                                border.color: parent.enabled && parent.hovered ? Theme.accent : Theme.border
-                                border.width: Theme.borderWidth
+                                color: root.mode === tabButton.modelData.mode
+                                    ? Theme.surfaceRaised
+                                    : tabButton.down || tabButton.hovered ? Theme.hoverSurface : "transparent"
+                                border.color: tabButton.visualFocus ? Theme.focus : "transparent"
+                                border.width: tabButton.visualFocus ? Theme.focusWidth : 0
                                 radius: Theme.radius
-                                opacity: parent.enabled ? 1 : 0.45
                             }
-
                             contentItem: Text {
-                                text: parent.text
-                                color: Theme.text
+                                text: tabButton.text
+                                color: root.mode === tabButton.modelData.mode ? Theme.text : Theme.textMuted
+                                elide: Text.ElideRight
                                 font.family: Theme.fontFamily
-                                font.pixelSize: Theme.fontTitle
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
-                            }
-                        }
-
-                        Text {
-                            width: 28
-                            height: parent.height
-                            text: String(root.clipboardHistoryLimit)
-                            color: Theme.text
-                            font.family: Theme.fontFamily
-                            font.pixelSize: Theme.fontBody
-                            font.weight: Font.DemiBold
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
-
-                        Button {
-                            width: Theme.compactControlSize
-                            height: parent.height
-                            text: "+"
-                            enabled: root.clipboardHistoryLimit < 750
-                            onClicked: {
-                                root.adjustClipboardHistoryLimit(10)
-                                search.forceActiveFocus()
-                            }
-
-                            background: Rectangle {
-                                color: parent.hovered
-                                    ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.16) : Theme.surfaceRaised
-                                border.color: parent.enabled && parent.hovered ? Theme.accent : Theme.border
-                                border.width: Theme.borderWidth
-                                radius: Theme.radius
-                                opacity: parent.enabled ? 1 : 0.45
-                            }
-
-                            contentItem: Text {
-                                text: parent.text
-                                color: Theme.text
-                                font.family: Theme.fontFamily
-                                font.pixelSize: Theme.fontTitle
+                                font.pixelSize: Theme.fontSmall
+                                font.weight: root.mode === tabButton.modelData.mode ? Font.DemiBold : Font.Normal
                                 horizontalAlignment: Text.AlignHCenter
                                 verticalAlignment: Text.AlignVCenter
                             }
@@ -424,42 +340,21 @@ Scope {
                     }
                 }
 
-                Item {
-                    width: parent.width
-                    height: 18
-
-                    Text {
-                        anchors.left: parent.left
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: results.count + (results.count === 1 ? " result" : " results")
-                        color: Theme.textMuted
-                        font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontSmall
-                    }
-
-                    Text {
-                        anchors.right: parent.right
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: parent.width * 0.72
-                        text: root.mode === "projects" && root.projectError !== ""
-                            ? root.projectError : "↑↓ navigate   enter open   esc close"
-                        color: root.mode === "projects" && root.projectError !== ""
-                            ? Theme.danger : Theme.textDisabled
-                        elide: Text.ElideRight
-                        horizontalAlignment: Text.AlignRight
-                        font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontSmall
-                    }
+                Rectangle {
+                    Layout.fillWidth: true
+                    implicitHeight: Theme.borderWidth
+                    color: Theme.border
                 }
 
                 Item {
-                    width: parent.width
-                    height: parent.height - Theme.controlHeight - tabRow.height - searchRow.height - 18 - Theme.spaceLg * 4
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    Layout.minimumHeight: 0
 
                     ListView {
                         id: results
                         anchors.fill: parent
-                        spacing: Theme.spaceSm
+                        spacing: Theme.spaceXs
                         clip: true
                         currentIndex: count > 0 ? 0 : -1
                         model: {
@@ -510,8 +405,9 @@ Scope {
                             id: resultDelegate
                             required property var modelData
                             required property int index
-                            width: ListView.view.width
-                            height: 48
+                            width: ListView.view.width - Theme.spaceMd
+                            height: Theme.rowHeight + Theme.spaceXl
+                            padding: 0
                             hoverEnabled: true
                             highlighted: ListView.isCurrentItem
                             enabled: modelData.kind !== "action" || modelData.enabled
@@ -532,8 +428,8 @@ Scope {
 
                                 Image {
                                     id: resultIcon
-                                    width: 32
-                                    height: 32
+                                    width: Theme.controlHeight
+                                    height: Theme.controlHeight
                                     smooth: true
                                     mipmap: true
                                     anchors.left: parent.left
@@ -550,7 +446,7 @@ Scope {
                                     anchors.verticalCenter: parent.verticalCenter
                                     visible: resultDelegate.modelData.kind === "action" && !resultDelegate.modelData.enabled
                                     text: "Unavailable"
-                                    color: Theme.textDisabled
+                                    color: Theme.textMuted
                                     font.family: Theme.fontFamily
                                     font.pixelSize: Theme.fontSmall
                                 }
@@ -597,9 +493,9 @@ Scope {
 
                                         background: Rectangle {
                                             color: Theme.surfaceRaised
-                                            border.color: Theme.accentMuted
+                                            border.color: Theme.border
                                             border.width: Theme.borderWidth
-                                            radius: Math.max(6, Theme.radius)
+                                            radius: Theme.radius
                                         }
                                     }
 
@@ -622,7 +518,7 @@ Scope {
                                                 ? Theme.accent : Theme.textMuted
                                             font.family: Theme.fontFamily
                                             font.pixelSize: Theme.fontTitle
-                                            font.weight: Font.DemiBold
+                                            font.weight: Font.Medium
                                             horizontalAlignment: Text.AlignHCenter
                                             verticalAlignment: Text.AlignVCenter
                                         }
@@ -630,11 +526,10 @@ Scope {
 
                                     background: Rectangle {
                                         color: deleteAppButton.down || deleteAppButton.hovered
-                                            ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.16)
+                                            ? Theme.selectedSurface
                                             : Theme.surfaceRaised
-                                        border.color: deleteAppButton.activeFocus || deleteAppButton.hovered
-                                            ? Theme.accent : Theme.borderInteractive
-                                        border.width: deleteAppButton.activeFocus ? Theme.focusWidth : Theme.borderWidth
+                                        border.color: deleteAppButton.activeFocus ? Theme.focus : "transparent"
+                                        border.width: deleteAppButton.activeFocus ? Theme.focusWidth : 0
                                         radius: Theme.radius
                                     }
                                 }
@@ -646,22 +541,24 @@ Scope {
                                         : deleteAppButton.visible ? deleteAppButton.left : parent.right
                                     anchors.rightMargin: Theme.spaceLg
                                     anchors.verticalCenter: parent.verticalCenter
-                                    spacing: 1
+                                    spacing: Theme.spaceSm
 
                                     Text {
                                         width: parent.width
                                         text: resultDelegate.modelData.name
+                                        textFormat: Text.PlainText
                                         color: Theme.text
                                         elide: Text.ElideRight
                                         font.family: Theme.fontFamily
                                         font.pixelSize: Theme.fontBody
-                                        font.weight: Font.DemiBold
+                                        font.weight: Font.Medium
                                     }
 
                                     Text {
                                         width: parent.width
                                         visible: text.length > 0
                                         text: resultDelegate.modelData.comment
+                                        textFormat: Text.PlainText
                                         color: Theme.textMuted
                                         elide: Text.ElideRight
                                         font.family: Theme.fontFamily
@@ -672,19 +569,13 @@ Scope {
 
                             background: Rectangle {
                                 color: resultDelegate.highlighted
-                                    ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.13)
+                                    ? Theme.hoverSurface
                                     : resultDelegate.hovered ? Theme.surfaceRaised : "transparent"
                                 radius: Theme.radius
+                                border.color: resultDelegate.activeFocus ? Theme.focus : "transparent"
+                                border.width: resultDelegate.activeFocus ? Theme.focusWidth : 0
 
-                                Rectangle {
-                                    width: Theme.focusWidth
-                                    height: parent.height - Theme.spaceLg * 2
-                                    anchors.left: parent.left
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    visible: resultDelegate.highlighted
-                                    color: Theme.accent
-                                    radius: width
-                                }
+
                             }
 
                             onHoveredChanged: if (hovered) results.currentIndex = index
@@ -692,6 +583,8 @@ Scope {
                         }
 
                         ScrollBar.vertical: ScrollBar {
+                            visible: results.contentHeight > results.height
+                            active: true
                             policy: ScrollBar.AsNeeded
                             width: Theme.spaceMd
                             contentItem: Rectangle {
@@ -703,29 +596,199 @@ Scope {
                         }
                     }
 
-                    Text {
-                        width: parent.width - Theme.spaceXl * 2
+                    Column {
+                        width: Math.max(0, parent.width - Theme.spaceXl * 4)
                         anchors.centerIn: parent
+                        spacing: Theme.spaceMd
                         visible: results.count === 0
-                        text: {
-                            if (root.mode === "clipboard") {
-                                return clipboardQuery.running ? "Loading clipboard…" : "Clipboard is empty"
+
+                        Text {
+                            width: parent.width
+                            text: {
+                                if (root.mode === "clipboard") {
+                                    if (clipboardQuery.running) return "Loading clipboard…"
+                                    return search.text.trim() === "" ? "Your clipboard is empty" : "No clipboard matches"
+                                }
+                                if (root.mode === "apps") return "No applications found"
+                                if (root.mode === "actions") return search.text.trim() === "" ? "No actions available" : "No actions found"
+                                if (root.projectError !== "") return "Projects unavailable"
+                                return search.text.trim() === "" ? "No projects configured" : "No projects found"
                             }
-                            if (root.mode === "apps") return "No applications found"
-                            if (root.mode === "actions") {
-                                return search.text.trim() === "" ? "No actions configured" : "No actions found"
-                            }
-                            if (root.projectError !== "") return root.projectError
-                            if (search.text.trim() !== "") return "No projects found"
-                            return root.projectConfigPath !== ""
-                                ? "No projects configured\nAdd projects to " + root.projectConfigPath
-                                : "No projects configured"
+                            color: Theme.text
+                            wrapMode: Text.WordWrap
+                            horizontalAlignment: Text.AlignHCenter
+                            font.family: Theme.fontFamily
+                            font.pixelSize: Theme.fontTitle
+                            font.weight: Font.Medium
                         }
-                        color: root.mode === "projects" && root.projectError !== "" ? Theme.danger : Theme.textMuted
-                        wrapMode: Text.Wrap
-                        horizontalAlignment: Text.AlignHCenter
+
+                        Text {
+                            width: parent.width
+                            text: {
+                                if (root.mode === "projects" && root.projectError !== "") return root.projectError
+                                if (root.mode === "clipboard" && clipboardQuery.running) return "Fetching your recent copies."
+                                if (search.text.trim() !== "") return "Try another name or keyword."
+                                if (root.mode === "clipboard") return "Copied text will appear here, ready to use again."
+                                if (root.mode === "projects" && root.projectConfigPath !== "") return "Add projects to " + root.projectConfigPath
+                                if (root.mode === "projects") return "Configured projects will appear here."
+                                if (root.mode === "actions") return "Configured desktop actions will appear here."
+                                return "Installed desktop applications will appear here."
+                            }
+                            textFormat: Text.PlainText
+                            color: root.mode === "projects" && root.projectError !== "" ? Theme.danger : Theme.textMuted
+                            wrapMode: Text.Wrap
+                            horizontalAlignment: Text.AlignHCenter
+                            font.family: Theme.fontFamily
+                            font.pixelSize: Theme.fontSmall
+                        }
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    visible: root.mode === "clipboard"
+                    spacing: Theme.spaceMd
+                    Text {
+                        text: "History limit"
+                        color: Theme.textMuted
                         font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontBody
+                        font.pixelSize: Theme.fontSmall
+                    }
+                    Row {
+                        id: sliceStepper
+
+                        height: Theme.compactControlSize
+                        spacing: Theme.spaceXs
+
+                        Button {
+                            width: Theme.compactControlSize
+                            height: Theme.compactControlSize
+                            text: "−"
+                            hoverEnabled: true
+                            Accessible.name: "Show fewer clipboard items"
+                            enabled: root.clipboardHistoryLimit > 10
+                            onClicked: {
+                                root.adjustClipboardHistoryLimit(-10)
+                                search.forceActiveFocus()
+                            }
+
+                            background: Rectangle {
+                                color: parent.hovered
+                                    ? Theme.selectedSurface : Theme.surfaceRaised
+                                border.color: parent.activeFocus ? Theme.focus : "transparent"
+                                border.width: parent.activeFocus ? Theme.focusWidth : 0
+                                radius: Theme.radius
+                                opacity: parent.enabled ? 1 : 0.45
+                            }
+
+                            contentItem: Text {
+                                text: parent.text
+                                color: Theme.text
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontTitle
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                            }
+                        }
+
+                        Text {
+                            width: 28
+                            height: Theme.compactControlSize
+                            text: String(root.clipboardHistoryLimit)
+                            color: Theme.text
+                            font.family: Theme.fontFamily
+                            font.pixelSize: Theme.fontBody
+                            font.weight: Font.DemiBold
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        Button {
+                            width: Theme.compactControlSize
+                            height: Theme.compactControlSize
+                            text: "+"
+                            hoverEnabled: true
+                            Accessible.name: "Show more clipboard items"
+                            enabled: root.clipboardHistoryLimit < 750
+                            onClicked: {
+                                root.adjustClipboardHistoryLimit(10)
+                                search.forceActiveFocus()
+                            }
+
+                            background: Rectangle {
+                                color: parent.hovered
+                                    ? Theme.selectedSurface : Theme.surfaceRaised
+                                border.color: parent.activeFocus ? Theme.focus : "transparent"
+                                border.width: parent.activeFocus ? Theme.focusWidth : 0
+                                radius: Theme.radius
+                                opacity: parent.enabled ? 1 : 0.45
+                            }
+
+                            contentItem: Text {
+                                text: parent.text
+                                color: Theme.text
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontTitle
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                            }
+                        }
+                    }
+                    Item { Layout.fillWidth: true }
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    visible: root.mode === "projects" && root.projectError !== "" && results.count > 0
+                    text: root.projectError
+                    textFormat: Text.PlainText
+                    color: Theme.danger
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSmall
+                    wrapMode: Text.WordWrap
+                }
+
+                Rectangle {
+                    Layout.fillWidth: true
+                    implicitHeight: Theme.borderWidth
+                    color: Theme.border
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Theme.spaceLg
+
+                    Text {
+                        text: results.count + (results.count === 1 ? " result" : " results")
+                        color: Theme.textMuted
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSmall
+                    }
+                    Item { Layout.fillWidth: true }
+                    Text {
+                        text: "↑↓ Select"
+                        color: Theme.textMuted
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSmall
+                    }
+                    Text {
+                        text: root.mode === "clipboard" ? "Enter Copy" : root.mode === "actions" ? "Enter Run" : "Enter Open"
+                        color: results.currentIndex >= 0 && results.model[results.currentIndex] && (root.mode !== "actions" || results.model[results.currentIndex].enabled)
+                            ? Theme.text : Theme.textDisabled
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSmall
+                    }
+                    Text {
+                        text: "Ctrl+Tab Switch"
+                        color: Theme.textMuted
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSmall
+                    }
+                    Text {
+                        text: "Esc Close"
+                        color: Theme.textMuted
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSmall
                     }
                 }
             }

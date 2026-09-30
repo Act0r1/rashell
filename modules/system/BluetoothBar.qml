@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import Quickshell
 import qs.core
+import qs.ui
 
 Item {
     id: root
@@ -10,36 +11,47 @@ Item {
     required property string outputName
 
     readonly property int connectedCount: BluetoothState.connectedDevices.length
-    readonly property var firstConnectedDevice: connectedCount > 0 ? BluetoothState.connectedDevices[0] : null
-    readonly property string deviceText: firstConnectedDevice
-        ? BluetoothState.deviceLabel(firstConnectedDevice) + (connectedCount > 1 ? " +" + (connectedCount - 1) : "")
-        : ""
+    readonly property string deviceText: BluetoothState.connectedDevices.map(function(device) {
+        return BluetoothState.deviceLabel(device)
+    }).join(", ")
 
-    implicitWidth: Math.min(190, label.implicitWidth + 16)
+    implicitWidth: Math.max(Theme.compactControlSize, label.implicitWidth + 16)
     implicitHeight: Theme.controlHeight
 
     Button {
         id: button
         anchors.fill: parent
         hoverEnabled: true
+        padding: 0
         Accessible.name: !BluetoothState.available ? "Bluetooth unavailable"
             : !BluetoothState.enabled ? "Bluetooth disabled"
             : root.connectedCount > 0 ? "Bluetooth connected to " + root.deviceText
             : "Bluetooth enabled"
         Accessible.role: Accessible.Button
 
-        contentItem: Text {
-            id: label
-            text: !BluetoothState.enabled ? "󰂲"
-                : root.connectedCount > 0 ? "󰂱  " + root.deviceText : "󰂯"
-            color: !BluetoothState.available ? Theme.textDisabled
-                : BluetoothState.enabled ? Theme.accent : Theme.textMuted
-            font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontTitle
-            font.bold: root.connectedCount > 0
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
-            elide: Text.ElideRight
+        contentItem: Item {
+            Row {
+                id: label
+                anchors.centerIn: parent
+                spacing: 6
+
+                ShellIcon {
+                    anchors.verticalCenter: parent.verticalCenter
+                    name: "bluetooth"
+                    tint: !BluetoothState.available ? Theme.textDisabled
+                        : root.connectedCount > 0 ? Theme.text : Theme.textMuted
+                }
+
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: root.connectedCount > 1
+                    text: String(root.connectedCount)
+                    color: Theme.text
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontBody
+                    elide: Text.ElideRight
+                }
+            }
         }
 
         background: Rectangle {
@@ -47,8 +59,8 @@ Item {
                 && root.coordinator.activePanelId === "bluetooth"
                 && root.coordinator.anchorItem === root
             color: active || button.hovered || button.down ? Theme.surfaceRaised : "transparent"
-            border.color: active ? Theme.accent : "transparent"
-            border.width: Theme.borderWidth
+            border.color: button.activeFocus ? Theme.focus : active ? Theme.accent : "transparent"
+            border.width: button.activeFocus ? Theme.focusWidth : Theme.borderWidth
             radius: Theme.radius
         }
 

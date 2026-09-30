@@ -48,9 +48,26 @@ ShellRoot {
         launcher.close()
         wallpaperPicker.close()
         barEditor.close()
+        audioOutputPicker.close()
         panelCoordinator.close("appearance")
         appearancePicker.open(target, themeId || "")
         return appearancePicker.opened
+    }
+
+    function toggleAudioOutputPicker() {
+        if (audioOutputPicker.opened) {
+            audioOutputPicker.close()
+            return true
+        }
+        const outputName = panelCoordinator.preferredOutputName()
+        const screen = Quickshell.screens.find(function(item) { return item.name === outputName }) || null
+        launcher.close()
+        wallpaperPicker.close()
+        appearancePicker.close()
+        barEditor.close()
+        panelCoordinator.close("audio-output-picker")
+        audioOutputPicker.open(screen)
+        return audioOutputPicker.opened
     }
 
     function toggleTaskPanel(panelId) {
@@ -60,7 +77,7 @@ ShellRoot {
             notifications: "notifications/NotificationPanel.qml", calendar: "clock/CalendarPanel.qml",
             weather: "weather/WeatherPanel.qml", media: "media/MediaPanel.qml",
             screenshot: "system/ScreenshotPanel.qml", system: "system/SystemPanel.qml",
-            updates: "system/UpdatesPanel.qml", modes: "session/ModePanel.qml",
+            updates: "system/UpdatesPanel.qml", dnd: "notifications/DoNotDisturbPanel.qml",
             text: "capture/TextCapturePanel.qml", download: "download/MediaDownloadPanel.qml"
         }
         if (!sources[panelId]) return false
@@ -79,15 +96,14 @@ ShellRoot {
         else if (panelId === "weather") {
             properties.weatherState = weatherState
             properties.configStore = configStore
-        } else if (panelId === "notifications") properties.notificationState = notificationState
+        } else if (panelId === "notifications" || panelId === "dnd") properties.notificationState = notificationState
         else if (panelId === "system" || panelId === "updates") properties.systemState = systemState
         else if (panelId === "screenshot") {
             properties.captureState = screenshotState
             properties.textCaptureState = textCaptureState
             properties.configStore = configStore
             properties.outputName = outputName
-        } else if (panelId === "modes") properties.modeState = sessionModeState
-        else if (panelId === "text") properties.captureState = textCaptureState
+        } else if (panelId === "text") properties.captureState = textCaptureState
         else if (panelId === "download") properties.downloadState = mediaDownloadState
         else if (panelId === "control") {
             properties = {
@@ -96,7 +112,7 @@ ShellRoot {
                 controlState: controlState, notificationState: notificationState,
                 configStore: configStore, barEditor: barEditor, lockScreen: lockScreen,
                 wallpaperPicker: wallpaperPicker, outputName: outputName,
-                sessionModeState: sessionModeState, textCaptureState: textCaptureState
+                sessionState: sessionState, textCaptureState: textCaptureState
             }
         }
         panelCoordinator.toggle(panelId, anchor.item, anchor.alignment,
@@ -109,13 +125,20 @@ ShellRoot {
             const panelId = actionId.slice(6)
             return toggleTaskPanel(panelId === "capture" ? "screenshot" : panelId)
         }
-        if (actionId.indexOf("mode.") === 0) return sessionModeState.setMode(actionId.slice(5))
         if (actionId.indexOf("theme.") === 0) return shell.openAppearance(null, actionId.slice(6))
         if (actionId === "appearance") return shell.openAppearance(null, "")
         if (actionId === "audio.output-mute") return audioState.toggleOutputMute()
         if (actionId === "audio.input-mute") return audioState.toggleInputMute()
         if (actionId === "notifications.dnd") {
-            notificationState.doNotDisturb = !notificationState.doNotDisturb
+            notificationState.setDoNotDisturb(!notificationState.doNotDisturb)
+            return true
+        }
+        if (actionId === "notifications.pause") {
+            notificationState.pauseFor(25)
+            return true
+        }
+        if (actionId === "session.keep-awake") {
+            sessionState.keepAwake = !sessionState.keepAwake
             return true
         }
         if (actionId === "projects") {
@@ -146,6 +169,10 @@ ShellRoot {
             barEditor.open(screen)
             return true
         }
+        if (actionId === "bar-minimal") {
+            panelCoordinator.close("bar-mode")
+            return configStore.setBarMinimal(!configStore.barMinimal)
+        }
         if (actionId === "lock") {
             panelCoordinator.close("lock")
             textCaptureState.cancel()
@@ -172,6 +199,10 @@ ShellRoot {
         configStore: configStore
     }
 
+    BrowserTheme {
+        configStore: configStore
+    }
+
     Wallpaper {
         sourcePath: configStore.wallpaper
     }
@@ -185,6 +216,12 @@ ShellRoot {
         target: Theme
         property: "activeName"
         value: configStore.theme
+    }
+
+    Binding {
+        target: Theme
+        property: "selectedFontFamily"
+        value: configStore.fontFamily
     }
 
     WorkspaceState {
@@ -246,9 +283,8 @@ ShellRoot {
         onLaunched: function(name) { shell.reportSuccess("Opened " + name) }
     }
 
-    SessionModeState {
-        id: sessionModeState
-        notificationState: notificationState
+    SessionState {
+        id: sessionState
     }
 
     TextCaptureState {
@@ -269,6 +305,7 @@ ShellRoot {
             if (lockScreen.locked) {
                 textCaptureState.cancel()
                 appearancePicker.close()
+                audioOutputPicker.close()
             }
         }
     }
@@ -281,7 +318,7 @@ ShellRoot {
             outputUsable: audioState.outputUsable,
             inputUsable: audioState.inputUsable,
             doNotDisturb: notificationState.doNotDisturb,
-            modeActive: sessionModeState.active,
+            keepAwake: sessionState.keepAwake,
             captureBusy: textCaptureState.busy,
             recording: textCaptureState.recording,
             ocrAvailable: textCaptureState.ocrAvailable,
@@ -302,6 +339,13 @@ ShellRoot {
         id: panelCoordinator
         onAppearanceRequested: function(screen) { shell.openAppearance(screen, "") }
         onMediaDownloadRequested: shell.toggleTaskPanel("download")
+        onAudioOutputPickerRequested: shell.toggleAudioOutputPicker()
+        onOpenedChanged: if (opened) audioOutputPicker.close()
+    }
+
+    OutputPicker {
+        id: audioOutputPicker
+        audioState: audioState
     }
 
     Connections {
@@ -323,7 +367,6 @@ ShellRoot {
 
     WorkflowStatus {
         coordinator: panelCoordinator
-        modeState: sessionModeState
         captureState: textCaptureState
         locked: lockScreen.locked
     }
@@ -357,7 +400,7 @@ ShellRoot {
         controlState: controlState
         tokenState: tokenState
         notificationState: notificationState
-        sessionModeState: sessionModeState
+        sessionState: sessionState
         textCaptureState: textCaptureState
         barEditor: barEditor
         lockScreen: lockScreen
@@ -369,6 +412,11 @@ ShellRoot {
 
     IpcHandler {
         target: "rashell"
+
+        function barMinimalToggle(): string {
+            panelCoordinator.close("bar-mode")
+            return configStore.setBarMinimal(!configStore.barMinimal) ? "ok" : "config rejected"
+        }
 
         function actionsToggle(): string {
             if (launcher.opened && launcher.mode === "actions") launcher.close()
@@ -382,8 +430,13 @@ ShellRoot {
             return "ok"
         }
 
-        function sessionModeSet(mode: string): string {
-            return sessionModeState.setMode(mode) ? "ok" : "unknown mode"
+        function keepAwakeSet(enabled: bool): string {
+            sessionState.keepAwake = enabled
+            return "ok"
+        }
+
+        function doNotDisturbSet(enabled: bool, minutes: int): string {
+            return notificationState.setDoNotDisturb(enabled, minutes) ? "ok" : "invalid duration"
         }
 
         function textCaptureToggle(): string {
@@ -444,7 +497,7 @@ ShellRoot {
                     systemState: systemState,
                     controlState: controlState,
                     notificationState: notificationState,
-                    sessionModeState: sessionModeState,
+                    sessionState: sessionState,
                     textCaptureState: textCaptureState,
                     configStore: configStore,
                     barEditor: barEditor,
@@ -454,6 +507,13 @@ ShellRoot {
                 }
             )
             return opened ? "ok" : "control anchor unavailable"
+        }
+
+        function monitorInputToggle(): string {
+            const anchor = panelCoordinator.registeredAnchor("monitor-input", panelCoordinator.preferredOutputName())
+            if (!anchor) return "Monitor input button is unavailable"
+            anchor.item.togglePanel()
+            return "ok"
         }
 
         function bluetoothPanelToggle(): string {
@@ -491,6 +551,11 @@ ShellRoot {
             )
             if (!opened) shell.reportIpcFailure("AUDIO ANCHOR UNAVAILABLE")
             return opened ? "ok" : "audio anchor unavailable"
+        }
+
+        function audioAnimationToggle(): string {
+            if (!shell.moduleEnabled("rashell.audio")) return "audio disabled"
+            return shell.toggleAudioOutputPicker() ? "ok" : "audio output unavailable"
         }
 
         function weatherPanelToggle(): string {

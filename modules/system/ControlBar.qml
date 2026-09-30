@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import Quickshell
 import qs.core
+import qs.ui
 
 Item {
     id: root
@@ -11,7 +12,7 @@ Item {
     required property var systemState
     required property var controlState
     required property var notificationState
-    required property var sessionModeState
+    required property var sessionState
     required property var textCaptureState
     required property var configStore
     required property var barEditor
@@ -27,13 +28,12 @@ Item {
         hoverEnabled: true
         Accessible.name: "Control center"
 
-        contentItem: Text {
-            text: "󰒓"
-            color: Theme.accent
-            font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontTitle
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
+        contentItem: Item {
+            ShellIcon {
+                anchors.centerIn: parent
+                name: "sliders-horizontal"
+                tint: Theme.text
+            }
         }
 
         background: Rectangle {
@@ -41,8 +41,8 @@ Item {
                 && root.coordinator.activePanelId === "control"
                 && root.coordinator.anchorItem === root
             color: active || button.hovered || button.down ? Theme.surfaceRaised : "transparent"
-            border.color: active ? Theme.accent : "transparent"
-            border.width: 1
+            border.color: button.visualFocus ? Theme.focus : active ? Theme.accent : "transparent"
+            border.width: button.visualFocus ? Theme.focusWidth : Theme.borderWidth
             radius: Theme.radius
         }
 
@@ -58,7 +58,7 @@ Item {
                 systemState: root.systemState,
                 controlState: root.controlState,
                 notificationState: root.notificationState,
-                sessionModeState: root.sessionModeState,
+                sessionState: root.sessionState,
                 textCaptureState: root.textCaptureState,
                 configStore: root.configStore,
                 barEditor: root.barEditor,

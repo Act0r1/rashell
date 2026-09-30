@@ -4,3 +4,5 @@ NotificationBar 1.0 NotificationBar.qml
 NotificationPanel 1.0 NotificationPanel.qml
 NotificationPopup 1.0 NotificationPopup.qml
 NotificationActions 1.0 NotificationActions.qml
+DoNotDisturbControls 1.0 DoNotDisturbControls.qml
+DoNotDisturbPanel 1.0 DoNotDisturbPanel.qml

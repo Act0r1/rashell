@@ -11,18 +11,9 @@ Scope {
     property var trayItem: null
     property var anchorItem: null
     readonly property bool inSubmenu: entryStack.count > 0
-    readonly property color accentTintedSurface: Qt.tint(
-        Theme.surface,
-        Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.07)
-    )
-    readonly property color accentTintedHover: Qt.tint(
-        Theme.surfaceRaised,
-        Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.12)
-    )
-    readonly property color accentTintedBorder: Qt.tint(
-        Theme.borderInteractive,
-        Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.35)
-    )
+    readonly property color accentTintedSurface: Theme.selectedSurface
+    readonly property color accentTintedHover: Theme.selectedHoverSurface
+    readonly property color accentTintedBorder: Theme.borderInteractive
 
     function open(item, anchorItem) {
         if (!item || !item.hasMenu) return

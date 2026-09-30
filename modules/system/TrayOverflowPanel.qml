@@ -10,7 +10,8 @@ Rectangle {
     required property var coordinator
     property string hoveredLabel: ""
 
-    implicitWidth: 228
+    implicitWidth: Math.max(title.implicitWidth, appGrid.implicitWidth, trayBar.overflowCount === 0 ? 156 : 0)
+        + Theme.panelPadding * 2
     implicitHeight: content.implicitHeight + Theme.panelPadding * 2
     color: Theme.surface
     border.color: hiddenDrop.containsDrag ? Theme.accent : Theme.borderInteractive
@@ -42,6 +43,7 @@ Rectangle {
         spacing: Theme.spaceSm
 
         Text {
+            id: title
             text: "Hidden apps"
             color: Theme.text
             font.family: Theme.fontFamily
@@ -50,9 +52,9 @@ Rectangle {
         }
 
         Grid {
-            width: parent.width
-            columns: 5
-            spacing: 4
+            id: appGrid
+            columns: Math.min(5, Math.max(1, root.trayBar.overflowCount))
+            spacing: Theme.spaceSm
 
             Repeater {
                 model: root.trayBar.overflowItems
@@ -88,14 +90,13 @@ Rectangle {
 
         Text {
             width: parent.width
-            text: root.hoveredLabel || "Drag here to hide · drag to bar to pin"
+            visible: root.trayBar.overflowCount > 0
+            text: root.hoveredLabel || "Drag to bar to pin"
             color: root.hoveredLabel ? Theme.text : Theme.textMuted
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSmall
-            wrapMode: Text.WordWrap
-            maximumLineCount: 2
+            maximumLineCount: 1
             elide: Text.ElideRight
-            height: Theme.fontSmall * 3
         }
     }
 }

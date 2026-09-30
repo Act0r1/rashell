@@ -77,6 +77,11 @@ Scope {
             id: lockSurface
 
             property var themeConfig: ({})
+            readonly property string themeDir: "/usr/share/sddm/themes/ii-pixel/"
+            readonly property string backgroundSource: themeConfig.background
+                ? "file://" + (themeConfig.background.indexOf("/") === 0
+                    ? themeConfig.background : themeDir + themeConfig.background)
+                : root.wallpaperSource
             property string currentView: "clock"
             property bool loginFailed: false
             readonly property bool showPasswordView: currentView === "password"
@@ -240,7 +245,7 @@ Scope {
                     id: wallpaper
 
                     anchors.fill: parent
-                    source: root.wallpaperSource
+                    source: lockSurface.backgroundSource
                     fillMode: Image.PreserveAspectCrop
                     asynchronous: true
                     cache: true

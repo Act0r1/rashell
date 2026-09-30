@@ -10,7 +10,7 @@ Rectangle {
     signal closeRequested()
 
     implicitWidth: contentWidth
-    implicitHeight: header.height + separator.height + body.implicitHeight + Theme.panelPadding * 2 + Theme.spaceLg * 2
+    implicitHeight: header.height + body.implicitHeight + Theme.panelPadding * 2 + Theme.spaceLg
     color: Theme.surface
     border.color: Theme.border
     border.width: Theme.borderWidth
@@ -28,32 +28,18 @@ Rectangle {
             width: parent.width
             height: Math.max(Theme.compactControlSize, closeButton.implicitHeight)
 
-            Rectangle {
-                id: titleMarker
-                anchors {
-                    left: parent.left
-                    verticalCenter: parent.verticalCenter
-                }
-                width: 3
-                height: 18
-                color: Theme.accent
-                radius: 1
-            }
-
             Text {
                 anchors {
-                    left: titleMarker.right
+                    left: parent.left
                     right: closeButton.left
-                    leftMargin: Theme.spaceMd
                     rightMargin: Theme.spaceMd
                     verticalCenter: parent.verticalCenter
                 }
-                text: frame.title.toUpperCase()
+                text: frame.title
                 color: Theme.text
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontTitle
-                font.bold: true
-                font.letterSpacing: 1
+                font.weight: Font.DemiBold
                 elide: Text.ElideRight
                 maximumLineCount: 1
             }
@@ -65,13 +51,6 @@ Rectangle {
                 accessibleName: "Close " + frame.title
                 onClicked: frame.closeRequested()
             }
-        }
-
-        Rectangle {
-            id: separator
-            width: parent.width
-            height: Theme.borderWidth
-            color: Theme.border
         }
 
         Column {

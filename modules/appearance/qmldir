@@ -1,3 +1,4 @@
 module qs.modules.appearance
 AppearancePicker 1.0 AppearancePicker.qml
 DesktopPreview 1.0 DesktopPreview.qml
+FontSettings 1.0 FontSettings.qml

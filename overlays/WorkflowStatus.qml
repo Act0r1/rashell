@@ -8,7 +8,6 @@ Scope {
     id: root
 
     required property var coordinator
-    required property var modeState
     required property var captureState
     property bool locked: false
 
@@ -23,7 +22,7 @@ Scope {
 
     PanelWindow {
         screen: root.targetScreen
-        visible: screen !== null && !root.locked && (root.modeState.active || root.captureState.busy)
+        visible: screen !== null && !root.locked && root.captureState.busy
             && !(root.captureState.busy && root.captureState.pendingAction === "ocr")
         implicitWidth: Math.min(480, screen ? screen.width - 24 : 480)
         implicitHeight: content.implicitHeight + Theme.spaceLg * 2
@@ -49,32 +48,6 @@ Scope {
                 anchors.top: parent.top
                 anchors.margins: Theme.spaceLg
                 spacing: Theme.spaceMd
-
-                Row {
-                    width: parent.width
-                    visible: root.modeState.active
-                    spacing: Theme.spaceMd
-
-                    Text {
-                        width: parent.width - endModeButton.width - parent.spacing
-                        height: Theme.controlHeight
-                        text: root.modeState.title + (root.modeState.mode === "work"
-                            ? " · " + Math.floor(root.modeState.remainingSeconds / 60) + ":"
-                                + String(root.modeState.remainingSeconds % 60).padStart(2, "0") : " · screen awake")
-                        color: Theme.accent
-                        font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontBody
-                        verticalAlignment: Text.AlignVCenter
-                        elide: Text.ElideRight
-                    }
-
-                    ActionButton {
-                        id: endModeButton
-                        text: "End mode"
-                        accessibleName: "End " + root.modeState.title.toLowerCase() + " mode"
-                        onClicked: root.modeState.endMode()
-                    }
-                }
 
                 Row {
                     width: parent.width

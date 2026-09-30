@@ -6,32 +6,39 @@ Button {
     id: control
 
     property string accessibleName: "Close"
+    property bool compact: false
 
-    implicitWidth: 36
-    implicitHeight: 36
-    leftPadding: 8
-    rightPadding: 8
-    topPadding: 8
-    bottomPadding: 8
+    implicitWidth: compact ? 24 : Theme.controlHeight
+    implicitHeight: compact ? 24 : Theme.controlHeight
+    leftPadding: Theme.spaceMd
+    rightPadding: Theme.spaceMd
+    topPadding: Theme.spaceSm
+    bottomPadding: Theme.spaceSm
     hoverEnabled: true
     Accessible.name: accessibleName
     Accessible.role: Accessible.Button
 
-    contentItem: Text {
-        text: "×"
-        color: control.down || control.hovered || control.activeFocus ? Theme.text : Theme.textMuted
-        font.family: Theme.fontFamily
-        font.pixelSize: 20
-        font.bold: true
-        horizontalAlignment: Text.AlignHCenter
-        verticalAlignment: Text.AlignVCenter
+    contentItem: Item {
+        Repeater {
+            model: [45, -45]
+            Rectangle {
+                required property int modelData
+                anchors.centerIn: parent
+                width: control.compact ? 11 : 13
+                height: 1.5
+                radius: height / 2
+                rotation: modelData
+                antialiasing: true
+                color: control.down || control.hovered || control.visualFocus ? Theme.text : Theme.textMuted
+            }
+        }
     }
 
     background: Rectangle {
-        color: control.down ? Theme.surfaceRaised
-            : control.hovered || control.activeFocus ? Theme.surfaceRaised : "transparent"
-        border.color: control.activeFocus ? Theme.focus : Theme.borderInteractive
-        border.width: control.activeFocus ? Theme.focusWidth : Theme.borderWidth
-        radius: Theme.radius
+        color: control.down ? Theme.pressedSurface
+            : control.hovered || control.visualFocus ? Theme.hoverSurface : "transparent"
+        border.color: control.visualFocus ? Theme.focus : "transparent"
+        border.width: control.visualFocus ? Theme.focusWidth : 0
+        radius: control.compact ? Math.min(Theme.radius, 6) : Theme.radius
     }
 }

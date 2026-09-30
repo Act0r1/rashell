@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import Quickshell
 import qs.core
 import qs.ui
 
@@ -15,7 +16,7 @@ FocusScope {
     PanelFrame {
         id: panel
         width: parent.width
-        title: "NOTIFICATIONS"
+        title: "Notifications"
         onCloseRequested: root.coordinator.close("close-control")
 
         Column {
@@ -25,17 +26,28 @@ FocusScope {
             Row {
                 width: parent.width
                 spacing: Theme.spaceMd
+
                 ActionButton {
-                    width: (parent.width - parent.spacing) / 2
-                    text: root.notificationState.doNotDisturb ? "DND ON" : "DND OFF"
+                    width: parent.width - clearButton.width - parent.spacing
+                    text: root.notificationState.timedDoNotDisturb
+                        ? "Paused · " + Math.ceil(root.notificationState.remainingSeconds / 60) + " min left"
+                        : root.notificationState.doNotDisturb ? "Popups paused" : "Do not disturb"
                     selected: root.notificationState.doNotDisturb
-                    accessibleName: "Toggle do not disturb"
-                    onClicked: root.notificationState.doNotDisturb = !root.notificationState.doNotDisturb
+                    subtleSelected: true
+                    accessibleName: "Do not disturb settings and timer"
+                    onClicked: root.coordinator.open(
+                        "dnd", root.coordinator.anchorItem, root.coordinator.alignment,
+                        Quickshell.shellDir + "/modules/notifications/DoNotDisturbPanel.qml",
+                        { coordinator: root.coordinator, notificationState: root.notificationState }
+                    )
                 }
+
                 ActionButton {
-                    width: (parent.width - parent.spacing) / 2
-                    text: "CLEAR ALL"
-                    accessibleName: "Clear all notifications"
+                    id: clearButton
+                    width: 96
+                    text: "Clear all"
+                    accessibleName: "Clear notification history"
+                    flat: true
                     enabled: root.notificationState.history.count > 0
                     onClicked: root.notificationState.clear()
                 }
@@ -174,6 +186,7 @@ FocusScope {
 
                     CloseButton {
                         id: closeButton
+                        compact: true
                         anchors.right: parent.right
                         anchors.rightMargin: 8
                         anchors.top: parent.top

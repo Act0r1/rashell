@@ -7,7 +7,8 @@ Scope {
 
     readonly property var defaults: ({
         version: 1,
-        theme: "muninn",
+        theme: "ayu-dark",
+        fontFamily: "Adwaita Sans",
         wallpaper: "~/Pictures/Wallpapers/bisbiswas-a-summer-evening.png",
         captureDirectory: "~/Pictures/Screenshots",
         weatherLocation: "",
@@ -16,7 +17,7 @@ Scope {
         bar: {
             left: ["rashell.workspaces"],
             center: ["rashell.weather", "rashell.clock", "rashell.media", "rashell.screenshot"],
-            right: ["rashell.keyboard", "rashell.tray", "rashell.bluetooth", "rashell.notifications", "rashell.system", "rashell.audio", "rashell.tokens", "rashell.control", "rashell.updates"]
+            right: ["rashell.keyboard", "rashell.tray", "rashell.bluetooth", "rashell.notifications", "rashell.system", "rashell.audio", "rashell.monitor-input", "rashell.tokens", "rashell.control", "rashell.updates"]
         }
     })
 
@@ -29,9 +30,10 @@ Scope {
     readonly property var barModuleIds: [
         "rashell.workspaces", "rashell.clock", "rashell.weather", "rashell.audio", "rashell.media",
         "rashell.screenshot", "rashell.keyboard", "rashell.tray", "rashell.bluetooth",
-        "rashell.system", "rashell.control", "rashell.tokens", "rashell.notifications", "rashell.updates"
+        "rashell.system", "rashell.control", "rashell.tokens", "rashell.notifications", "rashell.updates", "rashell.monitor-input"
     ]
     readonly property string theme: effective.theme
+    readonly property string fontFamily: effective.fontFamily === undefined ? defaults.fontFamily : effective.fontFamily
     readonly property string wallpaper: effective.wallpaper
     readonly property string wallpaperPath: wallpaper.indexOf("~/") === 0
         ? Quickshell.env("HOME") + wallpaper.slice(1) : wallpaper
@@ -44,6 +46,7 @@ Scope {
     readonly property var leftModules: effective.bar.left
     readonly property var centerModules: effective.bar.center
     readonly property var rightModules: effective.bar.right
+    readonly property bool barMinimal: effective.barMinimal === true
     readonly property var trayPinnedIds: effective.trayPinnedIds === undefined ? null : effective.trayPinnedIds
 
     signal configError(string message)
@@ -63,6 +66,15 @@ Scope {
     }
 
     function validate(candidate) {
+        if (isPlainObject(candidate) && Object.keys(candidate).indexOf("barMinimal") !== -1) {
+            if (typeof candidate.barMinimal !== "boolean") return "invalid minimal bar mode"
+            const base = Object.assign({}, candidate)
+            delete base.barMinimal
+            const error = validate(base)
+            if (error !== "") return error
+            Object.assign(candidate, base)
+            return ""
+        }
         if (isPlainObject(candidate) && Object.keys(candidate).indexOf("trayPinnedIds") !== -1) {
             if (!Array.isArray(candidate.trayPinnedIds)) return "tray pins must be an array"
             const seenPins = []
@@ -76,6 +88,22 @@ Scope {
             delete base.trayPinnedIds
             const error = validate(base)
             if (error !== "") return error
+            Object.assign(candidate, base)
+            return ""
+        }
+        if (isPlainObject(candidate) && Object.keys(candidate).indexOf("fontFamily") !== -1) {
+            if (typeof candidate.fontFamily !== "string") return "invalid font family"
+            const family = candidate.fontFamily.trim()
+            if (family === "" || family.length > 128) return "invalid font family"
+            for (let index = 0; index < family.length; index++) {
+                const code = family.charCodeAt(index)
+                if (code < 32 || code === 127) return "invalid font family"
+            }
+            const base = Object.assign({}, candidate)
+            delete base.fontFamily
+            const error = validate(base)
+            if (error !== "") return error
+            base.fontFamily = family
             Object.assign(candidate, base)
             return ""
         }
@@ -168,6 +196,12 @@ Scope {
         return true
     }
 
+    function setFontFamily(name) {
+        const next = JSON.parse(JSON.stringify(effective))
+        next.fontFamily = String(name).trim()
+        return save(next)
+    }
+
     function setTheme(name) {
         const next = JSON.parse(JSON.stringify(effective))
         next.theme = String(name)
@@ -217,6 +251,12 @@ Scope {
             center: Array.from(center),
             right: Array.from(right)
         }
+        return save(next)
+    }
+
+    function setBarMinimal(enabled) {
+        const next = JSON.parse(JSON.stringify(effective))
+        next.barMinimal = enabled
         return save(next)
     }
 

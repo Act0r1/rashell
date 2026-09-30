@@ -9,6 +9,11 @@ Scope {
 
     property int unread: 0
     property bool doNotDisturb: false
+    property double doNotDisturbUntil: 0
+    property double currentTime: Date.now()
+    readonly property bool timedDoNotDisturb: doNotDisturb && doNotDisturbUntil > 0
+    readonly property int remainingSeconds: timedDoNotDisturb
+        ? Math.max(0, Math.ceil((doNotDisturbUntil - currentTime) / 1000)) : 0
     property var latest: null
     property string popupAppName: ""
     property string popupSummary: ""
@@ -19,18 +24,51 @@ Scope {
     property real popupDeadlineMs: 0
     property int popupRemainingMs: 0
     property int popupTotalDurationMs: 0
+    property int popupSerial: 0
     property var popupQueue: []
     property ListModel history: ListModel {}
     readonly property int popupDurationSeconds: configStore
         ? configStore.notificationDurationSeconds : 8
 
+    function setDoNotDisturb(enabled, durationMinutes) {
+        const minutes = Number(durationMinutes || 0)
+        if (!isFinite(minutes) || minutes < 0) return false
+        currentTime = Date.now()
+        doNotDisturbUntil = enabled && minutes > 0 ? currentTime + minutes * 60000 : 0
+        doNotDisturb = Boolean(enabled)
+        return true
+    }
+
+    function pauseFor(minutes) {
+        return setDoNotDisturb(true, minutes)
+    }
+
+    onDoNotDisturbChanged: {
+        if (!doNotDisturb) doNotDisturbUntil = 0
+        else {
+            popupQueue = []
+            hidePopup()
+        }
+    }
+
+    Timer {
+        interval: 1000
+        repeat: true
+        running: state.timedDoNotDisturb
+        onTriggered: {
+            state.currentTime = Date.now()
+            if (state.remainingSeconds === 0) state.setDoNotDisturb(false)
+        }
+    }
+
     function receive(notification) {
         const appName = String(notification.appName || "").trim()
         const summary = String(notification.summary || "").trim()
         const body = String(notification.body || "").trim()
-        if (appName === "" && summary === "" && body === "") return
+        if (summary === "" && body === "") return
 
         notification.tracked = true
+        notification.closed.connect(() => state.forget(notification))
         history.insert(0, {
             notification: notification,
             appName: appName || "Notification",
@@ -62,12 +100,22 @@ Scope {
         popupDeadlineMs = Date.now() + popupRemainingMs
         popupProgress = 1
         popupHeld = false
+        popupSerial += 1
         popupVisible = true
         popupCountdown.restart()
     }
 
     function removeQueuedNotification(notification) {
         popupQueue = popupQueue.filter(queued => queued !== notification)
+    }
+
+    function forget(notification) {
+        removeQueuedNotification(notification)
+        if (!popupVisible || latest !== notification) return
+        const serial = popupSerial
+        Qt.callLater(() => {
+            if (popupVisible && popupSerial === serial) hidePopup()
+        })
     }
 
     function dismiss(index) {

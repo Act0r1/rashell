@@ -14,12 +14,76 @@ FocusScope {
     implicitWidth: frame.implicitWidth
     implicitHeight: frame.implicitHeight
 
-    component SectionLabel: Text {
-        color: Theme.accentMuted
-        font.family: Theme.fontFamily
-        font.pixelSize: Theme.fontSmall
-        font.bold: true
-        font.letterSpacing: 2
+    component SectionLabel: Row {
+        id: sectionLabel
+
+        required property string text
+        required property string glyph
+
+        spacing: Theme.spaceMd
+
+        Rectangle {
+            width: 24
+            height: 24
+            radius: Theme.radius
+            color: Theme.selectedSurface
+
+            Text {
+                anchors.centerIn: parent
+                text: sectionLabel.glyph
+                color: Theme.accent
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontTitle
+            }
+        }
+
+        Text {
+            height: 24
+            text: sectionLabel.text
+            color: Theme.text
+            font.family: Theme.fontFamily
+            font.pixelSize: Theme.fontBody
+            font.weight: Font.Medium
+            verticalAlignment: Text.AlignVCenter
+        }
+    }
+
+    component DeviceButton: ActionButton {
+        id: deviceButton
+
+        width: parent.width
+        height: Theme.rowHeight
+        subtleSelected: true
+        flat: true
+        alignment: Text.AlignLeft
+        leftPadding: Theme.spaceLg + Theme.spaceXl + Theme.spaceMd
+        rightPadding: Theme.spaceLg
+
+        contentItem: Text {
+            text: deviceButton.text
+            color: Theme.text
+            font.family: Theme.fontFamily
+            font.pixelSize: Theme.fontBody
+            font.weight: deviceButton.selected ? Font.Medium : Font.Normal
+            elide: Text.ElideRight
+            maximumLineCount: 1
+            horizontalAlignment: Text.AlignLeft
+            verticalAlignment: Text.AlignVCenter
+        }
+
+        Text {
+            x: Theme.spaceLg
+            width: Theme.spaceXl
+            height: parent.height
+            text: "✓"
+            visible: deviceButton.selected
+            color: Theme.accent
+            font.family: Theme.fontFamily
+            font.pixelSize: Theme.fontBody
+            font.weight: Font.DemiBold
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+        }
     }
 
     component VolumeRow: Item {
@@ -39,7 +103,7 @@ FocusScope {
                 left: parent.left
                 top: parent.top
             }
-            text: volumeRow.inputMode ? "INPUT VOLUME" : "OUTPUT VOLUME"
+            text: volumeRow.inputMode ? "Input volume" : "Output volume"
             color: Theme.textMuted
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSmall
@@ -81,9 +145,11 @@ FocusScope {
                 verticalCenter: slider.verticalCenter
             }
             width: 82
-            text: volumeRow.muted ? "UNMUTE" : "MUTE"
+            text: volumeRow.muted ? "Unmute" : "Mute"
+            flat: true
             danger: volumeRow.muted
             selected: volumeRow.muted
+            subtleSelected: true
             accessibleName: (volumeRow.inputMode ? "Input" : "Output") + (volumeRow.muted ? " muted" : " unmuted")
             onClicked: {
                 if (volumeRow.inputMode) volumeRow.state.toggleInputMute()
@@ -126,7 +192,7 @@ FocusScope {
             spacing: Theme.spaceLg
             visible: root.audioState && root.audioState.availability === "no-output"
 
-            SectionLabel { text: "OUTPUT" }
+            SectionLabel { text: "Output"; glyph: "󰕾" }
 
             Text {
                 text: "No output devices"
@@ -142,7 +208,27 @@ FocusScope {
             spacing: Theme.spaceLg
             visible: root.audioState && root.audioState.availability === "ready"
 
-            SectionLabel { text: "OUTPUT" }
+            Item {
+                width: parent.width
+                height: animationButton.implicitHeight
+
+                SectionLabel {
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "Output"
+                    glyph: "󰕾"
+                }
+
+                ActionButton {
+                    id: animationButton
+                    anchors.right: parent.right
+                    text: "Animation"
+                    flat: true
+                    accessibleName: "Open animated output picker"
+                    toolTipText: accessibleName + " · Meta+Shift+H"
+                    onClicked: if (root.coordinator) root.coordinator.audioOutputPickerRequested()
+                }
+            }
 
             VolumeRow {
                 width: parent.width
@@ -157,14 +243,10 @@ FocusScope {
                 Repeater {
                     model: root.audioState ? root.audioState.outputs : []
 
-                    ActionButton {
+                    DeviceButton {
                         required property var modelData
-                        width: parent.width
-                        height: Theme.rowHeight
                         selected: root.audioState.output !== null && modelData.id === root.audioState.output.id
-                        subtleSelected: true
-                        text: (selected ? "✓ " : "  ") + root.audioState.nodeLabel(modelData)
-                            + (selected ? "    IN USE" : "")
+                        text: root.audioState.nodeLabel(modelData)
                         accessibleName: root.audioState.nodeLabel(modelData) + (selected ? ", in use" : "")
                         onClicked: root.audioState.selectOutput(modelData)
                     }
@@ -176,7 +258,7 @@ FocusScope {
                 spacing: Theme.spaceLg
                 visible: root.audioState && root.audioState.inputs.length > 0
 
-                SectionLabel { text: "INPUT" }
+                SectionLabel { text: "Input"; glyph: "󰍬" }
 
                 VolumeRow {
                     width: parent.width
@@ -200,14 +282,10 @@ FocusScope {
                     Repeater {
                         model: root.audioState ? root.audioState.inputs : []
 
-                        ActionButton {
+                        DeviceButton {
                             required property var modelData
-                            width: parent.width
-                            height: Theme.rowHeight
                             selected: root.audioState.input !== null && modelData.id === root.audioState.input.id
-                            subtleSelected: true
-                            text: (selected ? "✓ " : "  ") + root.audioState.nodeLabel(modelData)
-                                + (selected ? "    IN USE" : "")
+                            text: root.audioState.nodeLabel(modelData)
                             accessibleName: root.audioState.nodeLabel(modelData) + (selected ? ", in use" : "")
                             onClicked: root.audioState.selectInput(modelData)
                         }

@@ -61,6 +61,16 @@ Scope {
         return String(node.nickname || node.description || node.name || "Unknown device")
     }
 
+    function outputKind(node) {
+        if (!node) return "speaker"
+        const properties = node.properties || {}
+        const formFactor = String(properties["device.form-factor"] || "").toLowerCase()
+        if (["headphone", "headphones", "headset", "earpiece"].indexOf(formFactor) !== -1) return "headphones"
+        if (["speaker", "internal", "microphone", "webcam"].indexOf(formFactor) !== -1) return "speaker"
+        const description = [properties["device.icon-name"], node.name, node.description, node.nickname].join(" ")
+        return /headphones?|headsets?|earbuds?|earphones?|airpods?/i.test(description) ? "headphones" : "speaker"
+    }
+
     function setOutputVolume(value) {
         if (!outputUsable) return false
         output.audio.volume = clampVolume(value)

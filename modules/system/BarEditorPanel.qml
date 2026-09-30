@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 import qs.core
@@ -42,7 +43,8 @@ Scope {
         "rashell.control": "Control center",
         "rashell.tokens": "Token usage",
         "rashell.notifications": "Notifications",
-        "rashell.updates": "Updates"
+        "rashell.updates": "Updates",
+        "rashell.monitor-input": "Monitor input"
     })
 
     function open(screen) {
@@ -131,6 +133,7 @@ Scope {
         property real originY: 0
 
         anchors.fill: parent
+        hoverEnabled: true
         cursorShape: drag.active ? Qt.ClosedHandCursor : Qt.OpenHandCursor
         drag.target: dragItem
         drag.axis: Drag.XAndYAxis
@@ -159,11 +162,11 @@ Scope {
         required property int moduleIndex
         required property int moduleCount
 
-        width: 208
-        height: 36
-        color: Theme.surfaceRaised
-        border.color: Theme.accentMuted
-        border.width: Theme.borderWidth
+        width: 340
+        height: Theme.rowHeight + Theme.spaceSm
+        color: dragArea.containsMouse || Drag.active ? Theme.hoverSurface : Theme.surfaceRaised
+        border.color: Theme.accent
+        border.width: Drag.active ? Theme.focusWidth : 0
         radius: Theme.radius
         opacity: Drag.active ? 0.78 : 1
         z: Drag.active ? 100 : 0
@@ -183,7 +186,7 @@ Scope {
         Text {
             anchors {
                 left: parent.left
-                leftMargin: Theme.spaceMd
+                leftMargin: Theme.spaceLg
                 right: controls.left
                 rightMargin: Theme.spaceSm
                 verticalCenter: parent.verticalCenter
@@ -191,7 +194,7 @@ Scope {
             text: root.moduleNames[card.moduleId] || card.moduleId
             color: Theme.text
             font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSmall
+            font.pixelSize: Theme.fontBody
             elide: Text.ElideRight
         }
 
@@ -205,33 +208,44 @@ Scope {
             spacing: Theme.spaceXs
 
             ActionButton {
-                width: 26
-                height: 28
+                width: Theme.controlHeight
+                height: Theme.controlHeight
+                leftPadding: 0
+                rightPadding: 0
+                flat: true
                 text: "‹"
                 enabled: card.moduleIndex > 0
                 accessibleName: "Move " + root.moduleNames[card.moduleId] + " earlier"
                 onClicked: root.moveWithin(card.moduleId, card.zoneName, -1)
             }
             ActionButton {
-                width: 26
-                height: 28
+                width: Theme.controlHeight
+                height: Theme.controlHeight
+                leftPadding: 0
+                rightPadding: 0
+                flat: true
                 text: "›"
                 enabled: card.moduleIndex < card.moduleCount - 1
                 accessibleName: "Move " + root.moduleNames[card.moduleId] + " later"
                 onClicked: root.moveWithin(card.moduleId, card.zoneName, 1)
             }
             ActionButton {
-                width: 26
-                height: 28
-                text: "↪"
-                accessibleName: "Move " + root.moduleNames[card.moduleId] + " to the next zone"
+                width: 80
+                height: Theme.controlHeight
+                leftPadding: 0
+                rightPadding: 0
+                flat: true
+                text: "→ " + root.nextZone(card.zoneName).charAt(0).toUpperCase() + root.nextZone(card.zoneName).slice(1)
+                accessibleName: "Move " + root.moduleNames[card.moduleId] + " to the " + root.nextZone(card.zoneName) + " zone"
                 onClicked: root.moveTo(card.moduleId, root.nextZone(card.zoneName))
             }
             ActionButton {
-                width: 26
-                height: 28
-                text: "×"
-                danger: true
+                width: 44
+                height: Theme.controlHeight
+                leftPadding: 0
+                rightPadding: 0
+                flat: true
+                text: "Hide"
                 accessibleName: "Hide " + root.moduleNames[card.moduleId]
                 onClicked: root.moveTo(card.moduleId, "hidden")
             }
@@ -243,11 +257,11 @@ Scope {
 
         required property string moduleId
 
-        width: 208
-        height: 36
-        color: Theme.surfaceRaised
-        border.color: Theme.borderInteractive
-        border.width: Theme.borderWidth
+        width: 340
+        height: Theme.rowHeight + Theme.spaceSm
+        color: hiddenDragArea.containsMouse || Drag.active ? Theme.hoverSurface : Theme.surfaceRaised
+        border.color: Theme.accent
+        border.width: Drag.active ? Theme.focusWidth : 0
         radius: Theme.radius
         opacity: Drag.active ? 0.78 : 1
         z: Drag.active ? 100 : 0
@@ -267,15 +281,15 @@ Scope {
         Text {
             anchors {
                 left: parent.left
-                leftMargin: Theme.spaceMd
+                leftMargin: Theme.spaceLg
                 right: controls.left
                 rightMargin: Theme.spaceSm
                 verticalCenter: parent.verticalCenter
             }
             text: root.moduleNames[hiddenCard.moduleId] || hiddenCard.moduleId
-            color: Theme.textMuted
+            color: Theme.text
             font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSmall
+            font.pixelSize: Theme.fontBody
             elide: Text.ElideRight
         }
 
@@ -292,9 +306,12 @@ Scope {
                 model: ["left", "center", "right"]
                 ActionButton {
                     required property string modelData
-                    width: 28
-                    height: 28
-                    text: modelData.charAt(0).toUpperCase()
+                    width: modelData === "center" ? 60 : 48
+                    height: Theme.controlHeight
+                    leftPadding: Theme.spaceSm
+                    rightPadding: Theme.spaceSm
+                    flat: true
+                    text: modelData.charAt(0).toUpperCase() + modelData.slice(1)
                     accessibleName: "Show " + root.moduleNames[hiddenCard.moduleId] + " on the " + modelData
                     onClicked: root.moveTo(hiddenCard.moduleId, modelData)
                 }
@@ -310,10 +327,10 @@ Scope {
         required property var modules
 
         width: parent.width
-        implicitHeight: Math.max(108, widgetsFlow.implicitHeight + 48)
-        color: Theme.surface
-        border.color: Theme.border
-        border.width: Theme.borderWidth
+        implicitHeight: widgetsFlow.y + Math.max(Theme.controlHeight, widgetsFlow.implicitHeight) + Theme.spaceMd
+        color: zoneDrop.containsDrag ? Theme.selectedSurface : "transparent"
+        border.color: Theme.accent
+        border.width: zoneDrop.containsDrag ? Theme.borderWidth : 0
         radius: Theme.radius
 
         function dropIndex(dropX, dropY, sourceId) {
@@ -333,6 +350,7 @@ Scope {
         }
 
         DropArea {
+            id: zoneDrop
             anchors.fill: parent
             keys: ["bar-widget"]
             onDropped: drop => {
@@ -349,12 +367,11 @@ Scope {
                 top: parent.top
                 topMargin: Theme.spaceMd
             }
-            text: zoneSection.title.toUpperCase()
-            color: Theme.accent
+            text: zoneSection.title
+            color: Theme.text
             font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSmall
-            font.bold: true
-            font.letterSpacing: 1
+            font.pixelSize: Theme.fontBody
+            font.weight: Font.DemiBold
         }
 
         Text {
@@ -364,7 +381,7 @@ Scope {
                 top: parent.top
                 topMargin: Theme.spaceMd
             }
-            text: zoneSection.modules.length + " WIDGET" + (zoneSection.modules.length === 1 ? "" : "S")
+            text: zoneSection.modules.length + (zoneSection.modules.length === 1 ? " widget" : " widgets")
             color: Theme.textMuted
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSmall
@@ -378,13 +395,13 @@ Scope {
                 top: parent.top
                 leftMargin: Theme.spaceLg
                 rightMargin: Theme.spaceLg
-                topMargin: 36
+                topMargin: Theme.controlHeight + Theme.spaceSm
             }
             spacing: Theme.spaceMd
 
             Text {
                 visible: zoneSection.modules.length === 0
-                text: "Empty zone"
+                text: "Drop widgets here"
                 color: Theme.textDisabled
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontBody
@@ -397,6 +414,7 @@ Scope {
                 WidgetCard {
                     required property string modelData
                     required property int index
+                    width: widgetsFlow.width >= 620 ? (widgetsFlow.width - widgetsFlow.spacing) / 2 : widgetsFlow.width
                     moduleId: modelData
                     moduleIndex: index
                     moduleCount: zoneSection.modules.length
@@ -437,12 +455,12 @@ Scope {
         }
 
         Rectangle {
-            id: card
-            width: Math.min(800, window.width - 64)
-            height: Math.min(650, window.height - 64)
+            id: editorCard
+            width: Math.min(840, window.width - Theme.spaceXl * 4)
+            height: Math.min(720, window.height - Theme.spaceXl * 4)
             anchors.centerIn: parent
-            color: Theme.background
-            border.color: Theme.borderInteractive
+            color: Theme.surface
+            border.color: Theme.border
             border.width: Theme.borderWidth
             radius: Theme.radius
 
@@ -451,78 +469,94 @@ Scope {
                 onClicked: event => event.accepted = true
             }
 
-            Column {
+            ColumnLayout {
                 anchors {
                     fill: parent
                     margins: Theme.spaceXl
                 }
                 spacing: Theme.spaceLg
 
-                Item {
-                    width: parent.width
-                    height: Theme.compactControlSize
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Theme.spaceLg
 
                     Text {
-                        anchors {
-                            left: parent.left
-                            verticalCenter: parent.verticalCenter
-                        }
-                        text: "[ BAR SETTINGS ]"
-                        color: Theme.accent
+                        Layout.fillWidth: true
+                        text: "Customize bar"
+                        color: Theme.text
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontTitle
-                        font.bold: true
-                        font.letterSpacing: 2
+                        font.weight: Font.DemiBold
                     }
 
-                    ActionButton {
-                        anchors.right: parent.right
-                        width: Theme.compactControlSize
-                        text: "X"
+                    CloseButton {
                         accessibleName: "Close bar settings"
                         onClicked: root.close()
                     }
                 }
 
-                Rectangle { width: parent.width; height: Theme.borderWidth; color: Theme.border }
-
-                Row {
-                    width: parent.width
-                    spacing: Theme.spaceSm
-
-                    Repeater {
-                        model: ["APPEARANCE", "WIDGETS", "BEHAVIOR", "MONITORS"]
-                        ActionButton {
-                            required property string modelData
-                            width: (parent.width - parent.spacing * 3) / 4
-                            text: modelData
-                            selected: modelData === "WIDGETS"
-                            enabled: modelData === "WIDGETS"
-                            accessibleName: modelData.toLowerCase() + " settings"
-                        }
-                    }
-                }
-
                 Text {
-                    width: parent.width
-                    text: "Drag widgets to reorder or move them between zones. Drop into Hidden Widgets to hide. Press Esc to close."
+                    Layout.fillWidth: true
+                    text: "Drag widgets between zones or use their controls. Apply to save your layout."
                     color: Theme.textMuted
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSmall
                     wrapMode: Text.WordWrap
                 }
 
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Theme.spaceMd
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: "Minimal mode keeps only the clock and weather on a transparent bar."
+                        color: Theme.textMuted
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSmall
+                        wrapMode: Text.WordWrap
+                    }
+
+                    ActionButton {
+                        text: root.configStore.barMinimal ? "Minimal mode: On" : "Minimal mode: Off"
+                        selected: root.configStore.barMinimal
+                        accessibleName: "Toggle minimal bar mode"
+                        onClicked: root.configStore.setBarMinimal(!root.configStore.barMinimal)
+                    }
+                }
+
                 ScrollView {
-                    width: parent.width
-                    height: parent.height - 172
+                    id: editorScroll
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    Layout.minimumHeight: 0
                     clip: true
+                    rightPadding: Theme.spaceLg
                     contentWidth: availableWidth
+                    contentHeight: sections.implicitHeight
                     ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
-                    ScrollBar.vertical.policy: ScrollBar.AsNeeded
+                    ScrollBar.vertical: ScrollBar {
+                        parent: editorScroll
+                        x: editorScroll.width - width
+                        y: editorScroll.topPadding
+                        width: Theme.spaceMd
+                        height: editorScroll.availableHeight
+                        orientation: Qt.Vertical
+                        policy: ScrollBar.AsNeeded
+                        active: true
+                        contentItem: Rectangle {
+                            implicitWidth: Theme.spaceSm
+                            implicitHeight: Theme.spaceSm
+                            radius: Theme.spaceXs
+                            color: Theme.borderInteractive
+                        }
+                    }
 
                     Column {
-                        width: parent.width
+                        id: sections
+                        width: editorScroll.availableWidth
                         spacing: Theme.spaceMd
+                        bottomPadding: Theme.spaceMd
 
                         ZoneSection {
                             zoneName: "left"
@@ -542,13 +576,14 @@ Scope {
 
                         Rectangle {
                             width: parent.width
-                            implicitHeight: Math.max(108, hiddenFlow.implicitHeight + 48)
-                            color: Theme.surface
-                            border.color: Theme.border
-                            border.width: Theme.borderWidth
+                            implicitHeight: hiddenFlow.y + Math.max(Theme.controlHeight, hiddenFlow.implicitHeight) + Theme.spaceMd
+                            color: hiddenDrop.containsDrag ? Theme.selectedSurface : "transparent"
+                            border.color: Theme.accent
+                            border.width: hiddenDrop.containsDrag ? Theme.borderWidth : 0
                             radius: Theme.radius
 
                             DropArea {
+                                id: hiddenDrop
                                 anchors.fill: parent
                                 keys: ["bar-widget"]
                                 onDropped: drop => {
@@ -564,12 +599,24 @@ Scope {
                                     top: parent.top
                                     topMargin: Theme.spaceMd
                                 }
-                                text: "HIDDEN WIDGETS"
+                                text: "Hidden widgets"
+                                color: Theme.text
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontBody
+                                font.weight: Font.DemiBold
+                            }
+
+                            Text {
+                                anchors {
+                                    right: parent.right
+                                    rightMargin: Theme.spaceLg
+                                    top: parent.top
+                                    topMargin: Theme.spaceMd
+                                }
+                                text: root.hiddenModules.length + (root.hiddenModules.length === 1 ? " widget" : " widgets")
                                 color: Theme.textMuted
                                 font.family: Theme.fontFamily
                                 font.pixelSize: Theme.fontSmall
-                                font.bold: true
-                                font.letterSpacing: 1
                             }
 
                             Flow {
@@ -580,16 +627,16 @@ Scope {
                                     top: parent.top
                                     leftMargin: Theme.spaceLg
                                     rightMargin: Theme.spaceLg
-                                    topMargin: 36
+                                    topMargin: Theme.controlHeight + Theme.spaceSm
                                 }
                                 spacing: Theme.spaceMd
 
                                 Text {
                                     visible: root.hiddenModules.length === 0
-                                    text: "All widgets are visible"
+                                    text: "Drop a widget here to hide it"
                                     color: Theme.textDisabled
                                     font.family: Theme.fontFamily
-                                    font.pixelSize: Theme.fontBody
+                                    font.pixelSize: Theme.fontSmall
                                     topPadding: Theme.spaceMd
                                 }
 
@@ -597,6 +644,7 @@ Scope {
                                     model: root.hiddenModules
                                     HiddenWidgetCard {
                                         required property string modelData
+                                        width: hiddenFlow.width >= 620 ? (hiddenFlow.width - hiddenFlow.spacing) / 2 : hiddenFlow.width
                                         moduleId: modelData
                                     }
                                 }
@@ -606,7 +654,7 @@ Scope {
                         Text {
                             width: parent.width
                             visible: root.hiddenModules.indexOf("rashell.control") !== -1
-                            text: "Control center is hidden. Restore it here or edit config.json to get this button back."
+                            text: "Control center is hidden. Add it to a zone above to show it again."
                             color: Theme.danger
                             font.family: Theme.fontFamily
                             font.pixelSize: Theme.fontSmall
@@ -615,26 +663,35 @@ Scope {
                     }
                 }
 
-                Row {
-                    width: parent.width
+                Rectangle {
+                    Layout.fillWidth: true
+                    implicitHeight: Theme.borderWidth
+                    color: Theme.border
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
                     spacing: Theme.spaceMd
 
                     ActionButton {
-                        width: (parent.width - parent.spacing * 2) / 3
-                        text: "CANCEL"
+                        text: "Cancel"
+                        flat: true
+                        implicitHeight: Theme.rowHeight
                         accessibleName: "Cancel bar changes"
                         onClicked: root.close()
                     }
                     ActionButton {
-                        width: (parent.width - parent.spacing * 2) / 3
-                        text: "REVERT"
+                        text: "Revert changes"
+                        flat: true
+                        implicitHeight: Theme.rowHeight
                         accessibleName: "Revert unapplied bar changes"
                         onClicked: root.loadDraft()
                     }
+                    Item { Layout.fillWidth: true }
                     ActionButton {
-                        width: (parent.width - parent.spacing * 2) / 3
-                        text: "APPLY"
+                        text: "Apply layout"
                         selected: true
+                        implicitHeight: Theme.rowHeight
                         accessibleName: "Apply bar layout"
                         onClicked: root.applyDraft()
                     }

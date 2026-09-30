@@ -72,7 +72,7 @@ FocusScope {
                         width: 48
                         height: 48
                         radius: Theme.radius
-                        color: Qt.alpha(Theme.accent, 0.12)
+                        color: Theme.selectedSurface
                         border.color: Theme.accentMuted
 
                         Text {

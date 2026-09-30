@@ -14,12 +14,15 @@ Scope {
     required property var configStore
     property bool opened: false
     property var targetScreen: null
-    property string selectedId: "muninn"
+    property string selectedId: "ayu-dark"
     property string query: ""
     property string kind: "all"
     property string error: ""
+    property bool showFonts: false
+    property string selectedFontFamily: "Adwaita Sans"
 
     readonly property var selectedTheme: Theme.themeInfo(selectedId)
+    readonly property var selectedPalette: Theme.paletteFor(selectedId)
     readonly property var filteredThemes: Theme.catalog.filter(function(theme) {
         const needle = root.query.trim().toLowerCase()
         return (root.kind === "all" || theme.kind === root.kind)
@@ -34,11 +37,14 @@ Scope {
         search.text = ""
         kind = "all"
         error = ""
+        selectedFontFamily = configStore.fontFamily
+        fontSettings.resetSearch()
         selectedId = Theme.names.indexOf(themeId) !== -1 ? themeId : configStore.theme
         opened = targetScreen !== null
         Qt.callLater(function() {
             catalog.positionViewAtIndex(catalog.currentIndex, ListView.Contain)
-            search.forceActiveFocus()
+            if (root.showFonts) fontSettings.focusSearch()
+            else search.forceActiveFocus()
         })
     }
 
@@ -61,6 +67,15 @@ Scope {
     }
 
     function applySelected() {
+        if (showFonts) {
+            if (Theme.fontFamilies.indexOf(selectedFontFamily) === -1) {
+                error = "Choose an installed font."
+                return
+            }
+            if (configStore.setFontFamily(selectedFontFamily)) error = ""
+            else error = "Could not save this font."
+            return
+        }
         if (filteredThemes.length === 0) return
         if (configStore.setTheme(selectedId)) close()
         else error = "Could not apply this theme."
@@ -105,7 +120,8 @@ Scope {
                     root.close()
                     event.accepted = true
                 } else if (event.key === Qt.Key_Down || event.key === Qt.Key_Up) {
-                    root.step(event.key === Qt.Key_Down ? 1 : -1)
+                    if (root.showFonts) fontSettings.step(event.key === Qt.Key_Down ? 1 : -1)
+                    else root.step(event.key === Qt.Key_Down ? 1 : -1)
                     event.accepted = true
                 }
             }
@@ -135,10 +151,24 @@ Scope {
                             font { family: Theme.fontFamily; pixelSize: 24; bold: true }
                         }
                         Text {
-                            text: Theme.catalog.length + " themes · find your atmosphere"
+                            text: root.showFonts ? "Typography for your panel, menus and notifications"
+                                : Theme.catalog.length + " themes · find your atmosphere"
                             color: Theme.textMuted
                             font { family: Theme.fontFamily; pixelSize: Theme.fontSmall }
                         }
+                    }
+                    ActionButton {
+                        text: "Themes"
+                        selected: !root.showFonts
+                        subtleSelected: true
+                        onClicked: { root.showFonts = false; root.error = ""; search.forceActiveFocus() }
+                    }
+                    ActionButton {
+                        objectName: "appearanceFonts"
+                        text: "Fonts"
+                        selected: root.showFonts
+                        subtleSelected: true
+                        onClicked: { root.showFonts = true; root.error = ""; fontSettings.focusSearch() }
                     }
                     CloseButton { onClicked: root.close() }
                 }
@@ -148,13 +178,25 @@ Scope {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     contentWidth: width
-                    contentHeight: bodyGrid.height
+                    contentHeight: root.showFonts ? fontSettings.height : bodyGrid.height
                     clip: true
                     boundsBehavior: Flickable.StopAtBounds
                     ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
 
+                    FontSettings {
+                        id: fontSettings
+                        visible: root.showFonts
+                        width: bodyScroll.width - 8
+                        height: Math.max(implicitHeight, bodyScroll.height)
+                        selectedFamily: root.selectedFontFamily
+                        currentFamily: root.configStore.fontFamily
+                        onFamilySelected: family => { root.selectedFontFamily = family; root.error = "" }
+                        onApplyRequested: root.applySelected()
+                    }
+
                     GridLayout {
                         id: bodyGrid
+                        visible: !root.showFonts
                         width: bodyScroll.width - 8
                         height: Math.max(bodyScroll.height, implicitHeight)
                         columns: content.compact ? 1 : 2
@@ -193,6 +235,7 @@ Scope {
 
                             RowLayout {
                                 Layout.fillWidth: true
+                                visible: Theme.catalog.some(function(theme) { return theme.kind === "light" })
                                 spacing: 6
                                 Repeater {
                                     model: ["all", "dark", "light"]
@@ -251,7 +294,7 @@ Scope {
                                             Layout.preferredHeight: 30
                                             radius: 6
                                             color: choice.modelData.palette.background
-                                            border.color: choice.modelData.palette.borderInteractive
+                                            border.color: Theme.paletteFor(choice.modelData.id).borderInteractive
                                             border.width: 1
                                             Rectangle {
                                                 anchors.centerIn: parent
@@ -312,7 +355,8 @@ Scope {
                                 Layout.fillWidth: true
                                 Layout.fillHeight: true
                                 Layout.minimumHeight: content.compact ? 130 : 220
-                                colors: root.selectedTheme.palette
+                                colors: root.selectedPalette
+                                terminalProfile: root.selectedTheme.terminal || ({})
                                 metrics: Theme.metricsFor(root.selectedId)
                                 wallpaper: root.configStore.wallpaperPath
                                 themeName: root.selectedTheme.name
@@ -349,7 +393,7 @@ Scope {
                                         width: 28
                                         height: 28
                                         radius: 6
-                                        color: root.selectedTheme.palette[modelData]
+                                        color: root.selectedPalette[modelData]
                                         border.color: Theme.borderInteractive
                                         border.width: 1
                                     }
@@ -365,9 +409,14 @@ Scope {
                     Layout.fillWidth: true
                     spacing: 12
                     ActionButton {
-                        text: "󰸉  Wallpaper"
-                        accessibleName: "Choose wallpaper"
+                        text: root.showFonts ? "Reset font" : "󰸉  Wallpaper"
+                        accessibleName: root.showFonts ? "Preview the default Adwaita Sans font" : "Choose wallpaper"
                         onClicked: {
+                            if (root.showFonts) {
+                                root.selectedFontFamily = "Adwaita Sans"
+                                fontSettings.resetSearch()
+                                return
+                            }
                             const target = root.targetScreen
                             root.close()
                             root.wallpaperRequested(target)
@@ -376,7 +425,9 @@ Scope {
                     Text {
                         Layout.fillWidth: true
                         visible: !content.compact
-                        text: root.error !== "" ? root.error : "↑ ↓ Browse    Enter Apply    Esc Close"
+                        text: root.error !== "" ? root.error : root.showFonts
+                            ? "Rashell only · Preview, then apply · Esc Close"
+                            : "↑ ↓ Browse    Enter Apply    Esc Close"
                         color: root.error !== "" ? Theme.danger : Theme.textMuted
                         font { family: Theme.fontFamily; pixelSize: Theme.fontSmall }
                         horizontalAlignment: Text.AlignHCenter
@@ -385,9 +436,13 @@ Scope {
                     Item { Layout.fillWidth: true; visible: content.compact }
                     ActionButton {
                         objectName: "appearanceApply"
-                        text: root.configStore.theme === root.selectedId ? "Current theme" : "Apply theme"
-                        enabled: root.filteredThemes.length > 0
-                        selected: true
+                        text: root.showFonts
+                            ? (root.configStore.fontFamily === root.selectedFontFamily ? "Current font" : "Apply font")
+                            : (root.configStore.theme === root.selectedId ? "Current theme" : "Apply theme")
+                        enabled: root.showFonts
+                            ? root.configStore.fontFamily !== root.selectedFontFamily && Theme.fontFamilies.indexOf(root.selectedFontFamily) !== -1
+                            : root.filteredThemes.length > 0
+                        selected: !root.showFonts || enabled
                         implicitHeight: 38
                         onClicked: root.applySelected()
                     }

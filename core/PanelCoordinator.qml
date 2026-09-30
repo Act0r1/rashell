@@ -18,6 +18,7 @@ Scope {
 
     signal appearanceRequested(var screen)
     signal mediaDownloadRequested()
+    signal audioOutputPickerRequested()
 
     function key(panelId, outputName) {
         return panelId + "@" + outputName

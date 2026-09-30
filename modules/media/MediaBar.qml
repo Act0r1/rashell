@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import Quickshell
 import qs.core
+import qs.ui
 
 Item {
     id: root
@@ -11,37 +12,58 @@ Item {
     required property string outputName
 
     visible: state.available
-    implicitWidth: visible ? Math.min(300, mediaRow.implicitWidth + 20) : 0
+    implicitWidth: state.available ? Math.min(220, mediaIcon.implicitWidth + labelMetrics.advanceWidth + Theme.spaceSm + 16) : 0
     implicitHeight: Theme.controlHeight
+
+    TextMetrics {
+        id: labelMetrics
+        text: mediaLabel.text
+        font: mediaLabel.font
+    }
 
     Button {
         id: button
         anchors.fill: parent
         hoverEnabled: true
+        padding: 0
+        leftPadding: Theme.spaceMd
+        rightPadding: Theme.spaceMd
         Accessible.name: root.state.available ? root.state.title + ", " + root.state.artist : "No media"
+        BarToolTip {
+            visible: button.hovered && !root.coordinator.opened && text !== ""
+            text: root.state.artist ? root.state.title + " · " + root.state.artist : root.state.title
+        }
 
-        contentItem: Row {
-            id: mediaRow
-            spacing: 7
+        contentItem: Item {
+            clip: true
 
-            Text {
+            Row {
+                id: mediaRow
+                anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
-                text: root.state.playing ? "󰏤" : "󰐊"
-                color: Theme.accent
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontTitle
-            }
+                spacing: mediaLabel.width > 0 ? Theme.spaceSm : 0
 
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                width: Math.min(250, implicitWidth)
-                text: root.state.artist ? root.state.title + " · " + root.state.artist : root.state.title
-                color: Theme.text
-                elide: Text.ElideRight
-                maximumLineCount: 1
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontBody
-                font.bold: true
+                Text {
+                    id: mediaIcon
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: Math.min(implicitWidth, Math.max(0, button.availableWidth))
+                    text: root.state.playing ? "󰏤" : "󰐊"
+                    color: Theme.textMuted
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontTitle
+                }
+
+                Text {
+                    id: mediaLabel
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: Math.max(0, button.availableWidth - mediaIcon.width - Theme.spaceSm)
+                    text: root.state.artist ? root.state.title + " · " + root.state.artist : root.state.title
+                    color: Theme.text
+                    elide: Text.ElideRight
+                    maximumLineCount: 1
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontBody
+                }
             }
         }
 
@@ -50,8 +72,8 @@ Item {
                 && root.coordinator.activePanelId === "media"
                 && root.coordinator.anchorItem === root
             color: active || button.hovered || button.down ? Theme.surfaceRaised : "transparent"
-            border.color: active ? Theme.accent : "transparent"
-            border.width: 1
+            border.color: button.activeFocus ? Theme.focus : active ? Theme.accent : "transparent"
+            border.width: button.activeFocus ? Theme.focusWidth : Theme.borderWidth
             radius: Theme.radius
         }
 

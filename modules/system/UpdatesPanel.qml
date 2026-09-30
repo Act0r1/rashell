@@ -10,6 +10,13 @@ FocusScope {
     required property var coordinator
     required property var systemState
 
+    readonly property int packageCount: systemState.availableUpdates.count
+    readonly property bool hasError: systemState.updatesError.length > 0
+    readonly property bool canUpdate: systemState.updatesChecked
+        && !systemState.updatesRefreshing && !hasError
+    readonly property string checkedAt: systemState.updatesLastChecked.getTime() > 0
+        ? Qt.formatDateTime(systemState.updatesLastChecked, "d MMM, hh:mm") : ""
+
     implicitWidth: panel.implicitWidth
     implicitHeight: panel.implicitHeight
 
@@ -21,150 +28,168 @@ FocusScope {
     PanelFrame {
         id: panel
         width: parent.width
-        title: "SYSTEM UPDATES"
+        title: "System updates"
         contentWidth: 460
         onCloseRequested: root.coordinator.close("close-control")
 
         Column {
             width: parent.width
-            spacing: Theme.spaceMd
+            spacing: Theme.spaceXl
 
-            Item {
+            Row {
                 width: parent.width
-                height: 22
+                spacing: Theme.spaceLg
 
-                Text {
-                    anchors {
-                        left: parent.left
-                        right: sourceLabel.left
-                        rightMargin: Theme.spaceMd
-                        verticalCenter: parent.verticalCenter
+                Rectangle {
+                    width: 48
+                    height: 48
+                    radius: Theme.radius
+                    color: root.hasError && !root.systemState.updatesRefreshing
+                        ? Theme.dangerSurface : Theme.selectedSurface
+
+                    ShellIcon {
+                        anchors.centerIn: parent
+                        width: 24
+                        height: 24
+                        name: root.systemState.updatesRefreshing || root.hasError || root.packageCount === 0
+                            ? "rotate-cw" : "download"
+                        tint: root.hasError && !root.systemState.updatesRefreshing ? Theme.danger : Theme.accent
                     }
-                    text: root.systemState.updatesRefreshing
-                        ? "SCANNING PACKAGES…"
-                        : root.systemState.availableUpdates.count + " PACKAGES READY"
-                    color: root.systemState.availableUpdates.count > 0 ? Theme.accent : Theme.textMuted
-                    font.family: Theme.fontFamily
-                    font.pixelSize: Theme.fontSmall
-                    font.bold: true
-                    font.letterSpacing: 1
-                    elide: Text.ElideRight
                 }
 
-                Text {
-                    id: sourceLabel
+                Column {
+                    width: parent.width - 48 - parent.spacing
+                    spacing: Theme.spaceSm
 
-                    anchors {
-                        right: parent.right
-                        verticalCenter: parent.verticalCenter
+                    Text {
+                        width: parent.width
+                        text: root.systemState.updatesRefreshing ? "Checking for updates…"
+                            : root.hasError ? "Couldn't check for updates"
+                            : !root.systemState.updatesChecked ? "Ready to check for updates"
+                            : root.packageCount > 0 ? root.packageCount + (root.packageCount === 1 ? " package update" : " package updates")
+                            : "Repositories are up to date"
+                        color: Theme.text
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontTitle
+                        font.bold: true
+                        wrapMode: Text.WordWrap
                     }
-                    text: "CHECKUPDATES"
-                    color: Theme.textDisabled
-                    font.family: Theme.fontFamily
-                    font.pixelSize: Theme.fontSmall
+
+                    Text {
+                        width: parent.width
+                        text: root.systemState.updatesRefreshing ? "Checking official repository packages."
+                            : root.hasError ? root.systemState.updatesError
+                            : root.checkedAt !== "" ? "Last checked " + root.checkedAt
+                            : "Packages from official repositories."
+                        textFormat: Text.PlainText
+                        color: Theme.textMuted
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSmall
+                        wrapMode: Text.WordWrap
+                        maximumLineCount: 3
+                        elide: Text.ElideRight
+                    }
                 }
             }
 
-            Text {
-                visible: !root.systemState.updatesRefreshing && root.systemState.availableUpdates.count === 0
+            Column {
                 width: parent.width
-                height: 72
-                text: "✓  System is up to date"
-                color: Theme.textMuted
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontBody
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
-            }
+                spacing: Theme.spaceSm
+                visible: root.packageCount > 0
 
-            Rectangle {
-                width: parent.width
-                height: Math.min(316, updatesList.contentHeight) + Theme.borderWidth * 2
-                visible: updatesList.count > 0
-                color: Theme.surfaceRaised
-                border.color: Theme.border
-                border.width: Theme.borderWidth
-                radius: Theme.radius
-                clip: true
+                Text {
+                    width: parent.width
+                    text: root.systemState.updatesRefreshing || root.hasError
+                        ? "Repository packages · previous check" : "Repository packages"
+                    color: Theme.textMuted
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSmall
+                }
 
                 ListView {
                     id: updatesList
-
-                    anchors {
-                        fill: parent
-                        margins: Theme.borderWidth
-                    }
+                    width: parent.width
+                    height: Math.min(300, contentHeight)
                     model: root.systemState.availableUpdates
                     clip: true
                     boundsBehavior: Flickable.StopAtBounds
 
                     ScrollBar.vertical: ScrollBar {
                         id: updatesScroll
-
                         policy: ScrollBar.AsNeeded
-                        width: 6
-
+                        visible: updatesList.contentHeight > updatesList.height + 1
+                        width: 5
                         contentItem: Rectangle {
-                            implicitWidth: 4
+                            implicitWidth: 3
                             radius: 2
                             color: updatesScroll.pressed || updatesScroll.hovered
                                 ? Theme.accent : Theme.accentMuted
                         }
-
                         background: Item {}
                     }
 
-                    delegate: Rectangle {
+                    delegate: Item {
+                        id: packageRow
                         required property int index
                         required property string name
                         required property string currentVersion
                         required property string newVersion
 
                         width: ListView.view.width
-                        height: 52
-                        color: index % 2 === 0 ? Theme.surfaceRaised : Theme.surface
-
-                        Rectangle {
-                            anchors {
-                                left: parent.left
-                                leftMargin: Theme.spaceMd
-                                verticalCenter: parent.verticalCenter
-                            }
-                            width: 3
-                            height: 20
-                            color: Theme.accentMuted
-                            radius: 1
-                        }
+                        height: 60
+                        Accessible.role: Accessible.ListItem
+                        Accessible.name: name + ", " + currentVersion + "  →  " + newVersion
 
                         Column {
                             anchors {
                                 left: parent.left
                                 right: parent.right
                                 verticalCenter: parent.verticalCenter
-                                leftMargin: Theme.spaceLg + Theme.spaceMd
                                 rightMargin: Theme.spaceLg
                             }
                             spacing: Theme.spaceSm
 
                             Text {
                                 width: parent.width
-                                text: name
+                                text: packageRow.name
                                 textFormat: Text.PlainText
                                 color: Theme.text
                                 font.family: Theme.fontFamily
                                 font.pixelSize: Theme.fontBody
-                                font.bold: true
                                 elide: Text.ElideRight
                             }
 
-                            Text {
+                            Row {
                                 width: parent.width
-                                text: currentVersion + "  →  " + newVersion
-                                textFormat: Text.PlainText
-                                color: Theme.textMuted
-                                font.family: Theme.fontFamily
-                                font.pixelSize: Theme.fontSmall
-                                elide: Text.ElideMiddle
+                                spacing: Theme.spaceMd
+
+                                Text {
+                                    width: (parent.width - versionArrow.width - parent.spacing * 2) / 2
+                                    text: packageRow.currentVersion
+                                    textFormat: Text.PlainText
+                                    color: Theme.textMuted
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: Theme.fontSmall
+                                    elide: Text.ElideMiddle
+                                }
+
+                                Text {
+                                    id: versionArrow
+                                    text: "→"
+                                    color: Theme.textMuted
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: Theme.fontSmall
+                                }
+
+                                Text {
+                                    width: (parent.width - versionArrow.width - parent.spacing * 2) / 2
+                                    text: packageRow.newVersion
+                                    textFormat: Text.PlainText
+                                    color: Theme.text
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: Theme.fontSmall
+                                    elide: Text.ElideMiddle
+                                }
                             }
                         }
 
@@ -173,40 +198,66 @@ FocusScope {
                                 left: parent.left
                                 right: parent.right
                                 bottom: parent.bottom
-                                leftMargin: Theme.spaceLg + Theme.spaceMd
+                                rightMargin: Theme.spaceLg
                             }
-                            visible: index < updatesList.count - 1
+                            visible: packageRow.index < updatesList.count - 1
                             height: Theme.borderWidth
-                            color: Theme.border
+                            color: Qt.alpha(Theme.border, 0.5)
                         }
                     }
                 }
             }
 
-            Row {
+            Column {
                 width: parent.width
-                spacing: Theme.spaceMd
+                spacing: Theme.spaceLg
 
-                ActionButton {
-                    width: (parent.width - parent.spacing) / 2
-                    text: "Refresh"
-                    accessibleName: "Refresh available updates"
-                    enabled: !root.systemState.updatesRefreshing
-                    onClicked: root.systemState.refreshUpdates()
+                Text {
+                    width: parent.width
+                    text: root.hasError && !root.systemState.updatesRefreshing
+                        ? "Refresh to retry. Updates open in a terminal."
+                        : "Opens a terminal for repositories, AUR and Flatpak."
+                    color: Theme.textMuted
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSmall
+                    wrapMode: Text.WordWrap
                 }
 
-                ActionButton {
-                    width: (parent.width - parent.spacing) / 2
-                    text: "Update"
-                    accessibleName: "Install " + root.systemState.updates + " system updates"
-                    enabled: !root.systemState.updatesRefreshing && root.systemState.updates > 0
-                    selected: root.systemState.updates > 0
-                    onClicked: {
-                        root.coordinator.close("start-update")
-                        Quickshell.execDetached([
-                            "ghostty", "-e", "bash", "-lc",
-                            "yay; flatpak update; read -n 1 -p 'Press any key to close'"
-                        ])
+                Row {
+                    width: parent.width
+                    spacing: Theme.spaceMd
+
+                    Item {
+                        width: parent.width - refreshButton.width - updateButton.width - parent.spacing * 2
+                        height: 1
+                    }
+
+                    ActionButton {
+                        id: refreshButton
+                        width: 100
+                        height: 36
+                        flat: true
+                        text: "Refresh"
+                        accessibleName: root.hasError ? "Retry checking for updates" : "Refresh available updates"
+                        enabled: !root.systemState.updatesRefreshing
+                        onClicked: root.systemState.refreshUpdates()
+                    }
+
+                    ActionButton {
+                        id: updateButton
+                        width: 110
+                        height: 36
+                        text: "Update"
+                        accessibleName: "Open terminal to update repositories, AUR and Flatpak"
+                        enabled: root.canUpdate
+                        selected: enabled
+                        onClicked: {
+                            root.coordinator.close("start-update")
+                            Quickshell.execDetached([
+                                "ghostty", "-e", "bash", "-lc",
+                                "yay; flatpak update; read -n 1 -p 'Press any key to close'"
+                            ])
+                        }
                     }
                 }
             }

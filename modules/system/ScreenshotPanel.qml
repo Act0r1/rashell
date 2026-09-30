@@ -34,7 +34,7 @@ FocusScope {
     PanelFrame {
         id: panel
         width: parent.width
-        title: "SCREEN CAPTURE"
+        title: "Screen capture"
         contentWidth: 440
         onCloseRequested: root.coordinator.close("close-capture")
 

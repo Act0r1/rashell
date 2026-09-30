@@ -7,7 +7,7 @@ import Quickshell.Io
 QtObject {
     id: theme
 
-    property string activeName: "muninn"
+    property string activeName: "ayu-dark"
 
     readonly property FileView catalogFile: FileView {
         path: Quickshell.shellDir + "/core/themes.json"
@@ -29,7 +29,7 @@ QtObject {
             if (catalog[index].id === requested) return catalog[index]
         }
         for (let index = 0; index < catalog.length; index++) {
-            if (catalog[index].id === "muninn") return catalog[index]
+            if (catalog[index].id === "ayu-dark") return catalog[index]
         }
         return catalog[0]
     }
@@ -37,21 +37,29 @@ QtObject {
     function metricsFor(name) {
         const requested = String(name)
         return {
-            radius: requested === "talon" ? 0 : requested === "muninn" ? 2 : requested === "nevermore" ? 8 : 12,
-            barHeight: requested === "talon" || requested === "nevermore" ? controlHeight
-                : requested === "oilslick" ? 44 : 40,
-            edgeMargin: requested === "nevermore" ? 2
-                : requested === "ember" || requested === "raven" || requested === "jade" ? 4 : 0,
-            sliderTrackHeight: requested === "talon" || requested === "muninn" ? 6 : 8
+            radius: 12,
+            barHeight: 40,
+            edgeMargin: requested === "raven" ? 4 : 0,
+            sliderTrackHeight: 8
         }
     }
 
-    readonly property var palette: palettes[activeName] || palettes.muninn
+    function paletteFor(name) {
+        const source = palettes[name] || palettes["ayu-dark"]
+        return Object.assign({}, source, {
+            accentMuted: source.accentSecondary || source.accentMuted,
+            danger: source.dangerText || source.danger,
+            borderInteractive: source.borderControl || source.borderInteractive
+        })
+    }
+
+    readonly property var palette: paletteFor(activeName)
     readonly property color background: palette.background
     readonly property color surface: palette.surface
     readonly property color surfaceRaised: palette.surfaceRaised
     readonly property color accent: palette.accent
     readonly property color accentMuted: palette.accentMuted
+    readonly property color accentSecondary: palette.accentMuted
     readonly property color text: palette.text
     readonly property color textMuted: palette.textMuted
     readonly property color textDisabled: palette.textDisabled
@@ -61,11 +69,25 @@ QtObject {
     readonly property color focus: palette.accent
     readonly property color danger: palette.danger
     readonly property color textOnDanger: palette.textOnDanger
+    readonly property color success: palette.success || palette.accent
+    readonly property color warning: palette.warning || palette.accent
+    readonly property color info: palette.info || palette.accent
+    readonly property color hoverSurface: Qt.tint(surface, Qt.alpha(accent, 0.04))
+    readonly property color pressedSurface: Qt.tint(surface, Qt.alpha(accent, 0.08))
+    readonly property color selectedSurface: Qt.tint(surface, Qt.alpha(accent, 0.06))
+    readonly property color selectedHoverSurface: Qt.tint(surface, Qt.alpha(accent, 0.08))
+    readonly property color selectedPressedSurface: Qt.tint(surface, Qt.alpha(accent, 0.10))
+    readonly property color accentHover: Qt.lighter(accent, 1.08)
+    readonly property color accentPressed: Qt.darker(accent, 1.08)
+    readonly property color dangerSurface: Qt.tint(surface, Qt.alpha(danger, 0.10))
 
-    readonly property string fontFamily: "Adwaita Sans"
+    property string selectedFontFamily: "Adwaita Sans"
+    readonly property var fontFamilies: Qt.fontFamilies()
+    readonly property string fontFamily: fontFamilies.indexOf(selectedFontFamily) !== -1
+        ? selectedFontFamily : "Adwaita Sans"
     readonly property int fontSmall: 12
     readonly property int fontBody: 14
-    readonly property int fontTitle: 16
+    readonly property int fontTitle: 17
 
     readonly property int spaceXs: 2
     readonly property int spaceSm: 4

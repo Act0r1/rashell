@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import Quickshell
 import qs.core
+import qs.ui
 
 Item {
     id: root
@@ -12,44 +13,44 @@ Item {
     required property var feedback
     required property string outputName
 
-    implicitWidth: Math.max(72, audioContent.implicitWidth + 16)
+    implicitWidth: Math.max(64, audioContent.implicitWidth + 16)
     implicitHeight: Theme.controlHeight
 
     Button {
         id: button
         anchors.fill: parent
         hoverEnabled: true
+        padding: 0
         Accessible.name: root.state.availability === "ready"
             ? (root.state.outputMuted ? "Audio muted" : "Audio volume " + Math.round(root.state.outputVolume * 100) + " percent")
             : "Audio " + root.state.availability
         Accessible.role: Accessible.Button
 
-        contentItem: Row {
-            id: audioContent
-            spacing: Theme.spaceSm + 2
+        contentItem: Item {
+            Row {
+                id: audioContent
+                anchors.centerIn: parent
+                spacing: 6
 
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                text: root.state.availability !== "ready" ? "󰝟"
-                    : root.state.outputMuted ? "󰝟"
-                    : root.state.outputVolume < 0.01 ? "󰕿"
-                    : root.state.outputVolume < 0.5 ? "󰖀" : "󰕾"
-                color: root.state.outputMuted ? Theme.danger
-                    : root.state.availability === "ready" ? Theme.accent : Theme.textMuted
-                font.family: Theme.fontFamily
-                font.pixelSize: 18
-            }
+                ShellIcon {
+                    anchors.verticalCenter: parent.verticalCenter
+                    name: root.state.availability !== "ready" || root.state.outputMuted || root.state.outputVolume < 0.01 ? "volume-x" : "volume-2"
+                    tint: root.state.availability !== "ready" ? Theme.textDisabled
+                        : root.state.outputMuted ? Theme.danger : Theme.textMuted
+                }
 
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                width: 34
-                horizontalAlignment: Text.AlignRight
-                text: root.state.availability === "loading" ? "…"
-                    : root.state.availability !== "ready" ? "!"
-                    : Math.round(root.state.outputVolume * 100) + "%"
-                color: Theme.accent
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontBody
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: 34
+                    horizontalAlignment: Text.AlignRight
+                    text: root.state.availability === "loading" ? "…"
+                        : root.state.availability !== "ready" ? "!"
+                        : Math.round(root.state.outputVolume * 100) + "%"
+                    color: root.state.availability !== "ready" && root.state.availability !== "loading"
+                        ? Theme.danger : Theme.text
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontBody
+                }
             }
         }
 
@@ -58,8 +59,8 @@ Item {
                 && root.coordinator.activePanelId === "audio"
                 && root.coordinator.anchorItem === root
             color: active || button.hovered || button.down ? Theme.surfaceRaised : "transparent"
-            border.color: active ? Theme.accent : "transparent"
-            border.width: Theme.borderWidth
+            border.color: button.activeFocus ? Theme.focus : active ? Theme.accent : "transparent"
+            border.width: button.activeFocus ? Theme.focusWidth : Theme.borderWidth
             radius: Theme.radius
         }
 

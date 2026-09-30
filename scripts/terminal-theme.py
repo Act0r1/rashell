@@ -18,8 +18,27 @@ CORE = Path(__file__).resolve().parent.parent / "core"
 PALETTE_KEYS = (
     "background", "surface", "surfaceRaised", "accent", "accentMuted",
     "text", "textMuted", "textDisabled", "textOnAccent", "border",
-    "borderInteractive", "danger", "textOnDanger",
+    "borderInteractive", "danger", "textOnDanger", "accentSecondary",
+    "dangerText", "borderControl", "success", "warning", "info",
 )
+SYNTAX_ROLES = (
+    "comment", "string", "keyword", "function", "type", "number",
+    "constant", "variable", "operator", "punctuation",
+)
+BASE16_KEYS = {f"base{index:02X}" for index in range(16)}
+SETTING_KEYS = (
+    "background", "foreground", "cursor-color", "cursor-text",
+    "selection-background", "selection-foreground", "split-divider-color",
+    "unfocused-split-fill", "search-background", "search-foreground",
+    "search-selected-background", "search-selected-foreground",
+)
+
+
+@dataclass(frozen=True)
+class TerminalScheme:
+    base16: dict[str, str]
+    ansi: list[str]
+    settings: dict[str, str]
 
 
 @dataclass(frozen=True)
@@ -27,6 +46,21 @@ class Theme:
     name: str
     kind: str
     palette: dict[str, str]
+    syntax: dict[str, str]
+    terminal: TerminalScheme
+
+
+def color_map(value: object, expected: set[str], label: str) -> dict[str, str]:
+    if not isinstance(value, dict):
+        raise ValueError(f"Invalid {label}")
+    result: dict[str, str] = {}
+    for key, color in cast(dict[object, object], value).items():
+        if not isinstance(key, str) or not isinstance(color, str) or not re.fullmatch(r"#[0-9a-fA-F]{6}", color):
+            raise ValueError(f"Invalid {label} color")
+        result[key] = color.lower()
+    if set(result) != expected:
+        raise ValueError(f"Incomplete {label}")
+    return result
 
 
 def load_theme(theme_id: str) -> Theme:
@@ -40,17 +74,24 @@ def load_theme(theme_id: str) -> Theme:
         if theme.get("id") != theme_id:
             continue
         kind = theme.get("kind")
-        raw_palette = theme.get("palette")
-        if kind not in ("dark", "light") or not isinstance(raw_palette, dict):
+        if kind not in ("dark", "light"):
             raise ValueError(f"Invalid theme: {theme_id}")
-        palette: dict[str, str] = {}
-        for key, value in cast(dict[str, object], raw_palette).items():
-            if not isinstance(value, str) or not re.fullmatch(r"#[0-9a-fA-F]{6}", value):
-                raise ValueError(f"Invalid {key} color for {theme_id}")
-            palette[key] = value.lower()
-        if not all(key in palette for key in PALETTE_KEYS):
-            raise ValueError(f"Incomplete palette for {theme_id}")
-        return Theme(theme_id, cast(str, kind), palette)
+        palette = color_map(theme.get("palette"), set(PALETTE_KEYS), f"{theme_id} palette")
+        syntax = color_map(theme.get("syntax"), set(SYNTAX_ROLES), f"{theme_id} syntax")
+        raw_terminal = theme.get("terminal")
+        if not isinstance(raw_terminal, dict):
+            raise ValueError(f"Invalid terminal theme: {theme_id}")
+        terminal = cast(dict[str, object], raw_terminal)
+        base16 = color_map(terminal.get("base16"), BASE16_KEYS, f"{theme_id} base16")
+        raw_ansi = terminal.get("ansi")
+        if not isinstance(raw_ansi, list) or len(raw_ansi) != 16:
+            raise ValueError(f"Invalid {theme_id} ansi")
+        ansi_map = color_map({str(index): color for index, color in enumerate(cast(list[object], raw_ansi))},
+                             {str(index) for index in range(16)}, f"{theme_id} ansi")
+        ansi = [ansi_map[str(index)] for index in range(16)]
+        settings = color_map(terminal.get("settings"), set(SETTING_KEYS), f"{theme_id} settings")
+        return Theme(theme_id, cast(str, kind), palette,
+                     syntax, TerminalScheme(base16, ansi, settings))
     raise ValueError(f"Unknown theme: {theme_id}")
 
 
@@ -81,54 +122,9 @@ def readable(color: str, background: str, kind: str) -> str:
     return target
 
 
-def base16(theme: Theme) -> dict[str, str]:
-    palette = theme.palette
-    semantic = (
-        ("#e5a16b", "#dfc26b", "#93c780", "#78c6cd", "#c18fa3")
-        if theme.kind == "dark" else
-        ("#995122", "#856500", "#39703b", "#24717b", "#8b5067")
-    )
-    orange, yellow, green, cyan, brown = (
-        readable(blend(color, palette["accent"], 0.06), palette["background"], theme.kind)
-        for color in semantic
-    )
-    colors = (
-        palette["background"], palette["surface"], palette["surfaceRaised"],
-        palette["textMuted"], palette["textMuted"], palette["text"],
-        palette["text"], palette["text"], palette["danger"], orange, yellow,
-        green, cyan,
-        readable(palette["accent"], palette["background"], theme.kind),
-        readable(palette["accentMuted"], palette["background"], theme.kind), brown,
-    )
-    return {f"base{index:02X}": color for index, color in enumerate(colors)}
-
-
-def ansi_colors(theme: Theme, base: dict[str, str]) -> list[str]:
-    normal = [base[key] for key in ("base00", "base08", "base0B", "base0A",
-                                     "base0D", "base0E", "base0C", "base05")]
-    bright = [base["base03"]] + [
-        readable(blend(color, theme.palette["text"], 0.12), base["base00"], theme.kind)
-        for color in normal[1:7]
-    ] + [base["base07"]]
-    return normal + bright
-
-
-def ghostty_config(theme: Theme, base: dict[str, str], ansi: list[str]) -> str:
-    palette = theme.palette
-    settings = {
-        "background": palette["background"],
-        "foreground": palette["text"],
-        "cursor-color": base["base0D"],
-        "cursor-text": palette["background"],
-        "selection-background": palette["surfaceRaised"],
-        "selection-foreground": palette["text"],
-        "split-divider-color": palette["accent"],
-        "unfocused-split-fill": palette["background"],
-        "search-background": base["base0A"],
-        "search-foreground": palette["background"],
-        "search-selected-background": base["base0D"],
-        "search-selected-foreground": palette["background"],
-    }
+def ghostty_config(scheme: TerminalScheme, ansi: list[str]) -> str:
+    settings = dict(scheme.settings)
+    settings["minimum-contrast"] = "4.5"
     return "\n".join(
         [f"{key} = {value}" for key, value in settings.items()]
         + [f"palette = {index}={color}" for index, color in enumerate(ansi)]
@@ -198,12 +194,18 @@ def main() -> int:
         if not output.is_absolute():
             raise ValueError("The output directory must be absolute")
         theme = load_theme(arguments.theme)
-        base = base16(theme)
-        ansi = ansi_colors(theme, base)
+        base = theme.terminal.base16
+        background = theme.terminal.settings["background"]
+        raw = theme.terminal.ansi
+        ansi = [raw[0]] + [readable(color, background, theme.kind) for color in raw[1:]]
+        ansi[8] = readable(blend(background, raw[8], 0.5), background, theme.kind)
+        settings = dict(theme.terminal.settings)
+        settings["minimum-contrast"] = "4.5"
         document = {"name": theme.name, "kind": theme.kind,
-                    "palette": theme.palette, "base16": base, "ansi": ansi}
+                    "palette": theme.palette, "base16": base, "ansi": ansi,
+                    "syntax": theme.syntax, "settings": settings}
         write_changed(output / "terminal-palette.json", json.dumps(document, indent=2) + "\n")
-        changed = write_changed(output / "ghostty.conf", ghostty_config(theme, base, ansi))
+        changed = write_changed(output / "ghostty.conf", ghostty_config(theme.terminal, ansi))
         if changed and arguments.reload_ghostty:
             reload_ghostty()
     except (OSError, UnicodeError, ValueError, KeyError) as error:
