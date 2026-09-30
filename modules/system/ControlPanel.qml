@@ -143,7 +143,7 @@ FocusScope {
                         text: tile.glyph
                         color: tile.active ? Theme.textOnAccent : Theme.textMuted
                         font.family: Theme.fontFamily
-                        font.pixelSize: 20
+                        font.pixelSize: Theme.fontTitle
                         horizontalAlignment: Text.AlignHCenter
                     }
                     Text {
@@ -461,7 +461,7 @@ FocusScope {
                                     : root.controlState.networkConnected ? "󰤨" : "󰤭"
                                 color: root.controlState.networkConnected ? Theme.accent : Theme.textMuted
                                 font.family: Theme.fontFamily
-                                font.pixelSize: 18
+                                font.pixelSize: Theme.fontTitle
                                 horizontalAlignment: Text.AlignHCenter
                             }
 

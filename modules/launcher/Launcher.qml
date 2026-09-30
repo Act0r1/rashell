@@ -227,7 +227,7 @@ Scope {
                         leftPadding: Theme.controlHeight + Theme.spaceMd
                         rightPadding: Theme.spaceMd
                         font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontTitle + Theme.spaceXs
+                        font.pixelSize: Theme.fontTitle
                         focus: root.opened
                         Accessible.name: placeholderText
 

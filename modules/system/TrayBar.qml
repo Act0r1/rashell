@@ -246,7 +246,7 @@ Item {
                 anchors.centerIn: parent
                 text: "+"
                 color: Theme.accent
-                font.pixelSize: 18
+                font.pixelSize: Theme.fontTitle
             }
         }
 
@@ -287,7 +287,7 @@ Item {
                 text: root.overflowOpened ? "󰅃" : "󰅀"
                 color: root.overflowOpened ? Theme.accent : Theme.textMuted
                 font.family: Theme.fontFamily
-                font.pixelSize: 18
+                font.pixelSize: Theme.fontTitle
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
             }

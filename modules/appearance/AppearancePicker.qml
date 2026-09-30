@@ -148,7 +148,7 @@ Scope {
                         Text {
                             text: "Appearance"
                             color: Theme.text
-                            font { family: Theme.fontFamily; pixelSize: 24; bold: true }
+                            font { family: Theme.fontFamily; pixelSize: Theme.fontDisplay; bold: true }
                         }
                         Text {
                             text: root.showFonts ? "Typography for your panel, menus and notifications"
@@ -316,7 +316,7 @@ Scope {
                                             text: "✓"
                                             color: Theme.accent
                                             font.family: Theme.fontFamily
-                                            font.pixelSize: 14
+                                            font.pixelSize: Theme.fontBody
                                         }
                                     }
                                 }

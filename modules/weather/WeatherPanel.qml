@@ -14,6 +14,8 @@ FocusScope {
     required property var weatherState
     required property var configStore
 
+    readonly property int heroTemperatureSize: 58
+
     readonly property var anchorWindow: coordinator.anchorItem ? coordinator.anchorItem.QsWindow.window : null
     readonly property var targetScreen: anchorWindow ? anchorWindow.screen : null
     readonly property real availablePanelHeight: {
@@ -199,7 +201,7 @@ FocusScope {
                             text: root.weatherState.icon
                             color: Qt.rgba(1, 1, 1, 0.94)
                             font.family: Theme.fontFamily
-                            font.pixelSize: 28
+                            font.pixelSize: Theme.fontDisplay
                         }
 
                         Text {
@@ -226,7 +228,7 @@ FocusScope {
                             visible: root.weatherState.cityTimeAvailable
                             color: Qt.rgba(1, 1, 1, 0.66)
                             font.family: Theme.fontFamily
-                            font.pixelSize: 11
+                            font.pixelSize: Theme.fontSmall
                         }
 
                         Column {
@@ -248,7 +250,7 @@ FocusScope {
                                     text: root.weatherState.available ? root.weatherState.temperatureCelsius : "--"
                                     color: "white"
                                     font.family: Theme.fontFamily
-                                    font.pixelSize: 58
+                                    font.pixelSize: root.heroTemperatureSize
                                     font.bold: true
                                     font.letterSpacing: -2
                                     style: Text.Raised
@@ -265,7 +267,7 @@ FocusScope {
                                     text: "°C"
                                     color: Qt.rgba(1, 1, 1, 0.88)
                                     font.family: Theme.fontFamily
-                                    font.pixelSize: 21
+                                    font.pixelSize: Theme.fontDisplay
                                 }
                             }
 
@@ -343,7 +345,7 @@ FocusScope {
                                             text: statChip.modelData.label
                                             color: Qt.rgba(1, 1, 1, 0.72)
                                             font.family: Theme.fontFamily
-                                            font.pixelSize: 11
+                                            font.pixelSize: Theme.fontSmall
                                         }
                                     }
                                 }
@@ -394,7 +396,7 @@ FocusScope {
                                     text: hourCell.modelData.time
                                     color: Theme.textMuted
                                     font.family: Theme.fontFamily
-                                    font.pixelSize: 11
+                                    font.pixelSize: Theme.fontSmall
                                 }
 
                                 Text {
@@ -422,7 +424,7 @@ FocusScope {
                                     text: hourCell.modelData.probability + "%"
                                     color: hourCell.modelData.probability > 0 ? Theme.accentMuted : Theme.textMuted
                                     font.family: Theme.fontFamily
-                                    font.pixelSize: 11
+                                    font.pixelSize: Theme.fontSmall
                                 }
                             }
                         }

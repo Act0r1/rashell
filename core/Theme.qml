@@ -88,6 +88,8 @@ QtObject {
     readonly property int fontSmall: 12
     readonly property int fontBody: 14
     readonly property int fontTitle: 17
+    readonly property int fontDisplay: 24
+    readonly property int fontHero: 40
 
     readonly property int spaceXs: 2
     readonly property int spaceSm: 4

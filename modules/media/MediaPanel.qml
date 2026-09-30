@@ -182,7 +182,7 @@ FocusScope {
                         elide: Text.ElideRight
                         maximumLineCount: 2
                         font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontTitle + 4
+                        font.pixelSize: Theme.fontDisplay
                         font.bold: true
                     }
 

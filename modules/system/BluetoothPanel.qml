@@ -483,7 +483,7 @@ FocusScope {
                             text: "󰂯"
                             color: Theme.accent
                             font.family: Theme.fontFamily
-                            font.pixelSize: 28
+                            font.pixelSize: Theme.fontDisplay
                             horizontalAlignment: Text.AlignHCenter
                         }
 

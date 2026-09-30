@@ -164,7 +164,7 @@ GridLayout {
             text: root.selectedFamily
             color: Theme.text
             font.family: Theme.fontFamily
-            font.pixelSize: 24
+            font.pixelSize: Theme.fontDisplay
             font.bold: true
             elide: Text.ElideRight
         }
@@ -188,7 +188,7 @@ GridLayout {
                     text: "Aa Бб 0123"
                     color: Theme.accent
                     font.family: root.previewFamily
-                    font.pixelSize: 42
+                    font.pixelSize: Theme.fontHero
                     elide: Text.ElideRight
                 }
                 Text {
