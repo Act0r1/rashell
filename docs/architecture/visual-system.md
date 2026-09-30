@@ -228,31 +228,15 @@ Text uses `fontSmall`, wrapping/elision up to three lines. Its surface uses
 - Decorative/ambient motion is not fully tokenized: weather scenes use local
   durations (for example 1100 ms in `GlassPane.qml` and long cloud loops in
   `CityScene.qml`); the recording pulse in `ScreenshotBar.qml` uses 600 ms legs.
-- Nerd Font/private-use glyphs remain pending migration to Lucide. The audit
-  below counts **matching source lines**, not unique icons or glyph occurrences.
-  It includes appearance, audio, media, and tray in addition to weather, control
-  center, Bluetooth device types/status, network, and screenshot controls.
+- Icons use Lucide SVGs through `ShellIcon` everywhere except the lock screen,
+  which uses Material Symbols Rounded. No Nerd Font/private-use glyphs remain
+  outside `modules/lock`.
 
-Reproduce the glyph inventory with:
+Verify the migration with (expected: no matches):
 
 ```sh
 git grep -nP '[\x{F0000}-\x{FFFFD}\x{E000}-\x{F8FF}]' -- '*.qml' ':!modules/lock'
 ```
-
-| File | Matching lines |
-|---|---:|
-| `modules/appearance/AppearancePicker.qml` | 1 |
-| `modules/appearance/DesktopPreview.qml` | 2 |
-| `modules/audio/AudioPanel.qml` | 3 |
-| `modules/media/MediaBar.qml` | 1 |
-| `modules/system/BluetoothPanel.qml` | 3 |
-| `modules/system/BluetoothState.qml` | 7 |
-| `modules/system/ControlPanel.qml` | 15 |
-| `modules/system/NetworkPanel.qml` | 6 |
-| `modules/system/ScreenshotBar.qml` | 1 |
-| `modules/system/ScreenshotPanel.qml` | 5 |
-| `modules/system/TrayBar.qml` | 1 |
-| `modules/weather/WeatherState.qml` | 16 |
 
 ## Rules for new components
 

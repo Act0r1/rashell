@@ -104,13 +104,13 @@ QtObject {
     function deviceIcon(device) {
         const hint = String((device ? device.icon : "") || "") + " " + deviceLabel(device)
         const normalized = hint.toLowerCase()
-        if (normalized.indexOf("keyboard") !== -1) return "󰌌"
-        if (normalized.indexOf("mouse") !== -1) return "󰍽"
-        if (normalized.indexOf("headset") !== -1 || normalized.indexOf("headphone") !== -1) return "󰋋"
-        if (normalized.indexOf("audio") !== -1 || normalized.indexOf("speaker") !== -1) return "󰓃"
-        if (normalized.indexOf("phone") !== -1) return "󰏲"
-        if (normalized.indexOf("gamepad") !== -1 || normalized.indexOf("controller") !== -1) return "󰖺"
-        return "󰂯"
+        if (normalized.indexOf("keyboard") !== -1) return "keyboard"
+        if (normalized.indexOf("mouse") !== -1) return "mouse"
+        if (normalized.indexOf("headset") !== -1 || normalized.indexOf("headphone") !== -1) return "headphones"
+        if (normalized.indexOf("audio") !== -1 || normalized.indexOf("speaker") !== -1) return "speaker"
+        if (normalized.indexOf("phone") !== -1) return "smartphone"
+        if (normalized.indexOf("gamepad") !== -1 || normalized.indexOf("controller") !== -1) return "gamepad-2"
+        return "bluetooth"
     }
 
     function batteryPercent(device) {

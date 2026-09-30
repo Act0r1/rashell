@@ -193,15 +193,15 @@ FocusScope {
                             }
                         }
 
-                        Text {
+                        ShellIcon {
                             anchors {
                                 right: parent.right
                                 top: parent.top
                             }
-                            text: root.weatherState.icon
-                            color: Qt.rgba(1, 1, 1, 0.94)
-                            font.family: Theme.fontFamily
-                            font.pixelSize: Theme.fontDisplay
+                            name: root.weatherState.icon
+                            tint: Qt.rgba(1, 1, 1, 0.94)
+                            implicitWidth: Theme.fontDisplay
+                            implicitHeight: Theme.fontDisplay
                         }
 
                         Text {
@@ -399,13 +399,13 @@ FocusScope {
                                     font.pixelSize: Theme.fontSmall
                                 }
 
-                                Text {
+                                ShellIcon {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     y: 28
-                                    text: hourCell.modelData.icon
-                                    color: Theme.accent
-                                    font.family: Theme.fontFamily
-                                    font.pixelSize: Theme.fontTitle
+                                    name: hourCell.modelData.icon
+                                    tint: Theme.accent
+                                    implicitWidth: Theme.fontTitle
+                                    implicitHeight: Theme.fontTitle
                                 }
 
                                 Text {
@@ -533,17 +533,18 @@ FocusScope {
                                 font.pixelSize: Theme.fontBody
                             }
 
-                            Text {
+                            ShellIcon {
                                 anchors {
                                     left: parent.left
                                     leftMargin: 52
                                     verticalCenter: parent.verticalCenter
                                 }
                                 width: 28
-                                text: dailyRow.modelData ? dailyRow.modelData.icon : ""
-                                color: Theme.textMuted
-                                font.family: Theme.fontFamily
-                                font.pixelSize: Theme.fontTitle
+                                visible: dailyRow.modelData !== null && dailyRow.modelData !== undefined
+                                name: dailyRow.modelData ? dailyRow.modelData.icon : ""
+                                tint: Theme.textMuted
+                                implicitWidth: Theme.fontTitle
+                                implicitHeight: Theme.fontTitle
                             }
 
                             Text {

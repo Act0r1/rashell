@@ -18,7 +18,7 @@ FocusScope {
         id: sectionLabel
 
         required property string text
-        required property string glyph
+        required property string icon
 
         spacing: Theme.spaceMd
 
@@ -28,12 +28,12 @@ FocusScope {
             radius: Theme.radius
             color: Theme.selectedSurface
 
-            Text {
+            ShellIcon {
                 anchors.centerIn: parent
-                text: sectionLabel.glyph
-                color: Theme.accent
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontTitle
+                name: sectionLabel.icon
+                tint: Theme.accent
+                implicitWidth: Theme.fontTitle
+                implicitHeight: Theme.fontTitle
             }
         }
 
@@ -190,7 +190,7 @@ FocusScope {
             spacing: Theme.spaceLg
             visible: root.audioState && root.audioState.availability === "no-output"
 
-            SectionLabel { text: "Output"; glyph: "󰕾" }
+            SectionLabel { text: "Output"; icon: "volume-2" }
 
             Text {
                 text: "No output devices"
@@ -214,7 +214,7 @@ FocusScope {
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
                     text: "Output"
-                    glyph: "󰕾"
+                    icon: "volume-2"
                 }
 
                 ActionButton {
@@ -256,7 +256,7 @@ FocusScope {
                 spacing: Theme.spaceLg
                 visible: root.audioState && root.audioState.inputs.length > 0
 
-                SectionLabel { text: "Input"; glyph: "󰍬" }
+                SectionLabel { text: "Input"; icon: "mic" }
 
                 VolumeRow {
                     width: parent.width

@@ -285,13 +285,14 @@ Item {
             hoverEnabled: true
             Accessible.name: "Tray applications, " + root.overflowCount + " hidden. Manage pinned apps"
 
-            contentItem: Text {
-                text: root.overflowOpened ? "󰅃" : "󰅀"
-                color: root.overflowOpened ? Theme.accent : Theme.textMuted
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontTitle
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
+            contentItem: Item {
+                ShellIcon {
+                    anchors.centerIn: parent
+                    name: root.overflowOpened ? "chevron-up" : "chevron-down"
+                    tint: root.overflowOpened ? Theme.accent : Theme.textMuted
+                    implicitWidth: Theme.fontTitle
+                    implicitHeight: Theme.fontTitle
+                }
             }
 
             background: Rectangle {

@@ -409,7 +409,40 @@ Scope {
                     Layout.fillWidth: true
                     spacing: 12
                     ActionButton {
-                        text: root.showFonts ? "Reset font" : "󰸉  Wallpaper"
+                        id: wallpaperButton
+                        text: root.showFonts ? "Reset font" : "Wallpaper"
+                        contentItem: Item {
+                            implicitWidth: wallpaperLabel.implicitWidth
+                                + (root.showFonts ? 0 : wallpaperIcon.width + Theme.spaceMd)
+                            implicitHeight: Math.max(wallpaperLabel.implicitHeight, wallpaperIcon.height)
+                            Row {
+                                width: Math.min(parent.width, parent.implicitWidth)
+                                height: parent.height
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                spacing: Theme.spaceMd
+                                ShellIcon {
+                                    id: wallpaperIcon
+                                    visible: !root.showFonts
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    name: "image"
+                                    tint: wallpaperLabel.color
+                                    implicitWidth: Theme.fontBody
+                                    implicitHeight: Theme.fontBody
+                                }
+                                Text {
+                                    id: wallpaperLabel
+                                    width: Math.max(0, parent.width - (root.showFonts ? 0 : wallpaperIcon.width + parent.spacing))
+                                    text: wallpaperButton.text
+                                    color: wallpaperButton.enabled ? Theme.text : Theme.textDisabled
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: Theme.fontBody
+                                    elide: Text.ElideRight
+                                    maximumLineCount: 1
+                                    clip: true
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
+                            }
+                        }
                         accessibleName: root.showFonts ? "Preview the default Adwaita Sans font" : "Choose wallpaper"
                         onClicked: {
                             if (root.showFonts) {

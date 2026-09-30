@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import Quickshell
 import qs.core
+import qs.ui
 
 Item {
     id: root
@@ -22,13 +23,14 @@ Item {
         Accessible.name: root.state.recording ? "Open screen recording controls" : "Open screen capture"
         Accessible.role: Accessible.Button
 
-        contentItem: Text {
-            text: root.state.recording && root.state.paused ? "󰐊" : root.state.recording ? "󰑋" : "󰄀"
-            color: root.state.recording ? Theme.danger : Theme.text
-            font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontTitle
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
+        contentItem: Item {
+            ShellIcon {
+                anchors.centerIn: parent
+                name: root.state.recording && root.state.paused ? "play" : root.state.recording ? "circle-dot" : "camera"
+                tint: root.state.recording ? Theme.danger : Theme.text
+                implicitWidth: Theme.fontTitle
+                implicitHeight: Theme.fontTitle
+            }
         }
 
         background: Rectangle {

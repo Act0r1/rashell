@@ -42,7 +42,7 @@ Scope {
 
     readonly property string temperatureText: available ? temperatureCelsius + "°C" : "--°C"
     readonly property string icon: scenePhase === "night" && (weatherCode === 113 || weatherCode === 116)
-        ? "󰖔" : iconForCode(weatherCode)
+        ? "moon" : iconForCode(weatherCode)
     readonly property bool refreshing: weatherProcess.running || geocodingProcess.running || forecastProcess.running
     readonly property string requestUrl: {
         const city = String(configStore.weatherLocation || "").trim()
@@ -102,23 +102,23 @@ Scope {
     }
 
     function iconForCode(code) {
-        if (code === 113) return "󰖙"
-        if (code === 116) return "󰖕"
-        if ([143, 248, 260].indexOf(code) !== -1) return "󰖑"
-        if ([200, 386, 389, 392, 395].indexOf(code) !== -1) return "󰖓"
-        if ([179, 182, 185, 227, 230, 323, 326, 329, 332, 335, 338, 350, 362, 365, 368, 371, 374, 377].indexOf(code) !== -1) return "󰖘"
-        if ([176, 263, 266, 281, 284, 293, 296, 299, 302, 305, 308, 311, 314, 317, 320, 353, 356, 359].indexOf(code) !== -1) return "󰖗"
-        return "󰖐"
+        if (code === 113) return "sun"
+        if (code === 116) return "cloud-sun"
+        if ([143, 248, 260].indexOf(code) !== -1) return "cloud-fog"
+        if ([200, 386, 389, 392, 395].indexOf(code) !== -1) return "cloud-lightning"
+        if ([179, 182, 185, 227, 230, 323, 326, 329, 332, 335, 338, 350, 362, 365, 368, 371, 374, 377].indexOf(code) !== -1) return "cloud-snow"
+        if ([176, 263, 266, 281, 284, 293, 296, 299, 302, 305, 308, 311, 314, 317, 320, 353, 356, 359].indexOf(code) !== -1) return "cloud-rain"
+        return "cloud"
     }
 
     function iconForWmo(code) {
-        if (code === 0) return "󰖙"
-        if (code <= 2) return "󰖕"
-        if (code === 3) return "󰖐"
-        if (code <= 48) return "󰖑"
-        if (code <= 67 || (code >= 80 && code <= 82)) return "󰖗"
-        if (code <= 86) return "󰖘"
-        return "󰖓"
+        if (code === 0) return "sun"
+        if (code <= 2) return "cloud-sun"
+        if (code === 3) return "cloud"
+        if (code <= 48) return "cloud-fog"
+        if (code <= 67 || (code >= 80 && code <= 82)) return "cloud-rain"
+        if (code <= 86) return "cloud-snow"
+        return "cloud-lightning"
     }
 
     function describeWmo(code) {
@@ -308,7 +308,7 @@ Scope {
                     time: time.slice(11, 16),
                     temperature: Math.round(Number(payload.hourly.temperature_2m[index]) || 0),
                     probability: Math.round(Number(payload.hourly.precipitation_probability[index]) || 0),
-                    icon: code <= 2 && dark ? "󰖔" : iconForWmo(code)
+                    icon: code <= 2 && dark ? "moon" : iconForWmo(code)
                 })
             }
             hourlyForecast = hours

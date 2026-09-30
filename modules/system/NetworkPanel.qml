@@ -58,10 +58,10 @@ FocusScope {
 
     function signalIcon(strength) {
         const percent = Math.round(Number(strength) * 100)
-        if (percent >= 75) return "󰤨"
-        if (percent >= 50) return "󰤥"
-        if (percent >= 25) return "󰤢"
-        return "󰤟"
+        if (percent >= 75) return "wifi"
+        if (percent >= 50) return "wifi-high"
+        if (percent >= 25) return "wifi-low"
+        return "wifi-zero"
     }
 
     function requiresPassword(network) {
@@ -130,6 +130,61 @@ FocusScope {
         if (wifiDevice) wifiDevice.scannerEnabled = scannerWasEnabled
     }
 
+    component IconButton: ActionButton {
+        id: iconButton
+
+        required property string iconName
+        property bool secured: false
+
+        contentItem: Item {
+            implicitWidth: label.implicitWidth + buttonIcon.width + Theme.spaceMd
+                + (lockIcon.visible ? lockIcon.width + Theme.spaceMd : 0)
+            implicitHeight: Math.max(label.implicitHeight, buttonIcon.height)
+
+            Row {
+                width: Math.min(parent.width, parent.implicitWidth)
+                height: parent.height
+                x: iconButton.alignment === Text.AlignLeft ? 0
+                    : iconButton.alignment === Text.AlignRight ? parent.width - width : (parent.width - width) / 2
+                spacing: Theme.spaceMd
+
+                ShellIcon {
+                    id: buttonIcon
+                    anchors.verticalCenter: parent.verticalCenter
+                    name: iconButton.iconName
+                    tint: label.color
+                    implicitWidth: Theme.fontBody
+                    implicitHeight: Theme.fontBody
+                }
+                Text {
+                    id: label
+                    width: Math.max(0, parent.width - buttonIcon.width - parent.spacing
+                        - (lockIcon.visible ? lockIcon.width + parent.spacing : 0))
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: iconButton.text
+                    color: iconButton.selected && !iconButton.subtleSelected ? Theme.textOnAccent
+                        : iconButton.selected ? Theme.accent
+                        : iconButton.danger ? Theme.danger : iconButton.enabled ? Theme.text : Theme.textDisabled
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontBody
+                    font.weight: iconButton.selected ? Theme.fontWeightStrong : Theme.fontWeightRegular
+                    elide: Text.ElideRight
+                    maximumLineCount: 1
+                    clip: true
+                }
+                ShellIcon {
+                    id: lockIcon
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: iconButton.secured
+                    name: "lock"
+                    tint: label.color
+                    implicitWidth: Theme.fontSmall
+                    implicitHeight: Theme.fontSmall
+                }
+            }
+        }
+    }
+
     Shortcut {
         sequence: "Esc"
         onActivated: root.coordinator.close("escape")
@@ -145,9 +200,10 @@ FocusScope {
             width: parent.width
             spacing: Theme.spaceMd
 
-            ActionButton {
+            IconButton {
                 width: parent.width - refreshButton.width - parent.spacing
-                text: Networking.wifiEnabled ? "󰤨  Wi-Fi enabled" : "󰤭  Wi-Fi disabled"
+                iconName: Networking.wifiEnabled ? "wifi" : "wifi-off"
+                text: Networking.wifiEnabled ? "Wi-Fi enabled" : "Wi-Fi disabled"
                 selected: Networking.wifiEnabled
                 accessibleName: "Toggle Wi-Fi"
                 onClicked: Networking.wifiEnabled = !Networking.wifiEnabled
@@ -204,7 +260,7 @@ FocusScope {
             boundsBehavior: Flickable.StopAtBounds
             model: root.availableNetworks
 
-            delegate: ActionButton {
+            delegate: IconButton {
                 id: networkButton
                 required property var modelData
 
@@ -213,9 +269,10 @@ FocusScope {
                 selected: modelData.connected
                 subtleSelected: true
                 enabled: !modelData.stateChanging
-                text: root.signalIcon(modelData.signalStrength) + "  " + modelData.name
+                secured: root.requiresPassword(modelData)
+                iconName: root.signalIcon(modelData.signalStrength)
+                text: modelData.name
                     + "  ·  " + Math.round(modelData.signalStrength * 100) + "%"
-                    + (root.requiresPassword(modelData) ? "  " : "")
                     + (modelData.stateChanging ? "  ·  connecting" : "")
                 accessibleName: modelData.name + ", " + Math.round(modelData.signalStrength * 100)
                     + " percent" + (modelData.connected ? ", connected" : "")

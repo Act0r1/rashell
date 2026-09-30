@@ -82,6 +82,50 @@ FocusScope {
         onTriggered: root.armedAction = ""
     }
 
+    component IconButton: ActionButton {
+        id: iconButton
+
+        required property string iconName
+
+        contentItem: Item {
+            implicitWidth: label.implicitWidth + (buttonIcon.visible ? buttonIcon.width + Theme.spaceMd : 0)
+            implicitHeight: Math.max(label.implicitHeight, buttonIcon.height)
+
+            Row {
+                width: Math.min(parent.width, parent.implicitWidth)
+                height: parent.height
+                x: iconButton.alignment === Text.AlignLeft ? 0
+                    : iconButton.alignment === Text.AlignRight ? parent.width - width : (parent.width - width) / 2
+                spacing: Theme.spaceMd
+
+                ShellIcon {
+                    id: buttonIcon
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: iconButton.iconName !== ""
+                    name: iconButton.iconName
+                    tint: label.color
+                    implicitWidth: Theme.fontBody
+                    implicitHeight: Theme.fontBody
+                }
+                Text {
+                    id: label
+                    width: Math.max(0, parent.width - (buttonIcon.visible ? buttonIcon.width + parent.spacing : 0))
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: iconButton.text
+                    color: iconButton.selected && !iconButton.subtleSelected ? Theme.textOnAccent
+                        : iconButton.selected ? Theme.accent
+                        : iconButton.danger ? Theme.danger : iconButton.enabled ? Theme.text : Theme.textDisabled
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontBody
+                    font.weight: iconButton.selected ? Theme.fontWeightStrong : Theme.fontWeightRegular
+                    elide: Text.ElideRight
+                    maximumLineCount: 1
+                    clip: true
+                }
+            }
+        }
+    }
+
     Shortcut {
         sequence: "Esc"
         onActivated: root.coordinator.close("escape")
@@ -97,7 +141,7 @@ FocusScope {
 
         required property string label
         required property string detail
-        required property string glyph
+        required property string icon
         required property string accessibleName
         property string toggleName: ""
         property bool active: false
@@ -138,13 +182,12 @@ FocusScope {
                     width: parent.width
                     height: 20
                     spacing: Theme.spaceMd
-                    Text {
+                    ShellIcon {
                         width: 20
-                        text: tile.glyph
-                        color: tile.active ? Theme.textOnAccent : Theme.textMuted
-                        font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontTitle
-                        horizontalAlignment: Text.AlignHCenter
+                        name: tile.icon
+                        tint: tile.active ? Theme.textOnAccent : Theme.textMuted
+                        implicitWidth: Theme.fontTitle
+                        implicitHeight: Theme.fontTitle
                     }
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
@@ -256,7 +299,7 @@ FocusScope {
 
         required property string label
         required property string deviceName
-        required property string glyph
+        required property string icon
         required property bool usable
         required property real volume
         signal muteRequested()
@@ -318,7 +361,15 @@ FocusScope {
             ActionButton {
                 width: 40
                 height: parent.height
-                text: audioControl.glyph
+                contentItem: Item {
+                    ShellIcon {
+                        anchors.centerIn: parent
+                        name: audioControl.icon
+                        tint: audioControl.usable ? Theme.text : Theme.textDisabled
+                        implicitWidth: Theme.fontBody
+                        implicitHeight: Theme.fontBody
+                    }
+                }
                 accessibleName: "Toggle " + audioControl.label.toLowerCase() + " mute"
                 enabled: audioControl.usable
                 onClicked: audioControl.muteRequested()
@@ -451,22 +502,21 @@ FocusScope {
                             radius: Theme.radius
                             color: Theme.surfaceRaised
 
-                            Text {
-                                id: connectionGlyph
+                            ShellIcon {
+                                id: connectionIcon
                                 anchors.left: parent.left
                                 anchors.leftMargin: Theme.spaceLg
                                 anchors.verticalCenter: parent.verticalCenter
                                 width: 20
-                                text: root.controlState.wiredConnected ? "󰈀"
-                                    : root.controlState.networkConnected ? "󰤨" : "󰤭"
-                                color: root.controlState.networkConnected ? Theme.accent : Theme.textMuted
-                                font.family: Theme.fontFamily
-                                font.pixelSize: Theme.fontTitle
-                                horizontalAlignment: Text.AlignHCenter
+                                name: root.controlState.wiredConnected ? "ethernet-port"
+                                    : root.controlState.networkConnected ? "wifi" : "wifi-off"
+                                tint: root.controlState.networkConnected ? Theme.accent : Theme.textMuted
+                                implicitWidth: Theme.fontTitle
+                                implicitHeight: Theme.fontTitle
                             }
 
                             Text {
-                                anchors.left: connectionGlyph.right
+                                anchors.left: connectionIcon.right
                                 anchors.leftMargin: Theme.spaceMd
                                 anchors.right: connectionDetail.left
                                 anchors.rightMargin: Theme.spaceMd
@@ -500,7 +550,7 @@ FocusScope {
                                 width: (parent.width - parent.spacing) / 2
                                 label: "Wi-Fi"
                                 detail: root.controlState.wifiDetail
-                                glyph: root.controlState.wifiEnabled ? "󰤨" : "󰤭"
+                                icon: root.controlState.wifiEnabled ? "wifi" : "wifi-off"
                                 active: root.controlState.wifiEnabled
                                 accessibleName: "Choose Wi-Fi network"
                                 hasToggle: true
@@ -520,7 +570,7 @@ FocusScope {
                                 detail: !BluetoothState.available ? "Unavailable" : BluetoothState.blocked ? "Blocked"
                                     : !BluetoothState.enabled ? "Off" : BluetoothState.connectedDevices.length > 0
                                         ? BluetoothState.deviceLabel(BluetoothState.connectedDevices[0]) : "Not connected"
-                                glyph: BluetoothState.enabled ? "󰂯" : "󰂲"
+                                icon: BluetoothState.enabled ? "bluetooth" : "bluetooth-off"
                                 active: BluetoothState.enabled
                                 toggleEnabled: BluetoothState.available && !BluetoothState.blocked
                                 accessibleName: "Open Bluetooth devices"
@@ -538,7 +588,7 @@ FocusScope {
                                 width: (parent.width - parent.spacing) / 2
                                 label: "Keep awake"
                                 detail: root.sessionState.keepAwake ? "On · Screen stays on" : "Off · Normal timeout"
-                                glyph: "󰍹"
+                                icon: "monitor"
                                 active: root.sessionState.keepAwake
                                 accessibleName: "Keep the screen awake"
                                 hasToggle: true
@@ -553,7 +603,7 @@ FocusScope {
                                 detail: root.notificationState.timedDoNotDisturb
                                     ? "Paused · " + Math.ceil(root.notificationState.remainingSeconds / 60) + " min left  ›"
                                     : root.notificationState.doNotDisturb ? "Until turned off  ›" : "Off · Allow popups  ›"
-                                glyph: root.notificationState.doNotDisturb ? "󰂛" : "󰂚"
+                                icon: root.notificationState.doNotDisturb ? "bell-off" : "bell"
                                 active: root.notificationState.doNotDisturb
                                 accessibleName: "Do not disturb settings and timer"
                                 hasToggle: true
@@ -578,7 +628,7 @@ FocusScope {
                             width: parent.width
                             label: "Speakers"
                             deviceName: root.audioState.outputUsable ? root.audioState.nodeLabel(root.audioState.output) : "Unavailable"
-                            glyph: root.audioState.outputMuted ? "󰝟" : "󰕾"
+                            icon: root.audioState.outputMuted ? "volume-x" : "volume-2"
                             usable: root.audioState.outputUsable
                             volume: root.audioState.outputVolume
                             onMuteRequested: root.audioState.toggleOutputMute()
@@ -589,7 +639,7 @@ FocusScope {
                             width: parent.width
                             label: "Microphone"
                             deviceName: root.audioState.inputUsable ? root.audioState.nodeLabel(root.audioState.input) : "Unavailable"
-                            glyph: root.audioState.inputMuted ? "󰍭" : "󰍬"
+                            icon: root.audioState.inputMuted ? "mic-off" : "mic"
                             usable: root.audioState.inputUsable
                             volume: root.audioState.inputVolume
                             onMuteRequested: root.audioState.toggleInputMute()
@@ -627,14 +677,15 @@ FocusScope {
                         Row {
                             width: parent.width
                             spacing: Theme.spaceMd
-                            ActionButton {
+                            IconButton {
                                 flat: true
                                 alignment: Text.AlignLeft
                                 leftPadding: Theme.spaceMd
                                 rightPadding: Theme.spaceMd
                                 width: (parent.width - parent.spacing) / 2
                                 height: 38
-                                text: root.textCaptureState.recording ? "● Recording…" : "󰍬  Text & dictation"
+                                iconName: root.textCaptureState.recording ? "" : "mic"
+                                text: root.textCaptureState.recording ? "● Recording…" : "Text & dictation"
                                 selected: root.textCaptureState.recording
                                 accessibleName: "Open text capture and dictation"
                                 onClicked: root.coordinator.open(
@@ -643,14 +694,15 @@ FocusScope {
                                     { coordinator: root.coordinator, captureState: root.textCaptureState }
                                 )
                             }
-                            ActionButton {
+                            IconButton {
                                 flat: true
                                 alignment: Text.AlignLeft
                                 leftPadding: Theme.spaceMd
                                 rightPadding: Theme.spaceMd
                                 width: (parent.width - parent.spacing) / 2
                                 height: 38
-                                text: "󰄀  Capture"
+                                iconName: "camera"
+                                text: "Capture"
                                 accessibleName: "Open screen capture"
                                 onClicked: root.coordinator.open(
                                     "screenshot", root.coordinator.anchorItem, root.coordinator.alignment,
@@ -696,10 +748,18 @@ FocusScope {
                             onClicked: root.coordinator.appearanceRequested(root.targetScreen)
                             contentItem: Row {
                                 spacing: Theme.spaceMd
+                                ShellIcon {
+                                    id: appearanceIcon
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    name: "palette"
+                                    tint: Theme.text
+                                    implicitWidth: Theme.fontBody
+                                    implicitHeight: Theme.fontBody
+                                }
                                 Text {
                                     anchors.verticalCenter: parent.verticalCenter
-                                    width: parent.width - appearanceStatus.implicitWidth - parent.spacing
-                                    text: "󰏘  Appearance"
+                                    width: parent.width - appearanceStatus.implicitWidth - appearanceIcon.width - parent.spacing * 2
+                                    text: "Appearance"
                                     color: Theme.text
                                     font.family: Theme.fontFamily
                                     font.pixelSize: Theme.fontBody
@@ -719,14 +779,15 @@ FocusScope {
                         Row {
                             width: parent.width
                             spacing: Theme.spaceMd
-                            ActionButton {
+                            IconButton {
                                 flat: true
                                 alignment: Text.AlignLeft
                                 leftPadding: Theme.spaceMd
                                 rightPadding: Theme.spaceMd
                                 width: (parent.width - parent.spacing) / 2
                                 height: 36
-                                text: "󰸉  Wallpaper"
+                                iconName: "image"
+                                text: "Wallpaper"
                                 accessibleName: "Choose wallpaper"
                                 onClicked: {
                                     const screen = root.targetScreen
@@ -735,14 +796,15 @@ FocusScope {
                                     picker.open(screen)
                                 }
                             }
-                            ActionButton {
+                            IconButton {
                                 flat: true
                                 alignment: Text.AlignLeft
                                 leftPadding: Theme.spaceMd
                                 rightPadding: Theme.spaceMd
                                 width: (parent.width - parent.spacing) / 2
                                 height: 36
-                                text: "󰓡  Customize bar"
+                                iconName: "panel-top"
+                                text: "Customize bar"
                                 accessibleName: "Open bar settings"
                                 onClicked: {
                                     const screen = root.targetScreen
@@ -756,14 +818,15 @@ FocusScope {
                         Row {
                             width: parent.width
                             spacing: Theme.spaceMd
-                            ActionButton {
+                            IconButton {
                                 flat: true
                                 alignment: Text.AlignLeft
                                 leftPadding: Theme.spaceMd
                                 rightPadding: Theme.spaceMd
                                 width: (parent.width - parent.spacing) / 2
                                 height: 36
-                                text: "󰏔  Updates"
+                                iconName: "package"
+                                text: "Updates"
                                 accessibleName: "Open system updates"
                                 onClicked: root.coordinator.open(
                                     "updates", root.coordinator.anchorItem, root.coordinator.alignment,
@@ -771,14 +834,15 @@ FocusScope {
                                     { coordinator: root.coordinator, systemState: root.systemState }
                                 )
                             }
-                            ActionButton {
+                            IconButton {
                                 flat: true
                                 alignment: Text.AlignLeft
                                 leftPadding: Theme.spaceMd
                                 rightPadding: Theme.spaceMd
                                 width: (parent.width - parent.spacing) / 2
                                 height: 36
-                                text: "󰻠  System details"
+                                iconName: "cpu"
+                                text: "System details"
                                 accessibleName: "Open system monitor"
                                 onClicked: root.coordinator.open(
                                     "system", root.coordinator.anchorItem, root.coordinator.alignment,

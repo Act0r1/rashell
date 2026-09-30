@@ -16,6 +16,50 @@ FocusScope {
     implicitWidth: panel.implicitWidth
     implicitHeight: panel.implicitHeight
 
+    component IconButton: ActionButton {
+        id: iconButton
+
+        required property string iconName
+
+        contentItem: Item {
+            implicitWidth: label.implicitWidth + (buttonIcon.visible ? buttonIcon.width + Theme.spaceMd : 0)
+            implicitHeight: Math.max(label.implicitHeight, buttonIcon.height)
+
+            Row {
+                width: Math.min(parent.width, parent.implicitWidth)
+                height: parent.height
+                x: iconButton.alignment === Text.AlignLeft ? 0
+                    : iconButton.alignment === Text.AlignRight ? parent.width - width : (parent.width - width) / 2
+                spacing: Theme.spaceMd
+
+                ShellIcon {
+                    id: buttonIcon
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: iconButton.iconName !== ""
+                    name: iconButton.iconName
+                    tint: label.color
+                    implicitWidth: Theme.fontBody
+                    implicitHeight: Theme.fontBody
+                }
+                Text {
+                    id: label
+                    width: Math.max(0, parent.width - (buttonIcon.visible ? buttonIcon.width + parent.spacing : 0))
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: iconButton.text
+                    color: iconButton.selected && !iconButton.subtleSelected ? Theme.textOnAccent
+                        : iconButton.selected ? Theme.accent
+                        : iconButton.danger ? Theme.danger : iconButton.enabled ? Theme.text : Theme.textDisabled
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontBody
+                    font.weight: iconButton.selected ? Theme.fontWeightStrong : Theme.fontWeightRegular
+                    elide: Text.ElideRight
+                    maximumLineCount: 1
+                    clip: true
+                }
+            }
+        }
+    }
+
     Shortcut {
         sequence: "Esc"
         onActivated: root.coordinator.close("escape")
@@ -52,10 +96,11 @@ FocusScope {
                 font.pixelSize: Theme.fontSmall
             }
 
-            ActionButton {
+            IconButton {
                 width: parent.width
                 visible: !root.captureState.recording
-                text: "󰄀  Screenshot"
+                iconName: "camera"
+                text: "Screenshot"
                 accessibleName: "Take a region screenshot"
                 enabled: !root.captureState.busy && !root.captureState.selecting
                 onClicked: {
@@ -64,10 +109,11 @@ FocusScope {
                 }
             }
 
-            ActionButton {
+            IconButton {
                 width: parent.width
                 visible: !root.captureState.recording
-                text: "󰏫  Screenshot + edit"
+                iconName: "pencil"
+                text: "Screenshot + edit"
                 accessibleName: "Take and edit a region screenshot"
                 enabled: !root.captureState.busy && !root.captureState.selecting
                 onClicked: {
@@ -186,10 +232,11 @@ FocusScope {
                 }
             }
 
-            ActionButton {
+            IconButton {
                 width: parent.width
                 visible: !root.captureState.recording
-                text: "󰑋  Start video"
+                iconName: "circle-dot"
+                text: "Start video"
                 accessibleName: "Start screen recording"
                 enabled: !root.captureState.busy && !root.captureState.selecting
                 onClicked: {
@@ -210,9 +257,10 @@ FocusScope {
                 spacing: Theme.spaceMd
                 visible: root.captureState.recording
 
-                ActionButton {
+                IconButton {
                     width: (parent.width - parent.spacing) / 2
-                    text: root.captureState.paused ? "󰐊  Resume" : "󰏤  Pause"
+                    iconName: root.captureState.paused ? "play" : "pause"
+                    text: root.captureState.paused ? "Resume" : "Pause"
                     accessibleName: root.captureState.paused ? "Resume screen recording" : "Pause screen recording"
                     selected: root.captureState.paused
                     onClicked: {
@@ -221,9 +269,10 @@ FocusScope {
                     }
                 }
 
-                ActionButton {
+                IconButton {
                     width: (parent.width - parent.spacing) / 2
-                    text: "󰓛  Stop and save"
+                    iconName: "square"
+                    text: "Stop and save"
                     accessibleName: "Stop and save screen recording"
                     danger: true
                     onClicked: root.captureState.stop()

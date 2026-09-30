@@ -43,14 +43,14 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: mediaLabel.width > 0 ? Theme.spaceSm : 0
 
-                Text {
+                ShellIcon {
                     id: mediaIcon
                     anchors.verticalCenter: parent.verticalCenter
                     width: Math.min(implicitWidth, Math.max(0, button.availableWidth))
-                    text: root.state.playing ? "󰏤" : "󰐊"
-                    color: Theme.textMuted
-                    font.family: Theme.fontFamily
-                    font.pixelSize: Theme.fontTitle
+                    name: root.state.playing ? "pause" : "play"
+                    tint: Theme.textMuted
+                    implicitWidth: Theme.fontTitle
+                    implicitHeight: Theme.fontTitle
                 }
 
                 Text {

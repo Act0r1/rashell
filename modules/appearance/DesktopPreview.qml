@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import qs.core
+import qs.ui
 
 Rectangle {
     id: root
@@ -62,11 +63,28 @@ Rectangle {
             font { family: Theme.fontFamily; pixelSize: Theme.fontSmall }
         }
 
-        Text {
+        Row {
             anchors { right: parent.right; rightMargin: 16; verticalCenter: parent.verticalCenter }
-            text: "󰖩   󰕾  60%"
-            color: root.colors.accent
-            font { family: Theme.fontFamily; pixelSize: Theme.fontSmall }
+            spacing: Theme.spaceMd
+            ShellIcon {
+                anchors.verticalCenter: parent.verticalCenter
+                name: "wifi"
+                tint: root.colors.accent
+                implicitWidth: Theme.fontSmall
+                implicitHeight: Theme.fontSmall
+            }
+            ShellIcon {
+                anchors.verticalCenter: parent.verticalCenter
+                name: "volume-2"
+                tint: root.colors.accent
+                implicitWidth: Theme.fontSmall
+                implicitHeight: Theme.fontSmall
+            }
+            Text {
+                text: "60%"
+                color: root.colors.accent
+                font { family: Theme.fontFamily; pixelSize: Theme.fontSmall }
+            }
         }
 
         Rectangle {
@@ -159,10 +177,20 @@ Rectangle {
             anchors { fill: parent; margins: 14 }
             spacing: 9
 
-            Text {
-                text: "󰂚  Notification"
-                color: root.colors.accent
-                font { family: Theme.fontFamily; pixelSize: Theme.fontSmall; weight: Theme.fontWeightStrong }
+            Row {
+                spacing: Theme.spaceMd
+                ShellIcon {
+                    anchors.verticalCenter: parent.verticalCenter
+                    name: "bell"
+                    tint: root.colors.accent
+                    implicitWidth: Theme.fontSmall
+                    implicitHeight: Theme.fontSmall
+                }
+                Text {
+                    text: "Notification"
+                    color: root.colors.accent
+                    font { family: Theme.fontFamily; pixelSize: Theme.fontSmall; weight: Theme.fontWeightStrong }
+                }
             }
             Text {
                 text: "Everything in its place."

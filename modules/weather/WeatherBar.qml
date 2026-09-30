@@ -38,14 +38,12 @@ Item {
                 anchors.centerIn: parent
                 spacing: 5
 
-                Text {
+                ShellIcon {
                     anchors.verticalCenter: parent.verticalCenter
-                    text: root.state.icon
-                    color: Theme.accent
-                    style: root.minimal ? Text.Raised : Text.Normal
-                    styleColor: Qt.alpha(Theme.background, 0.75)
-                    font.family: Theme.fontFamily
-                    font.pixelSize: Theme.fontTitle
+                    name: root.state.icon
+                    tint: Theme.accent
+                    implicitWidth: Theme.fontTitle
+                    implicitHeight: Theme.fontTitle
                 }
 
                 Text {

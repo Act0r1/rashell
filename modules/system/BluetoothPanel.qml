@@ -90,12 +90,12 @@ FocusScope {
             radius: Theme.radius
             color: deviceRow.device.connected ? Theme.selectedSurface : Theme.surfaceRaised
 
-            Text {
+            ShellIcon {
                 anchors.centerIn: parent
-                text: BluetoothState.deviceIcon(deviceRow.device)
-                color: deviceRow.device.connected ? Theme.accent : Theme.textMuted
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontTitle
+                name: BluetoothState.deviceIcon(deviceRow.device)
+                tint: deviceRow.device.connected ? Theme.accent : Theme.textMuted
+                implicitWidth: Theme.fontTitle
+                implicitHeight: Theme.fontTitle
             }
         }
 
@@ -330,9 +330,9 @@ FocusScope {
                 checked: BluetoothState.enabled
                 enabled: BluetoothState.available && !BluetoothState.blocked
                 hoverEnabled: true
-                text: !BluetoothState.available ? "󰂲  Bluetooth unavailable"
-                    : BluetoothState.blocked ? "󰂲  Bluetooth blocked"
-                    : BluetoothState.enabled ? "󰂯  Bluetooth enabled" : "󰂲  Bluetooth disabled"
+                text: !BluetoothState.available ? "Bluetooth unavailable"
+                    : BluetoothState.blocked ? "Bluetooth blocked"
+                    : BluetoothState.enabled ? "Bluetooth enabled" : "Bluetooth disabled"
                 Accessible.name: "Bluetooth power"
                 onToggled: root.setPowerEnabled(checked)
 
@@ -361,16 +361,29 @@ FocusScope {
                     }
                 }
 
-                contentItem: Text {
-                    text: powerSwitch.text
-                    color: powerSwitch.enabled ? Theme.text : Theme.textDisabled
-                    font.family: Theme.fontFamily
-                    font.pixelSize: Theme.fontBody
-                    font.weight: powerSwitch.checked ? Theme.fontWeightStrong : Theme.fontWeightRegular
-                    leftPadding: Theme.spaceLg
-                    rightPadding: 48 + Theme.spaceLg * 2
-                    elide: Text.ElideRight
-                    verticalAlignment: Text.AlignVCenter
+                contentItem: Item {
+                    ShellIcon {
+                        id: powerIcon
+                        x: Theme.spaceLg
+                        anchors.verticalCenter: parent.verticalCenter
+                        name: BluetoothState.available && !BluetoothState.blocked && BluetoothState.enabled
+                            ? "bluetooth" : "bluetooth-off"
+                        tint: powerSwitch.enabled ? Theme.text : Theme.textDisabled
+                        implicitWidth: Theme.fontBody
+                        implicitHeight: Theme.fontBody
+                    }
+                    Text {
+                        anchors.fill: parent
+                        text: powerSwitch.text
+                        color: powerSwitch.enabled ? Theme.text : Theme.textDisabled
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontBody
+                        font.weight: powerSwitch.checked ? Theme.fontWeightStrong : Theme.fontWeightRegular
+                        leftPadding: Theme.spaceLg + powerIcon.width + Theme.spaceMd
+                        rightPadding: 48 + Theme.spaceLg * 2
+                        elide: Text.ElideRight
+                        verticalAlignment: Text.AlignVCenter
+                    }
                 }
 
                 background: Rectangle {
