@@ -25,6 +25,12 @@ Scope {
     property string projectConfigPath: ""
     readonly property var modeNames: ["apps", "clipboard", "actions", "projects"]
     readonly property int clipboardHistoryLimit: configStore ? configStore.clipboardHistoryLimit : 50
+    readonly property var appPrefs: ({
+        favorites: configStore ? configStore.launcherFavorites : [],
+        aliases: configStore ? configStore.launcherAliases : ({})
+    })
+    property var aliasTarget: null
+    property string aliasSavedQuery: ""
 
     signal actionRequested(string actionId)
     signal projectRequested(string projectId)
@@ -43,6 +49,7 @@ Scope {
         const normalizedMode = String(nextMode || "").toLowerCase()
         if (modeNames.indexOf(normalizedMode) === -1) return false
         mode = normalizedMode
+        aliasTarget = null
         search.text = ""
         if (mode === "clipboard") root.refreshClipboard()
         Qt.callLater(function() {
@@ -75,7 +82,44 @@ Scope {
     }
 
     function close() {
+        aliasTarget = null
         opened = false
+    }
+
+    function selectApp(appId) {
+        Qt.callLater(function() {
+            const items = results.model || []
+            for (let index = 0; index < items.length; index++) {
+                if (items[index].id === appId) {
+                    results.currentIndex = index
+                    results.positionViewAtIndex(index, ListView.Contain)
+                    return
+                }
+            }
+        })
+    }
+
+    function toggleFavorite(item) {
+        if (!item || item.kind !== "app" || item.id === "" || !configStore) return
+        configStore.toggleLauncherFavorite(item.id)
+        selectApp(item.id)
+    }
+
+    function beginAliasEdit(item) {
+        if (!item || item.kind !== "app" || item.id === "" || !configStore) return
+        aliasSavedQuery = search.text
+        aliasTarget = item
+        search.text = item.alias
+        search.selectAll()
+    }
+
+    function finishAliasEdit(commit) {
+        if (!aliasTarget) return
+        const appId = aliasTarget.id
+        if (commit) configStore.setLauncherAlias(appId, search.text)
+        aliasTarget = null
+        search.text = aliasSavedQuery
+        selectApp(appId)
     }
 
     function refreshClipboard() {
@@ -110,15 +154,24 @@ Scope {
             close()
             projectRequested(String(item.id))
         } else if (item.kind === "app") {
-            item.entry.execute()
+            if (item.entry.runInTerminal)
+                Quickshell.execDetached(["ghostty", "--class=rashell.terminal", "-e"].concat(
+                    item.entry.command.filter(arg => !/^%[a-zA-Z]$/.test(arg))))
+            else
+                item.entry.execute()
             close()
         }
     }
 
     function activateDesktopAction(action) {
-        if (!action || !action.execute) return
-        close()
-        action.execute()
+        if (!action) return
+        if (action.execute) {
+            close()
+            action.execute()
+        } else if (action.command) {
+            close()
+            Quickshell.execDetached(action.command)
+        }
     }
 
     Process {
@@ -216,7 +269,8 @@ Scope {
                         id: search
                         Layout.fillWidth: true
                         Layout.preferredHeight: Theme.rowHeight + Theme.spaceXl
-                        placeholderText: root.mode === "apps" ? "Search applications…"
+                        placeholderText: root.aliasTarget ? "Alias for " + root.aliasTarget.name + " (empty removes it)"
+                            : root.mode === "apps" ? "Search applications…"
                             : root.mode === "clipboard" ? "Search clipboard…"
                             : root.mode === "actions" ? "Search actions…"
                             : "Search projects…"
@@ -231,7 +285,7 @@ Scope {
                         focus: root.opened
                         Accessible.name: placeholderText
 
-                        onTextChanged: Qt.callLater(function() {
+                        onTextChanged: if (!root.aliasTarget) Qt.callLater(function() {
                             results.currentIndex = results.count > 0 ? 0 : -1
                         })
 
@@ -267,10 +321,27 @@ Scope {
                         }
 
                         Keys.onPressed: event => {
-                            if (event.key === Qt.Key_Down) {
+                            const ctrl = (event.modifiers & Qt.ControlModifier) !== 0
+                            const down = event.key === Qt.Key_Down || (ctrl && (event.key === Qt.Key_J || event.key === Qt.Key_N))
+                            const up = event.key === Qt.Key_Up || (ctrl && (event.key === Qt.Key_K || event.key === Qt.Key_P))
+                            if (root.aliasTarget) {
+                                if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) root.finishAliasEdit(true)
+                                else if (event.key === Qt.Key_Escape) root.finishAliasEdit(false)
+                                else if (!up && !down) return
+                                event.accepted = true
+                                return
+                            }
+                            const current = results.currentIndex >= 0 ? results.model[results.currentIndex] : null
+                            if (root.mode === "apps" && (event.modifiers & Qt.ControlModifier) && event.key === Qt.Key_S) {
+                                root.toggleFavorite(current)
+                                event.accepted = true
+                            } else if (root.mode === "apps" && (event.modifiers & Qt.ControlModifier) && event.key === Qt.Key_E) {
+                                root.beginAliasEdit(current)
+                                event.accepted = true
+                            } else if (down) {
                                 results.currentIndex = Math.min(results.count - 1, results.currentIndex + 1)
                                 event.accepted = true
-                            } else if (event.key === Qt.Key_Up) {
+                            } else if (up) {
                                 results.currentIndex = Math.max(0, results.currentIndex - 1)
                                 event.accepted = true
                             } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
@@ -356,9 +427,10 @@ Scope {
                         anchors.fill: parent
                         spacing: Theme.spaceXs
                         clip: true
+                        highlightMoveDuration: 0
                         currentIndex: count > 0 ? 0 : -1
                         model: {
-                            const query = search.text.trim().toLowerCase()
+                            const query = (root.aliasTarget ? root.aliasSavedQuery : search.text).trim().toLowerCase()
                             if (root.mode === "clipboard") {
                                 return root.clipboardItems.filter(function(item) {
                                     return query === "" || item.text.toLowerCase().indexOf(query) !== -1
@@ -398,7 +470,7 @@ Scope {
                                 })
                             }
                             const all = DesktopEntries.applications ? DesktopEntries.applications.values : []
-                            return LauncherSearch.applicationItems(all, query)
+                            return LauncherSearch.applicationItems(all, query, root.appPrefs)
                         }
 
                         delegate: ItemDelegate {
@@ -531,24 +603,89 @@ Scope {
                                     }
                                 }
 
+                                Button {
+                                    id: favoriteButton
+                                    readonly property bool favorite: resultDelegate.modelData.favorite === true
+                                    anchors.right: deleteAppButton.visible ? deleteAppButton.left : parent.right
+                                    anchors.rightMargin: deleteAppButton.visible ? Theme.spaceSm : Theme.spaceLg
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: Theme.compactControlSize
+                                    height: Theme.compactControlSize
+                                    visible: resultDelegate.modelData.kind === "app"
+                                        && (favorite || resultDelegate.highlighted || resultDelegate.hovered)
+                                    focusPolicy: Qt.NoFocus
+                                    hoverEnabled: true
+                                    Accessible.name: favorite ? "Remove from favorites" : "Add to favorites"
+                                    onPressed: resultDelegate.suppressLaunch = true
+                                    onCanceled: resultDelegate.suppressLaunch = false
+                                    onClicked: {
+                                        root.toggleFavorite(resultDelegate.modelData)
+                                        resultDelegate.suppressLaunch = false
+                                        search.forceActiveFocus()
+                                    }
+
+                                    contentItem: ShellIcon {
+                                        name: "star"
+                                        tint: favoriteButton.favorite || favoriteButton.hovered || favoriteButton.down
+                                            ? Theme.accent : Theme.textMuted
+                                        implicitWidth: Theme.fontTitle
+                                        implicitHeight: Theme.fontTitle
+                                    }
+
+                                    background: Rectangle {
+                                        color: favoriteButton.down || favoriteButton.hovered
+                                            ? Theme.selectedSurface : "transparent"
+                                        radius: Theme.radius
+                                    }
+                                }
+
                                 Column {
                                     anchors.left: resultIcon.right
                                     anchors.leftMargin: Theme.spaceLg
                                     anchors.right: unavailableLabel.visible ? unavailableLabel.left
+                                        : favoriteButton.visible ? favoriteButton.left
                                         : deleteAppButton.visible ? deleteAppButton.left : parent.right
                                     anchors.rightMargin: Theme.spaceLg
                                     anchors.verticalCenter: parent.verticalCenter
                                     spacing: Theme.spaceSm
 
-                                    Text {
+                                    Row {
                                         width: parent.width
-                                        text: resultDelegate.modelData.name
-                                        textFormat: Text.PlainText
-                                        color: Theme.text
-                                        elide: Text.ElideRight
-                                        font.family: Theme.fontFamily
-                                        font.pixelSize: Theme.fontBody
-                                        font.weight: Theme.fontWeightStrong
+                                        spacing: Theme.spaceMd
+
+                                        Text {
+                                            width: Math.min(implicitWidth,
+                                                parent.width - (aliasBadge.visible ? aliasBadge.width + parent.spacing : 0))
+                                            text: resultDelegate.modelData.name
+                                            textFormat: Text.PlainText
+                                            color: Theme.text
+                                            elide: Text.ElideRight
+                                            font.family: Theme.fontFamily
+                                            font.pixelSize: Theme.fontBody
+                                            font.weight: Theme.fontWeightStrong
+                                        }
+
+                                        Rectangle {
+                                            id: aliasBadge
+                                            visible: String(resultDelegate.modelData.alias || "").length > 0
+                                            width: aliasText.implicitWidth + Theme.spaceMd * 2
+                                            height: aliasText.implicitHeight + Theme.spaceXs * 2
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            radius: Theme.radius
+                                            color: Theme.surfaceRaised
+                                            border.color: Theme.border
+                                            border.width: Theme.borderWidth
+
+                                            Text {
+                                                id: aliasText
+                                                anchors.centerIn: parent
+                                                text: String(resultDelegate.modelData.alias || "")
+                                                textFormat: Text.PlainText
+                                                color: Theme.textMuted
+                                                font.family: Theme.fontFamily
+                                                font.pixelSize: Theme.fontSmall
+                                            }
+                                        }
                                     }
 
                                     Text {
@@ -765,9 +902,16 @@ Scope {
                         font.pixelSize: Theme.fontSmall
                     }
                     Text {
-                        text: root.mode === "clipboard" ? "Enter Copy" : root.mode === "actions" ? "Enter Run" : "Enter Open"
+                        text: root.aliasTarget ? "Enter Save" : root.mode === "clipboard" ? "Enter Copy" : root.mode === "actions" ? "Enter Run" : "Enter Open"
                         color: results.currentIndex >= 0 && results.model[results.currentIndex] && (root.mode !== "actions" || results.model[results.currentIndex].enabled)
                             ? Theme.text : Theme.textDisabled
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSmall
+                    }
+                    Text {
+                        visible: root.mode === "apps"
+                        text: root.aliasTarget ? "Esc Cancel" : "Ctrl+S Star  Ctrl+E Alias"
+                        color: Theme.textMuted
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSmall
                     }

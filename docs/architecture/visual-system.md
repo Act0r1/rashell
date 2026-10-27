@@ -14,12 +14,17 @@ and the shared [`ui`](../../ui/) primitives. Values below are QML pixels unless 
 | `tokyostorm` | Tokyo Storm |
 | `ayu-dark` | Ayu Dark |
 | `ayu-mirage` | Ayu Mirage |
+| `kanagawa-dragon` | Kanagawa Dragon |
+| `oxocarbon` | Oxocarbon |
+| `rose-pine` | Rosé Pine |
 
-All six entries have `kind: "dark"`. `ConfigStore.defaults.theme` and
+All nine entries have `kind: "dark"`. `ConfigStore.defaults.theme` and
 `Theme.activeName` default to `ayu-dark`; config validation accepts only `Theme.names`.
 `shell.qml` binds `activeName` and `selectedFontFamily` to the effective configuration.
 
-`catalogFile` loads `core/themes.json`; `catalog` parses it, `names` extracts IDs,
+`catalogFile` loads and watches `core/themes.json`; `catalog` parses it and reloads on
+change, keeping the previous catalog when the file is invalid JSON or has an entry
+without `id` or `palette`. `names` extracts IDs,
 and `palettes` indexes palettes by ID. `themeInfo(name)` returns the matching entry,
 then Ayu Dark, then the first entry if Ayu Dark is absent. `paletteFor(name)` falls
 back to Ayu Dark for an unknown name and returns a copy with these effective overrides:

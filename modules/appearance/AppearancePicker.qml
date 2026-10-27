@@ -151,7 +151,7 @@ Scope {
                             font { family: Theme.fontFamily; pixelSize: Theme.fontDisplay; weight: Theme.fontWeightStrong }
                         }
                         Text {
-                            text: root.showFonts ? "Typography for your panel, menus and notifications"
+                            text: root.showFonts ? "Typography for Rashell, GTK, Qt and fontconfig"
                                 : Theme.catalog.length + " themes · find your atmosphere"
                             color: Theme.textMuted
                             font { family: Theme.fontFamily; pixelSize: Theme.fontSmall }
@@ -459,7 +459,7 @@ Scope {
                         Layout.fillWidth: true
                         visible: !content.compact
                         text: root.error !== "" ? root.error : root.showFonts
-                            ? "Rashell only · Preview, then apply · Esc Close"
+                            ? "System-wide · Preview, then apply · Esc Close"
                             : "↑ ↓ Browse    Enter Apply    Esc Close"
                         color: root.error !== "" ? Theme.danger : Theme.textMuted
                         font { family: Theme.fontFamily; pixelSize: Theme.fontSmall }

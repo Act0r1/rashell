@@ -36,7 +36,7 @@ def main() -> None:
     try:
         displays = re.split(r"(?m)^(?:Invalid )?Display ", ddc("detect"))[1:]
         matches = [block for block in displays if re.search(
-            r"DRM_connector:\s+card\d+-" + re.escape(args.output) + r"\s", block
+            r"(?:DRM_connector:\s+card\d+-|Serial number:\s+)" + re.escape(args.output) + r"\s", block
         )]
         if len(matches) != 1:
             raise RuntimeError("No unique DDC/CI monitor found for " + args.output)

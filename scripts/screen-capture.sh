@@ -6,6 +6,7 @@ directory="${2:-${HOME}/Pictures/Screenshots}"
 capture_mode="${3:-region}"
 audio_mode="${4:-none}"
 capture_target="${5:-}"
+requested_microphone="${6:-}"
 runtime_dir="${XDG_RUNTIME_DIR:-/tmp}"
 pid_file="${runtime_dir}/rashell-screen-recorder-${UID}.pid"
 paused_file="${runtime_dir}/rashell-screen-recorder-${UID}.paused"
@@ -182,7 +183,7 @@ case "$action" in
 
         if [[ "$audio_mode" != "none" ]]; then
             require pactl
-            microphone_source="$(pactl get-default-source)"
+            microphone_source="${requested_microphone:-$(pactl get-default-source)}"
             default_sink="$(pactl get-default-sink)"
             system_source="$(pactl list short sources | awk -v name="${default_sink}.monitor" '$2 == name { print $2; exit }')"
         fi
@@ -249,6 +250,7 @@ case "$action" in
         recorder_status=$?
         set -e
         [[ -s "$output" ]] || exit "$recorder_status"
+        printf '%s' "$output" | wl-copy --type text/plain
         notify_saved "$output"
         printf '%s\n' "$output"
         ;;
@@ -290,7 +292,7 @@ case "$action" in
         ;;
 
     *)
-        printf 'Usage: %s select-region|select-output|screenshot|annotate|record|pause|resume|stop [directory] [region|output] [none|system|microphone|both] [selection]\n' "$0" >&2
+        printf 'Usage: %s select-region|select-output|screenshot|annotate|record|pause|resume|stop [directory] [region|output] [none|system|microphone|both] [selection] [microphone-source]\n' "$0" >&2
         exit 2
         ;;
 esac

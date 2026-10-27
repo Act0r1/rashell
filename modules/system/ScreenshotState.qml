@@ -20,21 +20,39 @@ Scope {
     property string pendingCaptureMode: "region"
     property string pendingCaptureSelection: ""
     property string pendingAudioMode: "none"
+    property string pendingMicrophone: ""
     property string selectionOutputName: ""
+    property bool toolbarRequested: false
+    property bool toolbarOpen: false
+    property int elapsedSeconds: 0
 
     readonly property string scriptPath: Quickshell.shellDir + "/scripts/screen-capture.sh"
 
     signal failed(string outputName, string message)
 
-    function start(action, directory, outputName, requestedCaptureMode, requestedAudioMode, requestedCaptureSelection) {
+    function start(action, directory, outputName, requestedCaptureMode, requestedAudioMode, requestedCaptureSelection, requestedMicrophone) {
         if (busy || selecting) return
+        toolbarOpen = false
         pendingAction = action
         pendingDirectory = directory
         pendingOutput = outputName
         pendingCaptureMode = requestedCaptureMode || "region"
         pendingCaptureSelection = requestedCaptureSelection || ""
         pendingAudioMode = requestedAudioMode || "none"
+        pendingMicrophone = requestedMicrophone || ""
         launchDelay.restart()
+    }
+
+    // Select a region, then show the floating recording toolbar under it.
+    function beginQuickRecord(outputName) {
+        if (busy || selecting || toolbarOpen) return
+        toolbarRequested = true
+        selectArea("region", outputName)
+    }
+
+    function closeToolbar() {
+        toolbarRequested = false
+        toolbarOpen = false
     }
 
     function selectArea(mode, outputName) {
@@ -72,6 +90,7 @@ Scope {
             root.targetOutput = root.pendingOutput
             root.busy = true
             root.recording = root.activeAction === "record"
+            root.elapsedSeconds = 0
             captureProcess.exec({
                 command: [
                     root.scriptPath,
@@ -79,10 +98,18 @@ Scope {
                     root.pendingDirectory,
                     root.pendingCaptureMode,
                     root.pendingAudioMode,
-                    root.pendingCaptureSelection
+                    root.pendingCaptureSelection,
+                    root.pendingMicrophone
                 ]
             })
         }
+    }
+
+    Timer {
+        interval: 1000
+        repeat: true
+        running: root.recording && !root.paused
+        onTriggered: root.elapsedSeconds += 1
     }
 
     Process {
@@ -92,8 +119,11 @@ Scope {
 
         onExited: function(exitCode) {
             root.selecting = false
+            const showToolbar = root.toolbarRequested
+            root.toolbarRequested = false
             if (exitCode === 0) {
                 root.captureSelection = String(selectionProcess.stdout.text || "").trim()
+                root.toolbarOpen = showToolbar
                 return
             }
             if (exitCode !== 10 && exitCode !== 130) {

@@ -1,0 +1,874 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rashell Motion Study</title>
+<style>
+:root {
+  --bg: #0d1017;
+  --surface: #141821;
+  --raised: #1b1f29;
+  --accent: #e6b450;
+  --text: #bfbdb6;
+  --muted: #9da6b4;
+  --disabled: #6f7888;
+  --border: #2d3440;
+  --danger: #d95757;
+  --success: #a7d866;
+  --info: #59c2ff;
+  --island: #000;
+  --radius: 12px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 "Inter", system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 1240px; margin: 0 auto; padding: 32px 16px 80px; }
+h1 { font-size: 28px; margin: 0 0 4px; letter-spacing: -0.02em; }
+h2 { font-size: 18px; margin: 48px 0 12px; letter-spacing: -0.01em; }
+h3 { font-size: 14px; margin: 0 0 6px; color: var(--accent); font-weight: 600; }
+p { margin: 0 0 10px; color: var(--muted); }
+code, pre { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12.5px; }
+kbd { font-family: inherit; font-size: 11px; padding: 1px 6px; border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 5px; color: var(--text); background: var(--raised); }
+
+/* ---------- desktop ---------- */
+.desktop {
+  position: relative; height: 640px; border-radius: 16px; overflow: hidden; margin-top: 20px;
+  background:
+    radial-gradient(900px 500px at 15% 110%, #3a2a12 0%, transparent 60%),
+    radial-gradient(700px 500px at 90% -10%, #10263f 0%, transparent 60%),
+    linear-gradient(160deg, #0e131c, #090c12);
+  border: 1px solid var(--border);
+  user-select: none;
+}
+.bar {
+  position: absolute; top: 10px; left: 10px; right: 10px; height: 40px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  display: flex; align-items: center; justify-content: space-between; padding: 0 8px;
+}
+.group { display: flex; align-items: center; gap: 4px; position: relative; }
+.ws { position: relative; display: flex; gap: 4px; }
+.ws button { position: relative; z-index: 1; width: 26px; height: 26px; border: 0; background: none; color: var(--disabled); border-radius: 8px; font: 600 12px inherit; font-family: inherit; cursor: pointer; }
+.ws button.on { color: var(--bg); }
+.ws-pill { position: absolute; top: 0; height: 26px; background: var(--accent); border-radius: 8px; }
+.icon-btn { width: 30px; height: 30px; border: 0; border-radius: 8px; background: none; color: var(--text); display: grid; place-items: center; cursor: pointer; }
+.icon-btn:hover, .icon-btn.active { background: var(--raised); }
+.icon-btn svg { width: 16px; height: 16px; }
+.launch-btn { padding: 0 10px; width: auto; gap: 6px; display: flex; font: 600 12px inherit; font-family: inherit; color: var(--muted); }
+
+/* ---------- island ---------- */
+.island-wrap { position: absolute; top: 6px; left: 50%; width: 640px; height: 230px; margin-left: -320px; z-index: 20; pointer-events: none; }
+.goo { position: absolute; inset: 0; filter: url(#goo); }
+.island-bg, .bubble-bg { position: absolute; top: 10px; background: var(--island); }
+.island-clip { position: absolute; top: 10px; overflow: hidden; cursor: pointer; pointer-events: auto; }
+.bubble { position: absolute; top: 10px; width: 28px; height: 28px; display: grid; place-items: center; cursor: pointer; }
+.layer { position: absolute; top: 0; left: 50%; transform-origin: 50% 0; color: #e8e6df; white-space: nowrap; }
+.row { display: flex; align-items: center; height: 28px; padding: 0 12px; gap: 8px; }
+.clock { font-weight: 600; font-variant-numeric: tabular-nums; font-size: 13px; }
+.art { width: 20px; height: 20px; border-radius: 6px; background: linear-gradient(135deg, #e6b450, #d95757 60%, #59c2ff); flex: none; }
+.eq { display: flex; gap: 2px; align-items: center; height: 14px; margin-left: auto; }
+.eq i { width: 3px; height: 100%; border-radius: 2px; background: var(--accent); transform-origin: 50% 50%; animation: eq 0.9s ease-in-out infinite; }
+.eq i:nth-child(2) { animation-delay: -0.3s; } .eq i:nth-child(3) { animation-delay: -0.6s; } .eq i:nth-child(4) { animation-delay: -0.45s; }
+.paused .eq i { animation-play-state: paused; transform: scaleY(0.25); }
+@keyframes eq { 0%,100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
+.rec-dot { width: 9px; height: 9px; border-radius: 50%; background: #ff453a; box-shadow: 0 0 10px #ff453a; animation: pulse 1.2s ease-in-out infinite; flex: none; }
+@keyframes pulse { 50% { opacity: 0.35; } }
+.vol-track { flex: 1; height: 6px; border-radius: 3px; background: #2a2f3a; overflow: hidden; }
+.vol-fill { height: 100%; background: #e8e6df; border-radius: 3px; }
+.app-icon { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font-weight: 700; color: #fff; flex: none; }
+.expanded { padding: 18px 20px; width: 400px; }
+.exp-top { display: flex; gap: 14px; align-items: center; }
+.exp-top .art { width: 64px; height: 64px; border-radius: 14px; }
+.exp-title { font-weight: 600; font-size: 15px; }
+.exp-sub { color: #a8adb8; font-size: 13px; }
+.progress { height: 4px; border-radius: 2px; background: #2a2f3a; margin: 16px 0 6px; overflow: hidden; }
+.progress div { height: 100%; width: 30%; background: #e8e6df; transition: width 0.25s linear; }
+.times { display: flex; justify-content: space-between; font-size: 11px; color: #7d8494; font-variant-numeric: tabular-nums; }
+.ctrls { display: flex; justify-content: center; gap: 28px; margin-top: 4px; }
+.ctrls button { background: none; border: 0; color: #e8e6df; cursor: pointer; padding: 4px; border-radius: 50%; }
+.ctrls button:active { transform: scale(0.88); }
+.ctrls svg { width: 22px; height: 22px; display: block; }
+
+/* ---------- notification cards ---------- */
+.toasts { position: absolute; top: 60px; right: 10px; width: 340px; height: 0; z-index: 18; }
+.toast {
+  position: absolute; top: 0; left: 0; right: 0; padding: 12px 12px 14px 14px; overflow: hidden;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: 0 14px 34px rgba(0,0,0,0.45); touch-action: none; cursor: grab;
+}
+.toast:active { cursor: grabbing; }
+.toast-head { display: flex; gap: 10px; align-items: center; }
+.toast .app-icon { width: 32px; height: 32px; border-radius: 9px; font-size: 14px; }
+.toast-title { font-weight: 600; font-size: 13px; color: var(--text); line-height: 1.2; }
+.toast-time { font-size: 11px; color: var(--disabled); }
+.toast-body { font-size: 13px; color: var(--muted); margin: 8px 0 0 42px; }
+.close { margin-left: auto; width: 26px; height: 26px; border: 0; border-radius: 8px; background: none; color: var(--muted); display: grid; place-items: center; cursor: pointer; flex: none; }
+.close:hover { background: var(--raised); color: var(--text); }
+.close svg { width: 14px; height: 14px; }
+.actions { display: flex; gap: 8px; margin: 12px 0 0 42px; }
+.btn { background: var(--raised); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 6px 14px; font: inherit; font-size: 12.5px; cursor: pointer; }
+.btn:hover { border-color: #68768a; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 600; }
+.reply { overflow: hidden; margin-left: 42px; }
+.reply-inner { display: flex; gap: 8px; padding-top: 10px; }
+.reply input { flex: 1; min-width: 0; background: var(--raised); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; color: var(--text); font: inherit; font-size: 12.5px; outline: none; }
+.reply input:focus { border-color: var(--accent); }
+.life { position: absolute; left: 0; bottom: 0; height: 2px; background: var(--accent); opacity: 0.7; }
+
+/* ---------- volume osd ---------- */
+.osd {
+  position: absolute; bottom: 28px; left: 50%; width: 300px; margin-left: -150px; height: 52px; z-index: 15;
+  display: flex; align-items: center; gap: 12px; padding: 0 18px; visibility: hidden;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 26px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.5); color: var(--text);
+}
+.osd .vol-track { height: 8px; border-radius: 4px; background: var(--raised); }
+.osd .vol-fill { background: var(--accent); border-radius: 4px; }
+
+/* ---------- panels ---------- */
+.panel {
+  position: absolute; top: 58px; width: 320px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px; transform-origin: 100% 0; visibility: hidden; z-index: 10;
+  box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+}
+.panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; font-weight: 600; font-size: 15px; }
+.panel-row { opacity: 0; }
+.slider { height: 8px; border-radius: 4px; background: var(--raised); overflow: hidden; margin: 8px 0 14px; cursor: pointer; }
+.slider div { height: 100%; background: var(--accent); }
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tile { background: var(--raised); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
+.tile.on { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.tile small { display: block; opacity: 0.7; font-size: 11px; }
+.hist { background: var(--raised); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; font-size: 13px; }
+.hist small { color: var(--muted); display: block; }
+
+/* ---------- launcher ---------- */
+.launcher {
+  position: absolute; left: 50%; top: 130px; width: 460px; margin-left: -230px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 16px; padding: 12px; visibility: hidden; z-index: 30;
+  box-shadow: 0 30px 70px rgba(0,0,0,0.55); transform-origin: 50% 20%;
+}
+.launcher input { width: 100%; background: var(--raised); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; color: var(--text); font: inherit; outline: none; }
+.launcher input:focus { border-color: var(--accent); }
+.list { position: relative; height: 308px; margin-top: 10px; overflow: hidden; }
+.sel { position: absolute; left: 0; right: 0; height: 44px; border-radius: 10px; background: var(--raised); border: 1px solid var(--border); }
+.item { position: absolute; left: 0; right: 0; height: 44px; display: flex; align-items: center; gap: 12px; padding: 0 10px; cursor: pointer; }
+.item .app-icon { width: 28px; height: 28px; border-radius: 8px; font-size: 13px; }
+.item small { color: var(--disabled); margin-left: auto; font-size: 12px; }
+.scrim { position: absolute; inset: 0; background: rgba(5,7,10,0.5); visibility: hidden; z-index: 25; }
+
+/* ---------- controls ---------- */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.chip { background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 999px; padding: 7px 14px; font: inherit; cursor: pointer; display: inline-flex; gap: 8px; align-items: center; }
+.chip:hover { border-color: #68768a; }
+.chip.on { border-color: var(--accent); color: var(--accent); }
+.tuner { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-top: 14px; align-items: center; }
+.tuner label { display: block; font-size: 12px; color: var(--muted); }
+.tuner input[type=range] { width: 100%; accent-color: var(--accent); }
+.tuner .val { color: var(--text); font-variant-numeric: tabular-nums; }
+.presets { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+.card p:last-child { margin-bottom: 0; }
+.card ul { margin: 0; padding-left: 18px; color: var(--muted); }
+.card li { margin: 3px 0; }
+.card li b { color: var(--text); font-weight: 600; }
+
+.lab { display: grid; grid-template-columns: 1fr; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+.lane { position: relative; height: 44px; background: var(--raised); border-radius: 10px; }
+.lane .dot { position: absolute; top: 8px; left: 8px; width: 28px; height: 28px; border-radius: 8px; }
+.lane-label { font-size: 12px; color: var(--muted); margin-bottom: 4px; display: flex; justify-content: space-between; }
+canvas { width: 100%; height: 170px; background: var(--raised); border-radius: 10px; display: block; }
+.legend { display: flex; gap: 16px; font-size: 12px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+pre { background: var(--raised); border: 1px solid var(--border); border-radius: 10px; padding: 14px; overflow-x: auto; color: var(--text); margin: 0; }
+.formula { font-family: "JetBrains Mono", ui-monospace, monospace; color: var(--accent); }
+.hint { font-size: 12px; color: var(--disabled); margin-top: 10px; }
+
+@media (max-width: 760px) {
+  .desktop { height: 560px; }
+  .launcher { width: calc(100% - 32px); left: 16px; margin-left: 0; }
+  .bar .hide-sm { display: none; }
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <filter id="goo" x="0" y="0" width="1" height="1">
+    <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="b"/>
+    <feColorMatrix in="b" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9" result="g"/>
+    <feComposite in="SourceGraphic" in2="g" operator="atop"/>
+  </filter>
+</svg>
+
+<main>
+  <h1>Rashell motion study</h1>
+  <p>A live mockup of your bar (ayu-dark, 40px bar, 12px radius). Every movement here uses one spring model, Apple's <b>duration + bounce</b>, and it keeps velocity when you interrupt it. Click things fast and change your mind halfway through. That's where it shows.</p>
+
+  <div class="desktop" id="desktop">
+    <div class="bar">
+      <div class="group">
+        <button class="icon-btn launch-btn" id="launchBtn" title="Launcher (L)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <span class="hide-sm">Search</span>
+        </button>
+        <div class="ws" id="ws">
+          <div class="ws-pill" id="wsPill"></div>
+          <button>1</button><button>2</button><button>3</button><button>4</button><button>5</button>
+        </div>
+      </div>
+      <div class="group">
+        <button class="icon-btn" data-panel="audio" title="Audio">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a10 10 0 0 1 0 14"/></svg>
+        </button>
+        <button class="icon-btn" data-panel="notes" title="Notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        </button>
+        <button class="icon-btn" data-panel="control" title="Control center">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="island-wrap" id="islandWrap">
+      <div class="goo">
+        <div class="island-bg" id="islandBg"></div>
+        <div class="bubble-bg" id="bubbleBg"></div>
+      </div>
+      <div class="island-clip" id="islandClip">
+        <div class="layer" data-view="idle"><div class="row"><span class="clock" id="clockText">14:32</span></div></div>
+        <div class="layer" data-view="media" style="width:280px"><div class="row" id="mediaCompact"><div class="art"></div><span style="font-size:12.5px">Midnight City — M83</span><div class="eq"><i></i><i></i><i></i><i></i></div></div></div>
+        <div class="layer" data-view="recording" style="width:170px"><div class="row"><div class="rec-dot"></div><span style="font-size:12.5px;font-variant-numeric:tabular-nums" id="recText">REC 00:00</span><span style="margin-left:auto;font-size:11px;color:#7d8494">stop</span></div></div>
+        <div class="layer expanded" data-view="expanded" id="expandedLayer">
+          <div class="exp-top"><div class="art"></div><div><div class="exp-title">Midnight City</div><div class="exp-sub">M83 · Hurry Up, We're Dreaming</div></div>
+            <div class="eq" style="height:18px"><i></i><i></i><i></i><i></i></div></div>
+          <div class="progress"><div id="prog"></div></div>
+          <div class="times"><span id="tNow">1:12</span><span>4:03</span></div>
+          <div class="ctrls">
+            <button data-act="prev"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
+            <button data-act="play" id="playBtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg></button>
+            <button data-act="next"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg></button>
+          </div>
+        </div>
+      </div>
+      <div class="bubble" id="bubble" title="Stop recording"><div class="rec-dot"></div></div>
+    </div>
+
+    <div class="panel" id="panel-audio">
+      <div class="panel-head">Audio</div>
+      <div class="panel-row"><small style="color:var(--muted)">Output · Speakers</small><div class="slider" id="audioSlider"><div id="volFillPanel"></div></div></div>
+      <div class="panel-row"><small style="color:var(--muted)">Input · Mic</small><div class="slider"><div style="width:42%"></div></div></div>
+      <div class="panel-row tiles"><div class="tile on">Speakers<small>Built-in</small></div><div class="tile">Headphones<small>Bluetooth</small></div></div>
+    </div>
+    <div class="panel" id="panel-notes">
+      <div class="panel-head">Notifications</div>
+      <div class="panel-row hist">Telegram<small>pushed the fix, take a look at PR #42</small></div>
+      <div class="panel-row hist">Updates<small>14 packages ready</small></div>
+      <div class="panel-row hist">Screenshot<small>Saved to ~/Pictures/capture</small></div>
+    </div>
+    <div class="panel" id="panel-control">
+      <div class="panel-head">Control center</div>
+      <div class="panel-row tiles" style="margin-bottom:8px"><div class="tile on">Wi-Fi<small>home-5g</small></div><div class="tile on">Bluetooth<small>2 devices</small></div></div>
+      <div class="panel-row tiles" style="margin-bottom:8px"><div class="tile">Do not disturb<small>Off</small></div><div class="tile">Night light<small>Off</small></div></div>
+      <div class="panel-row tiles"><div class="tile">Record<small>Screen</small></div><div class="tile">Lock<small>Session</small></div></div>
+    </div>
+
+    <div class="toasts" id="toasts"></div>
+
+    <div class="osd" id="osd">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path id="osdWave" d="M15.5 8.5a5 5 0 0 1 0 7"/></svg>
+      <div class="vol-track"><div class="vol-fill" id="volFillIsland"></div></div>
+      <span style="font-size:12.5px;width:34px;text-align:right;font-variant-numeric:tabular-nums" id="volText">60%</span>
+    </div>
+
+    <div class="scrim" id="scrim"></div>
+    <div class="launcher" id="launcher">
+      <input id="search" placeholder="Search apps…" autocomplete="off">
+      <div class="list" id="list"><div class="sel" id="sel"></div></div>
+    </div>
+  </div>
+
+  <div class="chips">
+    <button class="chip" id="cMedia">▶ Play media <kbd>M</kbd></button>
+    <button class="chip" id="cRec">● Record screen <kbd>R</kbd></button>
+    <button class="chip" id="cNotify">✉ Notification <kbd>N</kbd></button>
+    <button class="chip" id="cVolUp">Volume + <kbd>↑</kbd></button>
+    <button class="chip" id="cVolDn">Volume − <kbd>↓</kbd></button>
+    <button class="chip" id="cLaunch">Launcher <kbd>L</kbd></button>
+    <span class="chip" style="cursor:default">Workspaces <kbd>1</kbd>–<kbd>5</kbd></span>
+    <button class="chip" id="cSlow">🐢 Slow motion <kbd>S</kbd></button>
+  </div>
+  <p class="hint">Try this: play media, then start recording. The recording splits off into its own bubble, like iPhone's two-activity "minimal" mode. Click the island to expand it. Press <kbd>N</kbd> a few times to stack notifications: hover pauses the timer, drag a card right to dismiss it, and Reply opens an inline field. Volume now lives in its own pill at the bottom. Keep pressing ↑ at 100% to feel the rubber band.</p>
+
+  <div class="tuner">
+    <div>
+      <label>Presets</label>
+      <div class="presets">
+        <button class="chip" data-p="0.5,0">smooth</button>
+        <button class="chip" data-p="0.4,0.15">snappy</button>
+        <button class="chip" data-p="0.5,0.3">bouncy</button>
+        <button class="chip" data-p="0.35,0">current OutCubic-ish</button>
+      </div>
+    </div>
+    <div><label>duration <span class="val" id="dVal"></span> s</label><input type="range" id="dIn" min="0.2" max="1.2" step="0.01"></div>
+    <div><label>bounce <span class="val" id="bVal"></span></label><input type="range" id="bIn" min="-0.4" max="0.6" step="0.01"></div>
+    <div><label>derived (mass = 1)</label><span class="formula" id="kc"></span></div>
+  </div>
+
+  <h2>Why springs, not curves</h2>
+  <div class="lab">
+    <p style="margin:0">Click <b>Toggle</b> repeatedly while the dots are still moving. Today's <code>NumberAnimation</code> restarts at zero speed on every interruption, so you get a kink in the graph. The spring keeps its velocity and turns around smoothly. That's most of the "Apple feel".</p>
+    <div>
+      <div class="lane-label"><span>NumberAnimation · Easing.OutCubic · 220 ms (Theme.motionSurface)</span></div>
+      <div class="lane" id="laneA"><div class="dot" style="background:#68768a"></div></div>
+    </div>
+    <div>
+      <div class="lane-label"><span>Spring · duration/bounce from the tuner</span></div>
+      <div class="lane" id="laneB"><div class="dot" style="background:var(--accent)"></div></div>
+    </div>
+    <canvas id="trace"></canvas>
+    <div class="legend"><span><i style="background:#68768a"></i>OutCubic position</span><span><i style="background:#e6b450"></i>Spring position</span></div>
+    <div class="chips" style="margin-top:0">
+      <button class="chip on" id="tog">Toggle</button>
+      <button class="chip" id="spam">Spam 4 clicks</button>
+    </div>
+  </div>
+
+  <h2>What the Dynamic Island actually is</h2>
+  <div class="cards">
+    <div class="card"><h3>Three presentations</h3>
+      <ul>
+        <li><b>Compact</b>: leading and trailing content on either side of the pill (art + waveform).</li>
+        <li><b>Minimal</b>: with two live activities, one stays attached and the other detaches into a small circle.</li>
+        <li><b>Expanded</b>: long-press opens rich controls. A tap opens the app.</li>
+      </ul></div>
+    <div class="card"><h3>How the motion works</h3>
+      <ul>
+        <li>Width, height and corner radius are separate springs on one black shape.</li>
+        <li>Content cross-fades with a blur, slightly scaled. It never just swaps.</li>
+        <li>Splitting and merging look like a liquid "metaball" (here: an SVG blur + alpha threshold).</li>
+      </ul></div>
+    <div class="card"><h3>Why it works</h3>
+      <p>One fixed place for live state, so you always know where to look. The island holds long-running state (media, recording). Notifications stack on the right, and volume gets its own pill at the bottom, so nothing fights for the center.</p></div>
+    <div class="card"><h3>What maps onto Rashell</h3>
+      <ul>
+        <li><b>MediaState</b> → compact + expanded player</li>
+        <li><b>ScreenshotState / RecordToolbar</b> → recording timer bubble</li>
+        <li><b>VolumeOsd</b> → bottom-center pill, separate from the island</li>
+        <li><b>NotificationPopup</b> → top-right cards with Reply / Open, swipe to dismiss</li>
+        <li><b>MediaDownloadState</b> → progress ring; <b>Translate</b> → result peek</li>
+        <li>DND on, a pomodoro or timer → minimal bubble</li>
+      </ul></div>
+  </div>
+
+  <h2>How it would land in QML</h2>
+  <div class="cards">
+    <div class="card" style="grid-column: 1 / -1">
+      <p>Qt's <code>SpringAnimation</code> uses different units, and <code>NumberAnimation</code> can't preserve velocity. A ~30-line <code>Spring.qml</code> driven by <code>FrameAnimation</code> reproduces exactly what this page runs. The values below follow the tuner.</p>
+      <pre id="qml"></pre>
+    </div>
+  </div>
+</main>
+
+<script>
+// ---------- spring engine (Apple's duration/bounce parameterisation) ----------
+const cfg = { duration: 0.42, bounce: 0.15, timeScale: 1 };
+const active = new Set();
+let raf = 0, last = 0;
+
+function coefficients(duration, bounce) {
+  const stiffness = Math.pow(2 * Math.PI / duration, 2);
+  const damping = bounce >= 0 ? 4 * Math.PI * (1 - bounce) / duration : 4 * Math.PI / (duration * (1 + bounce));
+  return { stiffness, damping };
+}
+
+class Spring {
+  constructor(value, opts = {}) {
+    this.v = value; this.t = value; this.vel = 0;
+    this.dm = opts.dm ?? 1; this.bounce = opts.bounce; this.eps = opts.eps ?? 0.05;
+    this.listeners = [];
+  }
+  set(target) { if (target === this.t) return; this.t = target; active.add(this); wake(); }
+  kick(velocity) { this.vel += velocity; active.add(this); wake(); }
+  jump(value) { this.v = this.t = value; this.vel = 0; this.listeners.forEach(f => f()); }
+  step(dt) {
+    const { stiffness, damping } = coefficients(cfg.duration * this.dm, this.bounce ?? cfg.bounce);
+    const n = Math.max(1, Math.ceil(dt * 240)), h = dt / n;
+    for (let i = 0; i < n; i++) {
+      this.vel += (stiffness * (this.t - this.v) - damping * this.vel) * h;
+      this.v += this.vel * h;
+    }
+    if (Math.abs(this.t - this.v) < this.eps && Math.abs(this.vel) < this.eps * 10) { this.v = this.t; this.vel = 0; return false; }
+    return true;
+  }
+}
+function wake() { if (!raf) { last = 0; raf = requestAnimationFrame(tick); } }
+function tick(now) {
+  const dt = (last ? Math.min((now - last) / 1000, 1 / 30) : 1 / 60) * cfg.timeScale;
+  last = now;
+  const renders = new Set();
+  for (const s of [...active]) { if (!s.step(dt)) active.delete(s); s.listeners.forEach(f => renders.add(f)); }
+  renders.forEach(f => f());
+  raf = active.size ? requestAnimationFrame(tick) : 0;
+}
+function bind(springs, fn) { springs.forEach(s => s.listeners.push(fn)); fn(); }
+const clamp01 = x => Math.min(1, Math.max(0, x));
+const $ = s => document.querySelector(s);
+
+// ---------- island ----------
+const GEOM = {
+  idle: { w: 120, h: 28, r: 14 },
+  media: { w: 280, h: 28, r: 14 },
+  recording: { w: 170, h: 28, r: 14 },
+  expanded: { w: 400, h: 178, r: 34 },
+};
+const st = { media: false, playing: true, recording: false, recStart: 0, expanded: false, volume: 0.6 };
+
+const W = new Spring(120, { eps: 0.2 }), H = new Spring(28, { eps: 0.2 }), R = new Spring(14, { eps: 0.2 });
+const BX = new Spring(-16, { eps: 0.2 }), BS = new Spring(0.4, { eps: 0.002 });
+const islandBg = $('#islandBg'), islandClip = $('#islandClip'), bubbleBg = $('#bubbleBg'), bubble = $('#bubble');
+bind([W, H, R, BX, BS], () => {
+  const w = W.v, h = Math.max(0, H.v), r = Math.max(0, Math.min(R.v, h / 2));
+  for (const el of [islandBg, islandClip]) Object.assign(el.style, { width: w + 'px', height: h + 'px', left: 320 - w / 2 + 'px', borderRadius: r + 'px' });
+  const cx = 320 + w / 2 + BX.v - 14, s = Math.max(0, BS.v);
+  for (const el of [bubbleBg, bubble]) Object.assign(el.style, { left: cx + 'px', transform: `scale(${s})` });
+  Object.assign(bubbleBg.style, { width: '28px', height: '28px', borderRadius: '14px' });
+  bubble.style.opacity = clamp01((BS.v - 0.5) * 2);
+  bubble.style.pointerEvents = BS.t > 0.5 ? 'auto' : 'none';
+});
+
+const layers = {};
+document.querySelectorAll('[data-view]').forEach(el => {
+  const v = el.dataset.view, on = v === 'idle';
+  const o = new Spring(on ? 1 : 0, { bounce: 0, dm: 0.6, eps: 0.002 });
+  const s = new Spring(on ? 1 : 0.88, { dm: 0.9, eps: 0.001 });
+  bind([o, s], () => {
+    el.style.opacity = clamp01(o.v);
+    el.style.transform = `translateX(-50%) scale(${s.v})`;
+    el.style.filter = o.v > 0.98 ? 'none' : `blur(${(1 - clamp01(o.v)) * 8}px)`;
+    el.style.pointerEvents = o.t > 0.5 ? 'auto' : 'none';
+  });
+  layers[v] = { o, s };
+});
+
+function view() {
+  if (st.expanded && st.media) return 'expanded';
+  if (st.media) return 'media';
+  if (st.recording) return 'recording';
+  return 'idle';
+}
+function render() {
+  const v = view(), g = GEOM[v];
+  W.set(g.w); H.set(g.h); R.set(g.r);
+  for (const [k, l] of Object.entries(layers)) { l.o.set(k === v ? 1 : 0); l.s.set(k === v ? 1 : 0.88); }
+  const split = st.recording && (v === 'media' || v === 'expanded');
+  BX.set(split ? 22 : -16); BS.set(split ? 1 : 0.4);
+  document.getElementById('islandWrap').classList.toggle('paused', !st.playing);
+  $('#cMedia').classList.toggle('on', st.media);
+  $('#cRec').classList.toggle('on', st.recording);
+}
+
+// ---------- notification cards: top-right stack, newest on top ----------
+const NOTES = [
+  { icon: 'T', color: '#2aa3e0', title: 'Telegram · Rustam', body: 'pushed the fix, take a look at PR #42', actions: ['Reply', 'Open'] },
+  { icon: 'U', color: '#a7d866', title: 'Updates', body: '14 packages are ready to install', actions: ['Install', 'Later'] },
+  { icon: 'C', color: '#d97757', title: 'Claude Code', body: 'Task finished: motion study is ready', actions: ['Open'] },
+  { icon: 'W', color: '#59c2ff', title: 'Weather', body: 'Rain starts in 20 minutes', actions: [] },
+];
+const TOAST_LIFE = 6000, TOAST_GAP = 8, TOAST_MAX = 4;
+const CLOSE_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+const toasts = [];
+let noteIdx = 0;
+
+function layoutToasts() {
+  let y = 0;
+  toasts.forEach(t => { t.Y.set(y); y += t.el.offsetHeight + TOAST_GAP; });
+}
+function dismissToast(t, velocity = 0) {
+  const i = toasts.indexOf(t);
+  if (i === -1) return;
+  toasts.splice(i, 1);
+  t.X.vel += velocity; t.X.set(380); t.O.set(0); t.S.set(0.96);
+  setTimeout(() => t.el.remove(), 900 / cfg.timeScale);
+  layoutToasts();
+}
+function notify(note) {
+  note = note || NOTES[noteIdx++ % NOTES.length];
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `
+    <div class="toast-head">
+      <div class="app-icon" style="background:${note.color}">${note.icon}</div>
+      <div><div class="toast-title">${note.title}</div><div class="toast-time">now</div></div>
+      <button class="close" title="Dismiss">${CLOSE_SVG}</button>
+    </div>
+    <div class="toast-body">${note.body}</div>
+    ${note.actions.length ? `<div class="actions">${note.actions.map((a, i) => `<button class="btn${i === 0 ? ' primary' : ''}" data-a="${a}">${a}</button>`).join('')}</div>` : ''}
+    <div class="reply" style="height:0"><div class="reply-inner"><input placeholder="Reply to ${note.title.split(' · ').pop()}…"><button class="btn primary" data-a="Send">Send</button></div></div>
+    <div class="life"></div>`;
+  $('#toasts').appendChild(el);
+
+  const t = {
+    el, life: TOAST_LIFE, hovered: false, replying: false,
+    X: new Spring(380, { eps: 0.1 }), Y: new Spring(0, { eps: 0.1 }),
+    O: new Spring(0, { bounce: 0, dm: 0.6, eps: 0.002 }), S: new Spring(0.96, { eps: 0.001 }),
+    RH: new Spring(0, { bounce: 0, dm: 0.8, eps: 0.1 }),
+  };
+  const reply = el.querySelector('.reply'), input = el.querySelector('input'), life = el.querySelector('.life');
+  bind([t.X, t.Y, t.O, t.S], () => {
+    el.style.transform = `translate(${t.X.v}px, ${t.Y.v}px) scale(${t.S.v})`;
+    el.style.opacity = clamp01(t.O.v) * clamp01(1 - Math.max(0, t.X.v) / 380 * 0.6);
+  });
+  bind([t.RH], () => { reply.style.height = Math.max(0, t.RH.v) + 'px'; if (toasts.includes(t)) layoutToasts(); });
+
+  toasts.unshift(t);
+  while (toasts.length > TOAST_MAX) dismissToast(toasts[toasts.length - 1]);
+  t.X.set(0); t.O.set(1); t.S.set(1);
+  layoutToasts();
+
+  const tickLife = setInterval(() => {
+    if (!toasts.includes(t)) return clearInterval(tickLife);
+    if (!t.hovered && !t.replying) t.life -= 50;
+    life.style.width = Math.max(0, t.life / TOAST_LIFE * 100) + '%';
+    if (t.life <= 0) dismissToast(t);
+  }, 50);
+  el.addEventListener('mouseenter', () => t.hovered = true);
+  el.addEventListener('mouseleave', () => t.hovered = false);
+
+  const send = () => {
+    const text = input.value.trim();
+    if (!text) return input.focus();
+    el.querySelector('.toast-body').innerHTML = `<span style="color:var(--text)">You:</span> ${text.replace(/</g, '&lt;')}`;
+    el.querySelector('.toast-time').textContent = 'sent';
+    t.replying = false; t.RH.set(0); input.blur();
+    setTimeout(() => dismissToast(t, 600), 900);
+  };
+  el.querySelector('.close').addEventListener('click', () => dismissToast(t));
+  el.querySelectorAll('[data-a]').forEach(b => b.addEventListener('click', () => {
+    const a = b.dataset.a;
+    if (a === 'Reply') {
+      t.replying = !t.replying;
+      t.RH.set(t.replying ? reply.firstElementChild.offsetHeight : 0);
+      if (t.replying) setTimeout(() => input.focus(), 60);
+    } else if (a === 'Send') send();
+    else dismissToast(t, 900);
+  }));
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') send();
+    if (e.key === 'Escape') { t.replying = false; t.RH.set(0); input.blur(); }
+  });
+
+  // swipe right to dismiss; the spring inherits the release velocity
+  let drag = null;
+  el.addEventListener('pointerdown', e => {
+    if (e.target.closest('button, input')) return;
+    el.setPointerCapture(e.pointerId);
+    drag = { x0: e.clientX, x: e.clientX, time: performance.now(), vel: 0 };
+  });
+  el.addEventListener('pointermove', e => {
+    if (!drag) return;
+    const now = performance.now(), dt = Math.max(1, now - drag.time) / 1000;
+    drag.vel = drag.vel * 0.6 + (e.clientX - drag.x) / dt * 0.4;
+    drag.x = e.clientX; drag.time = now;
+    const dx = e.clientX - drag.x0;
+    t.X.jump(dx < 0 ? dx * 0.25 : dx);
+  });
+  const release = () => {
+    if (!drag) return;
+    const dx = drag.x - drag.x0, vel = drag.vel;
+    drag = null;
+    if (dx > 110 || vel > 700) return dismissToast(t, vel);
+    t.X.vel = vel; t.X.t = t.X.v; t.X.set(0);
+  };
+  el.addEventListener('pointerup', release);
+  el.addEventListener('pointercancel', release);
+}
+
+const VOL = new Spring(0.6, { bounce: 0, dm: 0.5, eps: 0.001 });
+bind([VOL], () => {
+  const pct = clamp01(VOL.v) * 100 + '%';
+  $('#volFillIsland').style.width = pct; $('#volFillPanel').style.width = pct;
+});
+// bottom OSD: slides up from the screen edge, rubber-bands when pushed past 0% / 100%
+const OY = new Spring(90, { eps: 0.1 }), OO = new Spring(0, { bounce: 0, dm: 0.6, eps: 0.002 }), OSX = new Spring(1, { bounce: 0.35, dm: 0.6, eps: 0.0005 });
+let osdTimer = 0;
+bind([OY, OO, OSX], () => {
+  const osd = $('#osd');
+  osd.style.transform = `translateY(${OY.v}px) scaleX(${OSX.v})`;
+  osd.style.opacity = clamp01(OO.v);
+  osd.style.visibility = OO.v < 0.01 && OO.t === 0 ? 'hidden' : 'visible';
+});
+function showOsd() {
+  OY.set(0); OO.set(1);
+  clearTimeout(osdTimer);
+  osdTimer = setTimeout(() => { OY.set(90); OO.set(0); }, 1400);
+}
+function setVolume(v) {
+  const next = Math.round(clamp01(v) * 100) / 100;
+  if (next === st.volume && (v > 1 || v < 0)) OSX.kick(v > 1 ? 0.9 : -0.9);
+  st.volume = next;
+  VOL.set(st.volume); $('#volText').textContent = Math.round(st.volume * 100) + '%';
+  $('#osdWave').style.opacity = st.volume === 0 ? 0 : 1;
+  showOsd();
+}
+
+function toggleMedia() { st.media = !st.media; st.playing = true; if (!st.media) st.expanded = false; render(); }
+function toggleRec() { st.recording = !st.recording; st.recStart = Date.now(); render(); }
+
+islandClip.addEventListener('click', e => {
+  if (e.target.closest('[data-act]')) return;
+  const v = view();
+  if (v === 'recording') return toggleRec();
+  if (st.media) { st.expanded = !st.expanded; render(); }
+});
+bubble.addEventListener('click', toggleRec);
+$('#expandedLayer').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  if (b.dataset.act === 'play') {
+    st.playing = !st.playing;
+    b.innerHTML = st.playing ? '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>' : '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"/></svg>';
+    render();
+  } else { progress = 0; }
+});
+document.getElementById('islandWrap').addEventListener('wheel', e => { e.preventDefault(); setVolume(st.volume + (e.deltaY < 0 ? 0.05 : -0.05)); }, { passive: false });
+
+let progress = 72;
+setInterval(() => {
+  const d = new Date();
+  $('#clockText').textContent = d.toTimeString().slice(0, 5);
+  if (st.recording) { const s = Math.floor((Date.now() - st.recStart) / 1000); $('#recText').textContent = `REC ${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; }
+  if (st.media && st.playing) progress = (progress + 0.25) % 243;
+  $('#prog').style.width = (progress / 243 * 100) + '%';
+  $('#tNow').textContent = `${Math.floor(progress / 60)}:${String(Math.floor(progress % 60)).padStart(2, '0')}`;
+}, 250);
+
+// ---------- workspaces: leading edge is stiffer than trailing, so the pill stretches ----------
+const wsButtons = [...document.querySelectorAll('#ws button')];
+const L = new Spring(0, { eps: 0.1 }), Rt = new Spring(26, { eps: 0.1 });
+let wsActive = 0;
+bind([L, Rt], () => { const pill = $('#wsPill'); pill.style.left = L.v + 'px'; pill.style.width = Math.max(8, Rt.v - L.v) + 'px'; });
+function goWorkspace(i) {
+  if (i === wsActive) return;
+  const forward = i > wsActive; wsActive = i;
+  const left = wsButtons[i].offsetLeft, right = left + wsButtons[i].offsetWidth;
+  L.dm = forward ? 1.15 : 0.6; Rt.dm = forward ? 0.6 : 1.15;
+  L.set(left); Rt.set(right);
+  wsButtons.forEach((b, k) => b.classList.toggle('on', k === i));
+}
+wsButtons.forEach((b, i) => b.addEventListener('click', () => goWorkspace(i)));
+wsButtons[0].classList.add('on');
+
+// ---------- panels: grow out of their anchor ----------
+const panels = {};
+let openPanelId = null;
+document.querySelectorAll('[data-panel]').forEach(btn => {
+  const id = btn.dataset.panel, el = $('#panel-' + id), rows = [...el.querySelectorAll('.panel-row')];
+  const o = new Spring(0, { bounce: 0, dm: 0.7, eps: 0.002 }), sc = new Spring(0.94, { eps: 0.001 }), y = new Spring(-8, { eps: 0.05 });
+  bind([o, sc, y], () => {
+    el.style.opacity = clamp01(o.v);
+    el.style.transform = `translateY(${y.v}px) scale(${sc.v})`;
+    el.style.visibility = o.v < 0.01 && o.t === 0 ? 'hidden' : 'visible';
+  });
+  const rowSprings = rows.map(r => { const ro = new Spring(0, { bounce: 0, dm: 0.8, eps: 0.002 }), ry = new Spring(6, { eps: 0.05 }); bind([ro, ry], () => { r.style.opacity = clamp01(ro.v); r.style.transform = `translateY(${ry.v}px)`; }); return { ro, ry }; });
+  panels[id] = {
+    btn, el,
+    open() {
+      const desk = $('#desktop').getBoundingClientRect(), b = btn.getBoundingClientRect();
+      el.style.right = Math.max(10, desk.right - b.right - 6) + 'px';
+      o.set(1); sc.set(1); y.set(0); btn.classList.add('active');
+      rowSprings.forEach((r, i) => setTimeout(() => { if (openPanelId === id) { r.ro.set(1); r.ry.set(0); } }, 40 + i * 35));
+    },
+    close() {
+      o.set(0); sc.set(0.96); y.set(-6); btn.classList.remove('active');
+      rowSprings.forEach(r => { r.ro.set(0); r.ry.set(6); });
+    },
+  };
+  btn.addEventListener('click', () => togglePanel(id));
+});
+function togglePanel(id) {
+  const prev = openPanelId;
+  if (prev) panels[prev].close();
+  openPanelId = prev === id ? null : id;
+  if (openPanelId) panels[openPanelId].open();
+}
+$('#audioSlider').addEventListener('click', e => { const r = e.currentTarget.getBoundingClientRect(); setVolume((e.clientX - r.left) / r.width); });
+document.querySelectorAll('#panel-control .tile').forEach(t => t.addEventListener('click', () => {
+  t.classList.toggle('on');
+  if (t.textContent.startsWith('Record')) toggleRec();
+}));
+
+// ---------- launcher: scale in, staggered rows, FLIP-style reflow on filter ----------
+const APPS = [
+  ['Zen Browser', 'Z', '#f4a261', 'web'], ['Kitty', 'K', '#6c7a89', 'terminal'], ['Telegram', 'T', '#2aa3e0', 'chat'],
+  ['Zed', 'Z', '#59c2ff', 'editor'], ['Obsidian', 'O', '#8b5cf6', 'notes'], ['Spotify', 'S', '#1db954', 'music'],
+  ['Files', 'F', '#e6b450', 'nautilus'], ['Steam', 'S', '#1b2838', 'games'], ['Discord', 'D', '#5865f2', 'chat'],
+  ['Settings', 'S', '#9da6b4', 'system'], ['Blender', 'B', '#f5792a', '3d'], ['GIMP', 'G', '#7d6b58', 'image'],
+];
+const listEl = $('#list');
+const items = APPS.map(([name, ch, color, tag]) => {
+  const el = document.createElement('div');
+  el.className = 'item';
+  el.innerHTML = `<div class="app-icon" style="background:${color}">${ch}</div><span>${name}</span><small>${tag}</small>`;
+  listEl.appendChild(el);
+  const y = new Spring(0, { eps: 0.05 }), o = new Spring(0, { bounce: 0, dm: 0.7, eps: 0.002 });
+  bind([y, o], () => { el.style.transform = `translateY(${y.v}px)`; el.style.opacity = clamp01(o.v); el.style.pointerEvents = o.t > 0.5 ? 'auto' : 'none'; });
+  return { name, el, y, o, idx: -1 };
+});
+const LO = new Spring(0, { bounce: 0, dm: 0.6, eps: 0.002 }), LS = new Spring(0.94, { eps: 0.001 }), SEL = new Spring(0, { eps: 0.05 });
+bind([LO, LS], () => {
+  const vis = LO.v < 0.01 && LO.t === 0 ? 'hidden' : 'visible';
+  $('#launcher').style.opacity = clamp01(LO.v); $('#launcher').style.transform = `scale(${LS.v})`; $('#launcher').style.visibility = vis;
+  $('#scrim').style.opacity = clamp01(LO.v); $('#scrim').style.visibility = vis;
+});
+bind([SEL], () => { $('#sel').style.transform = `translateY(${SEL.v}px)`; });
+let launcherOpen = false, selIdx = 0, visibleItems = [];
+function layoutItems(stagger) {
+  const q = $('#search').value.trim().toLowerCase();
+  visibleItems = items.filter(it => it.name.toLowerCase().includes(q));
+  items.forEach(it => {
+    const k = visibleItems.indexOf(it);
+    if (k === -1) { it.o.set(0); it.idx = -1; return; }
+    const show = () => { if (!launcherOpen) return; if (it.idx === -1) it.y.jump(k * 44 + 10); it.y.set(k * 44); it.o.set(1); it.idx = k; };
+    stagger ? setTimeout(show, 30 + k * 22) : show();
+  });
+  selIdx = Math.min(selIdx, Math.max(0, visibleItems.length - 1));
+  SEL.set(selIdx * 44); $('#sel').style.opacity = visibleItems.length ? 1 : 0;
+}
+function setLauncher(open) {
+  launcherOpen = open;
+  LO.set(open ? 1 : 0); LS.set(open ? 1 : 0.96);
+  if (open) {
+    if (openPanelId) togglePanel(openPanelId);
+    $('#search').value = ''; selIdx = 0; SEL.jump(0);
+    items.forEach(it => { it.idx = -1; it.o.jump(0); });
+    layoutItems(true); setTimeout(() => $('#search').focus(), 0);
+  } else { items.forEach(it => it.o.set(0)); $('#search').blur(); }
+}
+function launch() { setLauncher(false); }
+$('#search').addEventListener('input', () => { selIdx = 0; layoutItems(false); });
+$('#scrim').addEventListener('click', () => setLauncher(false));
+items.forEach(it => {
+  it.el.addEventListener('mouseenter', () => { if (it.idx >= 0) { selIdx = it.idx; SEL.set(selIdx * 44); } });
+  it.el.addEventListener('click', () => launch(it));
+});
+$('#launchBtn').addEventListener('click', () => setLauncher(!launcherOpen));
+
+// ---------- chips + keys ----------
+$('#cMedia').onclick = toggleMedia; $('#cRec').onclick = toggleRec; $('#cNotify').onclick = () => notify();
+$('#cVolUp').onclick = () => setVolume(st.volume + 0.1); $('#cVolDn').onclick = () => setVolume(st.volume - 0.1);
+$('#cLaunch').onclick = () => setLauncher(!launcherOpen);
+function toggleSlow() { cfg.timeScale = cfg.timeScale === 1 ? 0.25 : 1; $('#cSlow').classList.toggle('on', cfg.timeScale !== 1); }
+$('#cSlow').onclick = toggleSlow;
+
+document.addEventListener('keydown', e => {
+  if (launcherOpen) {
+    if (e.key === 'Escape') setLauncher(false);
+    else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      selIdx = Math.max(0, Math.min(visibleItems.length - 1, selIdx + (e.key === 'ArrowDown' ? 1 : -1)));
+      SEL.set(selIdx * 44);
+    } else if (e.key === 'Enter') launch(visibleItems[selIdx]);
+    return;
+  }
+  if (e.target.tagName === 'INPUT') return;
+  const k = e.key.toLowerCase();
+  if (k >= '1' && k <= '5') goWorkspace(+k - 1);
+  else if (k === 'm') toggleMedia();
+  else if (k === 'r') toggleRec();
+  else if (k === 'n') notify();
+  else if (k === 'l') { e.preventDefault(); setLauncher(true); }
+  else if (k === 's') toggleSlow();
+  else if (e.key === 'ArrowUp') { e.preventDefault(); setVolume(st.volume + 0.05); }
+  else if (e.key === 'ArrowDown') { e.preventDefault(); setVolume(st.volume - 0.05); }
+  else if (e.key === 'Escape') { if (openPanelId) togglePanel(openPanelId); st.expanded = false; render(); }
+});
+
+// ---------- tuner ----------
+function syncTuner() {
+  $('#dIn').value = cfg.duration; $('#bIn').value = cfg.bounce;
+  $('#dVal').textContent = cfg.duration.toFixed(2); $('#bVal').textContent = cfg.bounce.toFixed(2);
+  const { stiffness, damping } = coefficients(cfg.duration, cfg.bounce);
+  $('#kc').textContent = `stiffness ${stiffness.toFixed(1)} · damping ${damping.toFixed(2)}`;
+  $('#qml').textContent = qmlSnippet();
+  document.querySelectorAll('[data-p]').forEach(b => { const [d, bo] = b.dataset.p.split(',').map(Number); b.classList.toggle('on', d === cfg.duration && bo === cfg.bounce); });
+}
+$('#dIn').oninput = e => { cfg.duration = +e.target.value; syncTuner(); };
+$('#bIn').oninput = e => { cfg.bounce = +e.target.value; syncTuner(); };
+document.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { [cfg.duration, cfg.bounce] = b.dataset.p.split(',').map(Number); syncTuner(); });
+
+function qmlSnippet() {
+  return `// core/Spring.qml — Apple-style spring that keeps velocity when retargeted
+import QtQuick
+
+QtObject {
+    id: spring
+    property real target: 0
+    property real value: target
+    property real velocity: 0
+    property real duration: ${cfg.duration.toFixed(2)}   // Theme.springDuration
+    property real bounce: ${cfg.bounce.toFixed(2)}     // Theme.springBounce
+
+    readonly property real stiffness: Math.pow(2 * Math.PI / duration, 2)
+    readonly property real damping: bounce >= 0
+        ? 4 * Math.PI * (1 - bounce) / duration
+        : 4 * Math.PI / (duration * (1 + bounce))
+
+    property FrameAnimation driver: FrameAnimation {
+        running: Math.abs(spring.target - spring.value) > 0.01 || Math.abs(spring.velocity) > 0.01
+        onTriggered: {
+            const steps = Math.max(1, Math.ceil(frameTime * 240))
+            const h = frameTime / steps
+            for (let i = 0; i < steps; i++) {
+                spring.velocity += (spring.stiffness * (spring.target - spring.value) - spring.damping * spring.velocity) * h
+                spring.value += spring.velocity * h
+            }
+        }
+    }
+}
+
+// usage in PanelFrame.qml
+Spring { id: reveal; target: frame.shown ? 1 : 0 }
+opacity: Math.min(1, reveal.value)
+scale: 0.94 + 0.06 * reveal.value
+transformOrigin: Item.TopRight`;
+}
+
+// ---------- lab: OutCubic restart vs spring retarget ----------
+const laneA = $('#laneA .dot'), laneB = $('#laneB .dot');
+const LB = new Spring(0, { eps: 0.0005 });
+let tw = { from: 0, to: 0, start: 0 }, labTarget = 0;
+const outCubic = t => 1 - Math.pow(1 - t, 3);
+let labClock = 0, labLast = 0;
+function tweenValue() { const p = Math.min(1, (labClock - tw.start) / 0.22); return tw.from + (tw.to - tw.from) * outCubic(p); }
+function toggleLab() { labTarget = labTarget ? 0 : 1; tw = { from: tweenValue(), to: labTarget, start: labClock }; LB.set(labTarget); }
+$('#tog').onclick = toggleLab;
+$('#spam').onclick = () => [0, 110, 220, 330].forEach(d => setTimeout(toggleLab, d));
+const canvas = $('#trace'), ctx = canvas.getContext('2d');
+const samples = [];
+function labFrame(now) {
+  const dt = labLast ? Math.min((now - labLast) / 1000, 1 / 30) * cfg.timeScale : 0;
+  labLast = now; labClock += dt;
+  const a = tweenValue(), b = LB.v;
+  const lane = $('#laneA').clientWidth - 44;
+  laneA.style.transform = `translateX(${a * lane}px)`; laneB.style.transform = `translateX(${b * lane}px)`;
+  samples.push([labClock, a, b]);
+  while (samples.length && labClock - samples[0][0] > 2.5) samples.shift();
+  const dpr = devicePixelRatio || 1, w = canvas.clientWidth, h = canvas.clientHeight;
+  if (canvas.width !== w * dpr) { canvas.width = w * dpr; canvas.height = h * dpr; }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
+  ctx.strokeStyle = '#2d3440'; ctx.lineWidth = 1;
+  [0.2, 0.8].forEach(f => { ctx.beginPath(); ctx.moveTo(0, h * f); ctx.lineTo(w, h * f); ctx.stroke(); });
+  [[1, '#68768a'], [2, '#e6b450']].forEach(([k, color]) => {
+    ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 2;
+    samples.forEach((s, i) => { const x = w - (labClock - s[0]) / 2.5 * w, y = h * 0.8 - s[k] * h * 0.6; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+    ctx.stroke();
+  });
+  requestAnimationFrame(labFrame);
+}
+requestAnimationFrame(labFrame);
+
+syncTuner();
+render();
+</script>
+</body>
+</html>

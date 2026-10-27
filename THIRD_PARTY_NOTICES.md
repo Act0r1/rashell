@@ -18,7 +18,11 @@ Ayu Dark and Mirage terminal colors use [ayu-colors 9.0.0](https://github.com/ay
 
 ## Tokyo Night terminal palettes
 
-Tokyo Night and Tokyo Storm terminal ANSI, syntax colors, and Ghostty settings are adapted from [tokyonight.nvim](https://github.com/folke/tokyonight.nvim), used under the Apache License, Version 2.0. Its license is included in `assets/themes/tokyonight/LICENSE`. Base16 roles, search colors, and readable comments are adapted for Rashell.
+Tokyo Night and Tokyo Storm terminal ANSI, syntax colors, and Ghostty settings are adapted from [tokyonight.nvim](https://github.com/folke/tokyonight.nvim), used under the Apache License, Version 2.0. Its license is included in `assets/themes/tokyonight/LICENSE`. Base16 roles, search colors, and readable comments are adapted for Rashell, and background, surface, and border colors are darkened.
+
+## Kanagawa Dragon, Oxocarbon, and Rosé Pine palettes
+
+Kanagawa Dragon colors and terminal ANSI are from [kanagawa.nvim](https://github.com/rebelot/kanagawa.nvim), Oxocarbon colors and terminal ANSI from [oxocarbon.nvim](https://github.com/nyoom-engineering/oxocarbon.nvim), and Rosé Pine colors and terminal ANSI from [rose-pine/neovim](https://github.com/rose-pine/neovim), each used under the MIT License. Their licenses are included in `assets/themes/kanagawa/LICENSE`, `assets/themes/oxocarbon/LICENSE`, and `assets/themes/rose-pine/LICENSE`. Shell roles, Base16 roles, and search colors are adapted for Rashell; Kanagawa and Oxocarbon comments, the Rosé Pine keyword color, and the Rosé Pine border are adjusted for contrast.
 
 ## Ayu editor syntax colors
 

@@ -95,8 +95,8 @@ FocusScope {
     }
 
     function updatedText() {
-        if (!weatherState.available) return "Waiting for weather data"
         if (weatherState.refreshing) return "Updating weather…"
+        if (!weatherState.available) return "Waiting for weather data"
         if (weatherState.stale) return "Last known weather · " + Qt.formatTime(weatherState.updatedAt, "HH:mm")
         return "Updated " + Qt.formatTime(weatherState.updatedAt, "HH:mm")
     }
@@ -268,6 +268,43 @@ FocusScope {
                                     color: Qt.rgba(1, 1, 1, 0.88)
                                     font.family: Theme.fontFamily
                                     font.pixelSize: Theme.fontDisplay
+                                }
+
+                                ActionButton {
+                                    id: refreshButton
+                                    anchors.right: parent.right
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: 32
+                                    height: 32
+                                    padding: 0
+                                    enabled: !root.weatherState.refreshing
+                                    accessibleName: root.weatherState.refreshing ? "Updating weather" : "Refresh weather"
+                                    onClicked: root.weatherState.refresh()
+
+                                    contentItem: Item {
+                                        ShellIcon {
+                                            anchors.centerIn: parent
+                                            name: "rotate-cw"
+                                            tint: Qt.rgba(1, 1, 1, 0.9)
+                                            implicitWidth: 16
+                                            implicitHeight: 16
+
+                                            RotationAnimator on rotation {
+                                                from: 0
+                                                to: 360
+                                                duration: 1000
+                                                loops: Animation.Infinite
+                                                running: root.weatherState.refreshing && root.visible
+                                            }
+                                        }
+                                    }
+
+                                    background: Rectangle {
+                                        radius: 9
+                                        color: Qt.rgba(0.07, 0.06, 0.12, refreshButton.down ? 0.9 : refreshButton.hovered ? 0.78 : 0.55)
+                                        border.color: Qt.rgba(1, 1, 1, refreshButton.visualFocus ? 0.9 : refreshButton.hovered ? 0.3 : 0.12)
+                                        border.width: refreshButton.visualFocus ? Theme.focusWidth : Theme.borderWidth
+                                    }
                                 }
                             }
 

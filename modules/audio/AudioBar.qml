@@ -43,10 +43,10 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     width: 34
                     horizontalAlignment: Text.AlignRight
-                    text: root.state.availability === "loading" ? "…"
+                    text: root.state.availability === "loading" || root.state.availability === "binding" ? "…"
                         : root.state.availability !== "ready" ? "!"
                         : Math.round(root.state.outputVolume * 100) + "%"
-                    color: root.state.availability !== "ready" && root.state.availability !== "loading"
+                    color: root.state.availability !== "ready" && root.state.availability !== "loading" && root.state.availability !== "binding"
                         ? Theme.danger : Theme.text
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontBody
@@ -59,8 +59,8 @@ Item {
                 && root.coordinator.activePanelId === "audio"
                 && root.coordinator.anchorItem === root
             color: active || button.hovered || button.down ? Theme.surfaceRaised : "transparent"
-            border.color: button.activeFocus ? Theme.focus : active ? Theme.accent : "transparent"
-            border.width: button.activeFocus ? Theme.focusWidth : Theme.borderWidth
+            border.color: button.visualFocus ? Theme.focus : active ? Theme.accent : "transparent"
+            border.width: button.visualFocus ? Theme.focusWidth : Theme.borderWidth
             radius: Theme.radius
         }
 

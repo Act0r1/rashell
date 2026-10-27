@@ -20,6 +20,7 @@ import qs.modules.projects
 import qs.modules.session
 import qs.modules.capture
 import qs.modules.download
+import qs.modules.translate
 import qs.overlays
 import "core/LauncherActions.js" as LauncherActions
 
@@ -203,6 +204,10 @@ ShellRoot {
         configStore: configStore
     }
 
+    SystemFont {
+        configStore: configStore
+    }
+
     Wallpaper {
         sourcePath: configStore.wallpaper
     }
@@ -371,6 +376,22 @@ ShellRoot {
         locked: lockScreen.locked
     }
 
+    RecordToolbar {
+        captureState: screenshotState
+        configStore: configStore
+        locked: lockScreen.locked
+    }
+
+    TranslateState {
+        id: translateState
+    }
+
+    TranslateWindow {
+        translateState: translateState
+        coordinator: panelCoordinator
+        locked: lockScreen.locked
+    }
+
     BarEditorPanel {
         id: barEditor
         configStore: configStore
@@ -453,6 +474,31 @@ ShellRoot {
 
         function ocrCapture(): string {
             return shell.activateAction("text.ocr") ? "ok" : "OCR unavailable"
+        }
+
+        function recordToggle(): string {
+            if (screenshotState.recording) screenshotState.stop()
+            else if (screenshotState.toolbarOpen) {
+                screenshotState.start("record", configStore.captureDirectoryPath, panelCoordinator.preferredOutputName(),
+                    screenshotState.captureMode, screenshotState.audioMode, screenshotState.captureSelection,
+                    configStore.captureMicrophone)
+            } else if (!screenshotState.busy && !screenshotState.selecting) {
+                panelCoordinator.close("record")
+                screenshotState.beginQuickRecord(panelCoordinator.preferredOutputName())
+            }
+            return "ok"
+        }
+
+        function translateToggle(): string {
+            launcher.close()
+            translateState.toggle()
+            return "ok"
+        }
+
+        function translateSelection(): string {
+            launcher.close()
+            translateState.openSelection()
+            return "ok"
         }
 
         function launcherToggle(): string {

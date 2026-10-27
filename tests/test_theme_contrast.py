@@ -42,10 +42,11 @@ class ThemeContrastTest(unittest.TestCase):
         themes = catalog()
         ids = [theme["id"] for theme in themes]
 
-        self.assertEqual(len(themes), 6)
+        self.assertEqual(len(themes), 9)
         self.assertEqual(len(ids), len(set(ids)))
         self.assertEqual(ids, [
             "raven", "dusk", "tokyonight", "tokyostorm", "ayu-dark", "ayu-mirage",
+            "kanagawa-dragon", "oxocarbon", "rose-pine",
         ])
         for theme in themes:
             with self.subTest(theme=theme["id"]):

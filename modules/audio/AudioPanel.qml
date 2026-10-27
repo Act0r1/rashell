@@ -177,6 +177,14 @@ FocusScope {
         }
 
         Text {
+            visible: root.audioState && root.audioState.availability === "binding"
+            text: "Loading output device..."
+            color: Theme.textMuted
+            font.family: Theme.fontFamily
+            font.pixelSize: Theme.fontBody
+        }
+
+        Text {
             visible: root.audioState && root.audioState.availability === "disconnected"
             text: "PipeWire disconnected. Waiting to reconnect."
             color: Theme.danger
@@ -198,6 +206,13 @@ FocusScope {
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontBody
             }
+        }
+
+        ActionButton {
+            visible: root.audioState && ["binding", "disconnected", "no-output"].indexOf(root.audioState.availability) !== -1
+            text: "Reconnect audio"
+            accessibleName: "Restart shell to reconnect audio"
+            onClicked: root.audioState.restartShell()
         }
 
         Column {

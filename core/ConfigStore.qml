@@ -34,6 +34,7 @@ Scope {
     ]
     readonly property string theme: effective.theme
     readonly property string fontFamily: effective.fontFamily === undefined ? defaults.fontFamily : effective.fontFamily
+    readonly property string fontFallbackFamily: effective.fontFallbackFamily === undefined ? "" : effective.fontFallbackFamily
     readonly property string wallpaper: effective.wallpaper
     readonly property string wallpaperPath: wallpaper.indexOf("~/") === 0
         ? Quickshell.env("HOME") + wallpaper.slice(1) : wallpaper
@@ -48,6 +49,9 @@ Scope {
     readonly property var rightModules: effective.bar.right
     readonly property bool barMinimal: effective.barMinimal === true
     readonly property var trayPinnedIds: effective.trayPinnedIds === undefined ? null : effective.trayPinnedIds
+    readonly property var launcherFavorites: effective.launcherFavorites === undefined ? [] : effective.launcherFavorites
+    readonly property var launcherAliases: effective.launcherAliases === undefined ? ({}) : effective.launcherAliases
+    readonly property string captureMicrophone: effective.captureMicrophone === undefined ? "" : effective.captureMicrophone
 
     signal configError(string message)
     signal configLoaded()
@@ -91,19 +95,65 @@ Scope {
             Object.assign(candidate, base)
             return ""
         }
-        if (isPlainObject(candidate) && Object.keys(candidate).indexOf("fontFamily") !== -1) {
-            if (typeof candidate.fontFamily !== "string") return "invalid font family"
-            const family = candidate.fontFamily.trim()
+        if (isPlainObject(candidate) && Object.keys(candidate).indexOf("launcherFavorites") !== -1) {
+            if (!Array.isArray(candidate.launcherFavorites)) return "launcher favorites must be an array"
+            const seenFavorites = []
+            for (let index = 0; index < candidate.launcherFavorites.length; index++) {
+                const favorite = candidate.launcherFavorites[index]
+                if (typeof favorite !== "string" || favorite.trim() === "" || favorite !== favorite.trim()) return "invalid launcher favorite"
+                if (seenFavorites.indexOf(favorite) !== -1) return "duplicate launcher favorite: " + favorite
+                seenFavorites.push(favorite)
+            }
+            const base = Object.assign({}, candidate)
+            delete base.launcherFavorites
+            const error = validate(base)
+            if (error !== "") return error
+            Object.assign(candidate, base)
+            return ""
+        }
+        if (isPlainObject(candidate) && Object.keys(candidate).indexOf("launcherAliases") !== -1) {
+            if (!isPlainObject(candidate.launcherAliases)) return "launcher aliases must be an object"
+            const appIds = Object.keys(candidate.launcherAliases)
+            const seenAliases = []
+            for (let index = 0; index < appIds.length; index++) {
+                const alias = candidate.launcherAliases[appIds[index]]
+                if (appIds[index].trim() === "" || typeof alias !== "string" || !/^\S{1,32}$/.test(alias)
+                        || alias !== alias.toLowerCase()) return "invalid launcher alias for " + appIds[index]
+                if (seenAliases.indexOf(alias) !== -1) return "duplicate launcher alias: " + alias
+                seenAliases.push(alias)
+            }
+            const base = Object.assign({}, candidate)
+            delete base.launcherAliases
+            const error = validate(base)
+            if (error !== "") return error
+            Object.assign(candidate, base)
+            return ""
+        }
+        if (isPlainObject(candidate) && Object.keys(candidate).indexOf("captureMicrophone") !== -1) {
+            if (typeof candidate.captureMicrophone !== "string" || /\s/.test(candidate.captureMicrophone)) return "invalid capture microphone"
+            const base = Object.assign({}, candidate)
+            delete base.captureMicrophone
+            const error = validate(base)
+            if (error !== "") return error
+            Object.assign(candidate, base)
+            return ""
+        }
+        const fontKeys = ["fontFamily", "fontFallbackFamily"]
+        for (let keyIndex = 0; keyIndex < fontKeys.length; keyIndex++) {
+            const key = fontKeys[keyIndex]
+            if (!isPlainObject(candidate) || Object.keys(candidate).indexOf(key) === -1) continue
+            if (typeof candidate[key] !== "string") return "invalid font family"
+            const family = candidate[key].trim()
             if (family === "" || family.length > 128) return "invalid font family"
             for (let index = 0; index < family.length; index++) {
                 const code = family.charCodeAt(index)
                 if (code < 32 || code === 127) return "invalid font family"
             }
             const base = Object.assign({}, candidate)
-            delete base.fontFamily
+            delete base[key]
             const error = validate(base)
             if (error !== "") return error
-            base.fontFamily = family
+            base[key] = family
             Object.assign(candidate, base)
             return ""
         }
@@ -238,9 +288,41 @@ Scope {
         return save(next)
     }
 
+    function setCaptureMicrophone(name) {
+        const next = JSON.parse(JSON.stringify(effective))
+        next.captureMicrophone = String(name)
+        return save(next)
+    }
+
     function setTrayPinnedIds(ids) {
         const next = JSON.parse(JSON.stringify(effective))
         next.trayPinnedIds = Array.from(ids)
+        return save(next)
+    }
+
+    function toggleLauncherFavorite(appId) {
+        const id = String(appId)
+        const next = JSON.parse(JSON.stringify(effective))
+        const favorites = Array.from(launcherFavorites)
+        const index = favorites.indexOf(id)
+        if (index === -1) favorites.push(id)
+        else favorites.splice(index, 1)
+        next.launcherFavorites = favorites
+        return save(next)
+    }
+
+    function setLauncherAlias(appId, alias) {
+        const id = String(appId)
+        const normalized = String(alias).trim().toLowerCase()
+        const next = JSON.parse(JSON.stringify(effective))
+        const aliases = Object.assign({}, launcherAliases)
+        const ids = Object.keys(aliases)
+        for (let index = 0; index < ids.length; index++) {
+            if (aliases[ids[index]] === normalized) delete aliases[ids[index]]
+        }
+        if (normalized === "") delete aliases[id]
+        else aliases[id] = normalized
+        next.launcherAliases = aliases
         return save(next)
     }
 

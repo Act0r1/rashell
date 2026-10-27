@@ -13,23 +13,61 @@ Item {
     required property var configStore
     required property string outputName
 
-    implicitWidth: Theme.compactControlSize
+    readonly property string elapsedText: {
+        const seconds = root.state.elapsedSeconds
+        const minutes = Math.floor(seconds / 60)
+        return (minutes < 10 ? "0" : "") + minutes + ":" + (seconds % 60 < 10 ? "0" : "") + seconds % 60
+    }
+
+    implicitWidth: root.state.recording ? recordingContent.implicitWidth + Theme.spaceLg * 2 : Theme.compactControlSize
     implicitHeight: Theme.controlHeight
+
+    function togglePanel() {
+        root.coordinator.toggle(
+            "screenshot",
+            root,
+            "center",
+            Quickshell.shellDir + "/modules/system/ScreenshotPanel.qml",
+            {
+                coordinator: root.coordinator,
+                captureState: root.state,
+                textCaptureState: root.textCaptureState,
+                configStore: root.configStore,
+                outputName: root.outputName
+            }
+        )
+    }
 
     Button {
         id: button
         anchors.fill: parent
         hoverEnabled: true
-        Accessible.name: root.state.recording ? "Open screen recording controls" : "Open screen capture"
+        Accessible.name: root.state.recording ? "Stop screen recording" : "Open screen capture"
         Accessible.role: Accessible.Button
 
         contentItem: Item {
-            ShellIcon {
+            Row {
+                id: recordingContent
                 anchors.centerIn: parent
-                name: root.state.recording && root.state.paused ? "play" : root.state.recording ? "circle-dot" : "camera"
-                tint: root.state.recording ? Theme.danger : Theme.text
-                implicitWidth: Theme.fontTitle
-                implicitHeight: Theme.fontTitle
+                spacing: Theme.spaceSm
+
+                ShellIcon {
+                    anchors.verticalCenter: parent.verticalCenter
+                    name: root.state.recording && root.state.paused ? "play" : root.state.recording ? "circle-dot" : "camera"
+                    tint: root.state.recording ? Theme.danger : Theme.text
+                    implicitWidth: Theme.fontTitle
+                    implicitHeight: Theme.fontTitle
+                }
+
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: root.state.recording
+                    text: root.elapsedText
+                    color: Theme.danger
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSmall
+                    font.features: { "tnum": 1 }
+                }
             }
         }
 
@@ -44,19 +82,13 @@ Item {
         }
 
         onClicked: {
-            root.coordinator.toggle(
-                "screenshot",
-                root,
-                "center",
-                Quickshell.shellDir + "/modules/system/ScreenshotPanel.qml",
-                {
-                    coordinator: root.coordinator,
-                    captureState: root.state,
-                    textCaptureState: root.textCaptureState,
-                    configStore: root.configStore,
-                    outputName: root.outputName
-                }
-            )
+            if (root.state.recording) root.state.stop()
+            else root.togglePanel()
+        }
+
+        TapHandler {
+            acceptedButtons: Qt.RightButton
+            onTapped: root.togglePanel()
         }
     }
 

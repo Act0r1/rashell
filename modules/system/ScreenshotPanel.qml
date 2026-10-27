@@ -246,7 +246,8 @@ FocusScope {
                         root.outputName,
                         root.captureState.captureMode,
                         root.captureState.audioMode,
-                        root.captureState.captureSelection
+                        root.captureState.captureSelection,
+                        root.configStore.captureMicrophone
                     )
                     root.coordinator.close("start-recording")
                 }

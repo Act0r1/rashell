@@ -69,6 +69,8 @@ Scope {
 
         notification.tracked = true
         notification.closed.connect(() => state.forget(notification))
+        notification.summaryChanged.connect(() => state.refresh(notification))
+        notification.bodyChanged.connect(() => state.refresh(notification))
         history.insert(0, {
             notification: notification,
             appName: appName || "Notification",
@@ -85,9 +87,21 @@ Scope {
         }
         unread += 1
         if (!doNotDisturb) {
-            if (popupVisible) popupQueue = popupQueue.concat([notification])
+            const sameApp = latest !== null && String(latest.appName || "").trim() === appName
+            if (popupVisible && !sameApp) popupQueue = popupQueue.concat([notification])
             else showPopup(notification)
         }
+    }
+
+    // Apply an in-place update (notify-send -r / replaces_id) to history and the visible popup.
+    function refresh(notification) {
+        for (let index = 0; index < history.count; index++) {
+            if (history.get(index).notification !== notification) continue
+            history.setProperty(index, "summary", String(notification.summary || "").trim())
+            history.setProperty(index, "body", String(notification.body || "").trim())
+            break
+        }
+        if (popupVisible && latest === notification) showPopup(notification)
     }
 
     function showPopup(notification) {
@@ -95,7 +109,9 @@ Scope {
         popupAppName = String(notification.appName || "Notification")
         popupSummary = String(notification.summary || "")
         popupBody = String(notification.body || "")
-        popupTotalDurationMs = popupDurationSeconds * 1000
+        popupTotalDurationMs = notification.expireTimeout > 0
+            ? Math.max(1000, Math.round(notification.expireTimeout * 1000))
+            : popupDurationSeconds * 1000
         popupRemainingMs = popupTotalDurationMs
         popupDeadlineMs = Date.now() + popupRemainingMs
         popupProgress = 1

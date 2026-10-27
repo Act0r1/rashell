@@ -73,14 +73,20 @@ Scope {
             + (String(candidate.trackAlbum || "").trim() ? 1 : 0)
     }
 
+    function isMusic(candidate: MprisPlayer): bool {
+        return String(candidate.trackAlbum || "").trim() !== ""
+    }
+
     function selectPlayer() {
         let selected = null
         let selectedScore = -1
         for (let index = 0; index < players.length; index++) {
             const candidate = players[index]
             if (!candidate || !candidate.canControl) continue
-            if (candidate.playbackState !== MprisPlaybackState.Playing) continue
-            const score = metadataScore(candidate)
+            const music = isMusic(candidate)
+            const playing = candidate.playbackState === MprisPlaybackState.Playing
+            if (!playing && !(music && candidate.playbackState === MprisPlaybackState.Paused)) continue
+            const score = (music ? 16 : 0) + (playing ? 8 : 0) + metadataScore(candidate)
             if (score > selectedScore) {
                 selected = candidate
                 selectedScore = score

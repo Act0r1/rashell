@@ -32,8 +32,14 @@
   "trayPinnedIds": [
     "chrome_status_icon_1",
     "indicator-solaar",
-    "steam"
+    "steam",
+    "librepods"
   ],
-  "fontFamily": "Adwaita Sans",
-  "barMinimal": false
+  "fontFamily": "FiraCode Nerd Font",
+  "fontFallbackFamily": "Noto Serif",
+  "barMinimal": false,
+  "launcherFavorites": [
+    "helium",
+    "spotify"
+  ]
 }

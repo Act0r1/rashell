@@ -5,7 +5,7 @@ import Quickshell.Services.Pipewire
 Scope {
     id: state
 
-    property bool everReady: false
+    property bool everReady: ready
     readonly property bool ready: Pipewire.ready
     readonly property var nodes: Pipewire.nodes ? Pipewire.nodes.values : []
     readonly property var output: Pipewire.defaultAudioSink
@@ -41,7 +41,10 @@ Scope {
 
     readonly property bool outputUsable: output !== null && output.ready && output.audio
     readonly property bool inputUsable: input !== null && input.ready && input.audio
-    readonly property string availability: outputUsable ? "ready" : "loading"
+    readonly property string availability: outputUsable ? "ready"
+        : !ready ? (everReady ? "disconnected" : "loading")
+        : output === null ? "no-output"
+        : "binding"
     readonly property real outputVolume: outputUsable ? output.audio.volume : 0
     readonly property bool outputMuted: outputUsable ? output.audio.muted : false
     readonly property real inputVolume: inputUsable ? input.audio.volume : 0
@@ -51,6 +54,11 @@ Scope {
     property string pendingOrigin: ""
     property real pendingValue: 0
     signal outputChangeObserved(string outputName)
+
+    function restartShell() {
+        Quickshell.execDetached(["sh", "-c",
+            'qs="${RASHELL_QUICKSHELL:-$HOME/.local/opt/rashell-runtime/quickshell}"; "$qs" -c rashell kill; "$qs" --no-color -c rashell -d'])
+    }
 
     function clampVolume(value) {
         return Math.max(0, Math.min(1, Number(value)))
@@ -173,5 +181,9 @@ Scope {
 
     PwObjectTracker {
         objects: state.deviceNodes
+    }
+
+    PwObjectTracker {
+        objects: [state.output, state.input].filter(node => node !== null)
     }
 }

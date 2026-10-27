@@ -191,6 +191,15 @@ class ScreenshotTest(unittest.TestCase):
             unloads = [line for line in pactl_marker.read_text().splitlines() if line.startswith("unload-module")]
             self.assertEqual(len(unloads), 3)
 
+            subprocess.run(
+                [str(SCRIPT), "record", str(root / "chosen"), "region", "microphone", "0,0 10x10", "yeti.source"],
+                env=environment,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            self.assertIn("--audio=yeti.source", arguments_marker.read_text())
+
     def test_pause_resume_and_stop_control_the_recorder_process(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

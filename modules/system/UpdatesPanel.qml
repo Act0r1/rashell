@@ -109,7 +109,7 @@ FocusScope {
                 ListView {
                     id: updatesList
                     width: parent.width
-                    height: Math.min(300, contentHeight)
+                    height: Math.min(500, contentHeight)
                     model: root.systemState.availableUpdates
                     clip: true
                     boundsBehavior: Flickable.StopAtBounds
@@ -118,7 +118,7 @@ FocusScope {
                         id: updatesScroll
                         policy: ScrollBar.AsNeeded
                         visible: updatesList.contentHeight > updatesList.height + 1
-                        width: 5
+                        width: 10
                         contentItem: Rectangle {
                             implicitWidth: 3
                             radius: 2

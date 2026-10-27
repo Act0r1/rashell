@@ -212,6 +212,14 @@ Scope {
                     if (lockSurface.showPasswordView) passwordBox.forceActiveFocus()
                 }
 
+                Window.onActiveFocusItemChanged: {
+                    if (!root.locked || Window.activeFocusItem) return
+                    Qt.callLater(function() {
+                        if (lockSurface.showPasswordView) passwordBox.forceActiveFocus()
+                        else visualRoot.forceActiveFocus()
+                    })
+                }
+
                 Keys.onPressed: function(event) {
                     if (event.key === Qt.Key_Escape) {
                         if (lockContext.password.length > 0) lockContext.password = ""

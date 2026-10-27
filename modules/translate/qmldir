@@ -1,0 +1,3 @@
+module qs.modules.translate
+TranslateState 1.0 TranslateState.qml
+TranslateWindow 1.0 TranslateWindow.qml

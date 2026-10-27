@@ -105,8 +105,67 @@ TestCase {
         compare(results.length, 0)
     }
 
+    function test_exact_alias_ranks_first() {
+        const entries = [
+            { id: "fr-tool", name: "Fr", comment: "", keywords: "" },
+            { id: "firefox", name: "Firefox", comment: "", keywords: "" }
+        ]
+        const prefs = { favorites: [], aliases: { firefox: "frf" } }
+
+        compare(LauncherSearch.applications(entries, "FRF", prefs)[0].id, "firefox")
+        compare(LauncherSearch.applications(entries, "fr", prefs).map(function(entry) { return entry.id }), ["fr-tool"])
+        compare(LauncherSearch.applications(entries, "fr", { favorites: [], aliases: { firefox: "fr" } })[0].id, "firefox")
+    }
+
+    function test_alias_finds_app_without_name_match() {
+        const entries = [{ id: "org.gnome.Nautilus", name: "Files", comment: "", keywords: "" }]
+        const items = LauncherSearch.applicationItems(entries, "naut2", { favorites: [], aliases: { "org.gnome.Nautilus": "naut2" } })
+
+        compare(items.length, 1)
+        compare(items[0].alias, "naut2")
+    }
+
+    function test_favorites_first_on_empty_query() {
+        const entries = [
+            { id: "alpha", name: "Alpha", comment: "", keywords: "" },
+            { id: "zed", name: "Zed", comment: "", keywords: "" }
+        ]
+        const items = LauncherSearch.applicationItems(entries, "", { favorites: ["zed"], aliases: {} })
+
+        compare(items[0].id, "zed")
+        compare(items[0].favorite, true)
+        compare(items[1].favorite, false)
+    }
+
+    function test_favorite_only_breaks_ties_while_searching() {
+        const entries = [
+            { id: "code", name: "Code", comment: "", keywords: "" },
+            { id: "cool", name: "Cool", comment: "", keywords: "" },
+            { id: "notes", name: "Notes", comment: "co-op notes", keywords: "" }
+        ]
+        const results = LauncherSearch.applications(entries, "co", { favorites: ["cool", "notes"], aliases: {} })
+
+        compare(results.map(function(entry) { return entry.id }), ["cool", "code", "notes"])
+    }
+
     function test_destructive_action_detection() {
         compare(LauncherSearch.isDestructiveAction({ id: "AppImageLauncher-Remove-AppImage", name: "Delete this AppImage" }), true)
         compare(LauncherSearch.isDestructiveAction({ id: "new-window", name: "New Window" }), false)
+    }
+
+    function test_gear_lever_appimage_gets_remove_action() {
+        const entry = {
+            name: "Handy",
+            actions: [],
+            command: ["env", "DESKTOPINTEGRATION=1", "/home/user/AppImages/handy.appimage", "--flag"]
+        }
+
+        compare(LauncherSearch.deleteAction(entry).command,
+            ["flatpak", "run", "it.mijorus.gearlever", "--remove", "-y", "/home/user/AppImages/handy.appimage"])
+    }
+
+    function test_regular_app_has_no_remove_action() {
+        compare(LauncherSearch.deleteAction({ name: "Firefox", actions: [], command: ["/usr/bin/firefox"] }), null)
+        compare(LauncherSearch.deleteAction({ name: "Craft", actions: [], command: ["/home/user/Applications/pdfcraft.AppImage"] }), null)
     }
 }

@@ -12,7 +12,7 @@ A personal Quickshell desktop shell for Hyprland, built around the controls used
 - Control center with Wi-Fi, a Bluetooth device panel, wallpaper access, capture, audio, system status, lock, suspend, and confirmed power actions
 - Wallpaper ownership, calendar, session controls, and Hyprland workspace switching
 - Last-known-good JSON configuration reload
-- Six built-in dark themes: `raven`, `dusk`, `tokyonight`, `tokyostorm`, `ayu-dark`, and `ayu-mirage`
+- Nine built-in dark themes: `raven`, `dusk`, `tokyonight`, `tokyostorm`, `ayu-dark`, `ayu-mirage`, `kanagawa-dragon`, `oxocarbon`, and `rose-pine`
 
 Most documents under [`docs/architecture`](docs/architecture/) describe the original minimal baseline. The [visual system reference](docs/architecture/visual-system.md) documents the current tokens and primitives. The current shell extends the baseline with first-party daily-use features.
 
@@ -51,6 +51,9 @@ just theme dusk
 just theme tokyonight
 just theme tokyostorm
 just theme ayu-mirage
+just theme kanagawa-dragon
+just theme oxocarbon
+just theme rose-pine
 ```
 
 Theme changes hot-reload while Rashell is running. Set `captureDirectory` in `config.json` to choose where screenshots, edited screenshots, and videos are saved.

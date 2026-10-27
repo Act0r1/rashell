@@ -410,4 +410,11 @@ Scope {
         triggeredOnStart: true
         onTriggered: state.refresh()
     }
+
+    Timer {
+        interval: 300000
+        repeat: true
+        running: !state.available
+        onTriggered: state.refresh()
+    }
 }

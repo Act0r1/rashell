@@ -51,8 +51,8 @@ Item {
                 && root.coordinator.activePanelId === "updates"
                 && root.coordinator.anchorItem === root
             color: active || button.hovered || button.down ? Theme.surfaceRaised : "transparent"
-            border.color: button.activeFocus ? Theme.focus : active ? Theme.accent : "transparent"
-            border.width: button.activeFocus ? Theme.focusWidth : Theme.borderWidth
+            border.color: button.visualFocus ? Theme.focus : active ? Theme.accent : "transparent"
+            border.width: button.visualFocus ? Theme.focusWidth : Theme.borderWidth
             radius: Theme.radius
         }
 

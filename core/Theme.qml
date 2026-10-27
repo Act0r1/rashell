@@ -12,8 +12,26 @@ QtObject {
     readonly property FileView catalogFile: FileView {
         path: Quickshell.shellDir + "/core/themes.json"
         blockLoading: true
+        watchChanges: true
+
+        onFileChanged: reload()
+        onLoaded: theme.catalog = theme.parseCatalog(text(), theme.catalog)
     }
-    readonly property var catalog: JSON.parse(catalogFile.text())
+    property var catalog: parseCatalog(catalogFile.text(), [])
+
+    function parseCatalog(source, fallback) {
+        try {
+            const parsed = JSON.parse(source)
+            if (Array.isArray(parsed) && parsed.length > 0
+                    && parsed.every(function(entry) { return entry && entry.id && entry.palette })) {
+                return parsed
+            }
+            console.warn("Theme catalog has no valid entries; keeping previous catalog")
+        } catch (error) {
+            console.warn("Theme catalog is not valid JSON; keeping previous catalog: " + error)
+        }
+        return fallback
+    }
     readonly property var names: catalog.map(function(entry) { return entry.id })
     readonly property var palettes: {
         const result = {}

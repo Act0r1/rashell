@@ -40,8 +40,8 @@ Item {
 
         background: Rectangle {
             color: button.hovered || button.down ? Theme.surfaceRaised : "transparent"
-            border.color: button.activeFocus ? Theme.focus : "transparent"
-            border.width: button.activeFocus ? Theme.focusWidth : Theme.borderWidth
+            border.color: button.visualFocus ? Theme.focus : "transparent"
+            border.width: button.visualFocus ? Theme.focusWidth : Theme.borderWidth
             radius: Theme.radius
         }
 
