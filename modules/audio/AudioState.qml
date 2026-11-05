@@ -11,7 +11,7 @@ Scope {
     readonly property var output: Pipewire.defaultAudioSink
     readonly property var input: Pipewire.defaultAudioSource
 
-    readonly property var deviceNodes: {
+    readonly property var candidateNodes: {
         const result = []
         for (let index = 0; index < nodes.length; index++) {
             const node = nodes[index]
@@ -20,6 +20,8 @@ Scope {
         }
         return result
     }
+
+    readonly property var deviceNodes: candidateNodes.filter(node => node.properties["node.virtual"] !== "true")
 
     readonly property var outputs: {
         const result = []
@@ -180,7 +182,7 @@ Scope {
     }
 
     PwObjectTracker {
-        objects: state.deviceNodes
+        objects: state.candidateNodes
     }
 
     PwObjectTracker {
