@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Io
 import qs.core
 import qs.bar
+import qs.island
 import qs.modules.workspaces
 import qs.modules.clock
 import qs.modules.weather
@@ -409,6 +410,7 @@ ShellRoot {
     }
 
     Bar {
+        active: configStore.layout !== "island"
         configStore: configStore
         workspaceState: workspaceState
         clockState: clockState
@@ -431,8 +433,51 @@ ShellRoot {
         feedback: feedback
     }
 
+    Island {
+        id: island
+        active: configStore.layout === "island"
+        configStore: configStore
+        workspaceState: workspaceState
+        clockState: clockState
+        weatherState: weatherState
+        audioState: audioState
+        mediaState: mediaState
+        screenshotState: screenshotState
+        systemState: systemState
+        keyboardState: keyboardState
+        controlState: controlState
+        tokenState: tokenState
+        notificationState: notificationState
+        sessionState: sessionState
+        textCaptureState: textCaptureState
+        barEditor: barEditor
+        lockScreen: lockScreen
+        wallpaperPicker: wallpaperPicker
+        coordinator: panelCoordinator
+        osd: volumeOsd
+        feedback: feedback
+        onControlRequested: shell.toggleTaskPanel("control")
+    }
+
     IpcHandler {
         target: "rashell"
+
+        function layoutToggle(): string {
+            panelCoordinator.close("layout")
+            return configStore.setLayout(configStore.layout === "island" ? "bar" : "island")
+                ? "ok" : "config rejected"
+        }
+
+        function islandToggle(): string {
+            if (configStore.layout !== "island") return "island layout inactive"
+            island.toggleRequested(panelCoordinator.preferredOutputName())
+            return "ok"
+        }
+
+        function focusWorkspacesSet(ids: string): string {
+            island.focusWorkspaces = ids.split(",").filter(id => id !== "").map(id => parseInt(id))
+            return "ok"
+        }
 
         function barMinimalToggle(): string {
             panelCoordinator.close("bar-mode")
@@ -583,6 +628,24 @@ ShellRoot {
                 { coordinator: panelCoordinator, mediaState: mediaState }
             )
             return opened ? "ok" : "media anchor unavailable"
+        }
+
+        function mediaPlayPause(): string {
+            if (!mediaState.player) return "no player"
+            mediaState.playPause()
+            return "ok"
+        }
+
+        function mediaNext(): string {
+            if (!mediaState.player) return "no player"
+            mediaState.next()
+            return "ok"
+        }
+
+        function mediaPrevious(): string {
+            if (!mediaState.player) return "no player"
+            mediaState.previous()
+            return "ok"
         }
 
         function audioPanelToggle(): string {

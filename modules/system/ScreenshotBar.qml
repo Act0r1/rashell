@@ -75,6 +75,7 @@ Item {
             readonly property bool active: root.coordinator.opened
                 && root.coordinator.activePanelId === "screenshot"
                 && root.coordinator.anchorItem === root
+                && !root.coordinator.hosted
             color: active || button.hovered || button.down ? Theme.surfaceRaised : "transparent"
             border.color: root.state.recording ? Theme.danger : active ? Theme.accent : "transparent"
             border.width: Theme.borderWidth

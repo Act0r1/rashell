@@ -17,6 +17,7 @@ class ConfigTest(unittest.TestCase):
         keys.discard("fontFamily")
         keys.discard("fontFallbackFamily")
         keys.discard("barMinimal")
+        keys.discard("layout")
         keys.discard("launcherFavorites")
         keys.discard("launcherAliases")
         self.assertEqual(keys, {"version", "theme", "wallpaper", "captureDirectory", "weatherLocation", "notificationDurationSeconds", "clipboardHistoryLimit", "bar"})
@@ -32,6 +33,8 @@ class ConfigTest(unittest.TestCase):
         self.assertGreaterEqual(config["clipboardHistoryLimit"], 10)
         self.assertLessEqual(config["clipboardHistoryLimit"], 750)
         self.assertEqual(set(config["bar"]), {"left", "center", "right"})
+        if "layout" in config:
+            self.assertIn(config["layout"], {"bar", "island"})
 
         modules = config["bar"]["left"] + config["bar"]["center"] + config["bar"]["right"]
         self.assertEqual(len(modules), len(set(modules)))
@@ -62,6 +65,12 @@ class ConfigTest(unittest.TestCase):
 
         self.assertIn("applyConfig(next)", save)
         self.assertLess(save.index("applyConfig(next)"), save.index("configFile.setText"))
+
+    def test_layout_switch_is_wired(self) -> None:
+        source = CONFIG_STORE_PATH.read_text()
+
+        self.assertIn("function setLayout(name)", source)
+        self.assertIn('return "invalid layout"', source)
 
     def test_theme_validation_uses_catalog(self) -> None:
         source = CONFIG_STORE_PATH.read_text()

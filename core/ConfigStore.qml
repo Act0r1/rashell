@@ -48,6 +48,7 @@ Scope {
     readonly property var centerModules: effective.bar.center
     readonly property var rightModules: effective.bar.right
     readonly property bool barMinimal: effective.barMinimal === true
+    readonly property string layout: effective.layout === "island" ? "island" : "bar"
     readonly property var trayPinnedIds: effective.trayPinnedIds === undefined ? null : effective.trayPinnedIds
     readonly property var launcherFavorites: effective.launcherFavorites === undefined ? [] : effective.launcherFavorites
     readonly property var launcherAliases: effective.launcherAliases === undefined ? ({}) : effective.launcherAliases
@@ -70,6 +71,15 @@ Scope {
     }
 
     function validate(candidate) {
+        if (isPlainObject(candidate) && Object.keys(candidate).indexOf("layout") !== -1) {
+            if (candidate.layout !== "bar" && candidate.layout !== "island") return "invalid layout"
+            const base = Object.assign({}, candidate)
+            delete base.layout
+            const error = validate(base)
+            if (error !== "") return error
+            Object.assign(candidate, base)
+            return ""
+        }
         if (isPlainObject(candidate) && Object.keys(candidate).indexOf("barMinimal") !== -1) {
             if (typeof candidate.barMinimal !== "boolean") return "invalid minimal bar mode"
             const base = Object.assign({}, candidate)
@@ -333,6 +343,12 @@ Scope {
             center: Array.from(center),
             right: Array.from(right)
         }
+        return save(next)
+    }
+
+    function setLayout(name) {
+        const next = JSON.parse(JSON.stringify(effective))
+        next.layout = String(name)
         return save(next)
     }
 

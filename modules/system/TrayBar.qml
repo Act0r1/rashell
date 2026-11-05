@@ -34,6 +34,7 @@ Item {
     readonly property bool overflowOpened: coordinator.opened
         && coordinator.activePanelId === "tray" && coordinator.anchorItem === overflowButton
     property int menuRequest: 0
+    property bool menuInPanel: false
 
     implicitWidth: trayRow.implicitWidth
     implicitHeight: Theme.controlHeight
@@ -103,6 +104,7 @@ Item {
 
     function closeMenu() {
         ++menuRequest
+        menuInPanel = false
         if (!trayMenu) return
         trayMenu.close()
         trayMenu.trayItem = null
@@ -113,15 +115,19 @@ Item {
         if (!item || items.indexOf(item) === -1) return
         trayTooltip.visible = false
         tooltipAnchor = null
+        const isMenu = button === Qt.RightButton || (item.onlyMenu && button !== Qt.MiddleButton)
+        const keepPanel = isMenu && anchorItem !== null && overflowOpened && coordinator.hosted
         const target = anchorItem || overflowButton
-        coordinator.close("tray-action")
+        if (!keepPanel) coordinator.close("tray-action")
         closeMenu()
         if (button === Qt.MiddleButton) {
             item.secondaryActivate()
-        } else if (button === Qt.RightButton || item.onlyMenu) {
+        } else if (isMenu) {
             const token = ++menuRequest
             Qt.callLater(function() {
-                if (token !== root.menuRequest || root.coordinator.opened || root.items.indexOf(item) === -1) return
+                if (token !== root.menuRequest || root.items.indexOf(item) === -1) return
+                if (keepPanel ? !root.overflowOpened : root.coordinator.opened) return
+                root.menuInPanel = keepPanel
                 trayMenu.open(item, target)
             })
         } else {
@@ -157,7 +163,10 @@ Item {
     Connections {
         target: root.coordinator
         function onOpenedChanged() {
-            if (!root.coordinator.opened) return
+            if (!root.coordinator.opened) {
+                if (root.menuInPanel) root.closeMenu()
+                return
+            }
             root.closeMenu()
             trayTooltip.visible = false
             root.tooltipAnchor = null

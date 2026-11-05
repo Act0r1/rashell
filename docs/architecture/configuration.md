@@ -74,6 +74,22 @@ Rules:
 
 No version-1 fields configure audio behavior, calendar behavior, workspace policy, monitor policy, typography, arbitrary colors, command bindings, or panel geometry. Hyprland, PipeWire, locale, and the selected built-in semantic theme remain authoritative where applicable.
 
+## Layout selection
+
+An optional top-level `layout` key selects the shell layout: `"bar"` for the top bar or `"island"` for the island. A missing key means `"bar"`.
+
+```json
+{
+  "layout": "island"
+}
+```
+
+Rules:
+
+- `layout` is optional and must be `bar` or `island` when present.
+- Any other value is a validation error (`invalid layout`) rather than a silent fallback.
+- The key persists through saves like other optional keys; removing it restores the bar layout.
+
 ## Module slices
 
 A module receives only its own future configuration slice at:

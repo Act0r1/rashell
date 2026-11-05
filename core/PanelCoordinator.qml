@@ -12,6 +12,7 @@ Scope {
     property url contentSource: ""
     property var contentProperties: ({})
     property bool opened: false
+    property bool hosted: false
     property bool transitioning: false
     property int transaction: 0
     property var anchorsByKey: ({})
@@ -25,21 +26,22 @@ Scope {
     }
 
     function registerAnchor(panelId, outputName, item, itemAlignment) {
+        const anchorKey = key(panelId, outputName)
         const next = Object.assign({}, anchorsByKey)
-        next[key(panelId, outputName)] = {
-            item: item,
-            alignment: itemAlignment
-        }
+        next[anchorKey] = (next[anchorKey] || []).filter(function(entry) { return entry.item !== item })
+            .concat([{ item: item, alignment: itemAlignment }])
         anchorsByKey = next
     }
 
     function unregisterAnchor(panelId, outputName, item) {
         const anchorKey = key(panelId, outputName)
-        const current = anchorsByKey[anchorKey]
-        if (!current || current.item !== item) return
+        const current = anchorsByKey[anchorKey] || []
+        const remaining = current.filter(function(entry) { return entry.item !== item })
+        if (remaining.length === current.length) return
 
         const next = Object.assign({}, anchorsByKey)
-        delete next[anchorKey]
+        if (remaining.length > 0) next[anchorKey] = remaining
+        else delete next[anchorKey]
         anchorsByKey = next
 
         if (anchorItem === item) close("anchor-lost")
@@ -53,15 +55,23 @@ Scope {
         return monitors.length > 0 ? String(monitors[0].name) : ""
     }
 
+    function latestAnchor(entries) {
+        if (!entries) return null
+        for (let index = entries.length - 1; index >= 0; index--) {
+            if (entries[index].item) return entries[index]
+        }
+        return null
+    }
+
     function registeredAnchor(panelId, outputName) {
-        const requested = anchorsByKey[key(panelId, outputName)]
-        if (requested && requested.item) return requested
+        const requested = latestAnchor(anchorsByKey[key(panelId, outputName)])
+        if (requested) return requested
         if (outputName !== "") return null
 
         const keys = Object.keys(anchorsByKey).sort()
         for (let index = 0; index < keys.length; index++) {
-            const candidate = anchorsByKey[keys[index]]
-            if (keys[index].indexOf(panelId + "@") === 0 && candidate && candidate.item) return candidate
+            const candidate = latestAnchor(anchorsByKey[keys[index]])
+            if (keys[index].indexOf(panelId + "@") === 0 && candidate) return candidate
         }
         return null
     }
@@ -94,13 +104,16 @@ Scope {
         alignment = itemAlignment || "center"
         contentSource = source
         contentProperties = properties || ({})
+        const window = anchor.QsWindow.window
+        hosted = !!window && window.hostsPanels === true
         contentLoader.source = ""
-        contentLoader.setSource(source, contentProperties)
+        if (!hosted) contentLoader.setSource(source, contentProperties)
 
         Qt.callLater(function() {
             if (token !== coordinator.transaction) return
             transitioning = false
             opened = true
+            if (coordinator.hosted) return
             popup.visible = true
             Qt.callLater(function() {
                 if (contentLoader.item) contentLoader.item.forceActiveFocus()
@@ -110,6 +123,7 @@ Scope {
 
     function clearState() {
         opened = false
+        hosted = false
         activePanelId = ""
         anchorItem = null
         contentSource = ""
@@ -159,6 +173,7 @@ Scope {
                     if (popup.visible && coordinator.activePanelId === "tray") trayGrab.active = true
                 })
             } else trayGrab.active = false
+            if (visible) revealAnimation.restart()
             if (!visible && coordinator.opened && !coordinator.transitioning) coordinator.deferOutsideClear()
         }
 
@@ -193,16 +208,34 @@ Scope {
             }
         }
 
-        Loader {
-            id: contentLoader
+        Item {
+            id: reveal
             anchors.fill: parent
+            transform: Scale {
+                id: revealScale
+                origin.x: coordinator.alignment === "left" ? 0
+                    : coordinator.alignment === "right" ? reveal.width : reveal.width / 2
+                origin.y: 0
+            }
 
-            onStatusChanged: {
-                if (status === Loader.Error) {
-                    console.warn("Rashell panel failed:", coordinator.activePanelId, source)
-                    coordinator.close("module-error")
+            Loader {
+                id: contentLoader
+                anchors.fill: parent
+
+                onStatusChanged: {
+                    if (status === Loader.Error) {
+                        console.warn("Rashell panel failed:", coordinator.activePanelId, source)
+                        coordinator.close("module-error")
+                    }
                 }
             }
+        }
+
+        ParallelAnimation {
+            id: revealAnimation
+            NumberAnimation { target: reveal; property: "opacity"; from: 0; to: 1; duration: Theme.motionFast }
+            NumberAnimation { target: revealScale; property: "xScale"; from: 0.92; to: 1; duration: Theme.motionSurface; easing.type: Easing.OutBack; easing.overshoot: 1.2 }
+            NumberAnimation { target: revealScale; property: "yScale"; from: 0.6; to: 1; duration: Theme.motionSurface; easing.type: Easing.OutBack; easing.overshoot: 1.2 }
         }
     }
 }

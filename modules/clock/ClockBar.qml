@@ -48,6 +48,7 @@ Item {
             readonly property bool active: root.coordinator.opened
                 && root.coordinator.activePanelId === "calendar"
                 && root.coordinator.anchorItem === root
+                && !root.coordinator.hosted
             color: active || button.hovered || button.down ? Theme.surfaceRaised : "transparent"
             border.color: button.visualFocus ? Theme.focus : active ? Theme.accent : "transparent"
             border.width: button.visualFocus ? Theme.focusWidth : Theme.borderWidth

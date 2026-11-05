@@ -67,7 +67,8 @@ Rectangle {
                     height: 36
                     draggable: root.trayBar.pinId(modelData) !== ""
                     dragMimeType: root.trayBar.dragMimeType
-                    onTriggered: button => root.trayBar.triggerItem(modelData, button, null)
+                    onTriggered: button => root.trayBar.triggerItem(
+                        modelData, button, root.trayBar.coordinator.hosted ? appButton : null)
                     onDragStarted: root.trayBar.beginDrag(modelData)
                     onDragFinished: action => root.trayBar.finishDrag(action)
                     onHovered: entered => { root.hoveredLabel = entered ? label : "" }

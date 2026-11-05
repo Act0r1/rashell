@@ -10,6 +10,8 @@ Scope {
 
     property var trayItem: null
     property var anchorItem: null
+    readonly property var hostWindow: anchorItem ? anchorItem.QsWindow.window : null
+    readonly property bool hostGrabbed: hostWindow !== null && hostWindow.grabWindows !== undefined
     readonly property bool inSubmenu: entryStack.count > 0
     readonly property color accentTintedSurface: Theme.selectedSurface
     readonly property color accentTintedHover: Theme.selectedHoverSurface
@@ -20,7 +22,14 @@ Scope {
         root.trayItem = item
         root.anchorItem = anchorItem
         entryStack.clear()
+        attachToHostGrab(true)
         popup.visible = true
+    }
+
+    function attachToHostGrab(attached) {
+        if (!root.hostGrabbed) return
+        const others = root.hostWindow.grabWindows.filter(window => window !== popup)
+        root.hostWindow.grabWindows = attached ? others.concat([popup]) : others
     }
 
     function close() {
@@ -80,9 +89,11 @@ Scope {
 
         visible: false
         color: "transparent"
-        grabFocus: true
+        grabFocus: !root.hostGrabbed
         implicitWidth: 280
         implicitHeight: Math.min(480, Math.max(Theme.rowHeight, menuColumn.implicitHeight + Theme.spaceMd * 2))
+
+        onVisibleChanged: if (!visible) root.attachToHostGrab(false)
 
         anchor {
             id: popupAnchor

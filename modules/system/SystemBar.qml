@@ -19,19 +19,34 @@ Item {
         Accessible.name: "System monitor, CPU " + root.state.cpuPercent + " percent, memory " + root.state.memoryPercent + " percent"
         Accessible.role: Accessible.Button
 
-        verticalPadding: (height - Theme.fontTitle) / 2
-        contentItem: ShellIcon {
-            id: status
-            name: "cpu"
-            tint: root.state.cpuPercent >= 90 ? Theme.danger : Theme.text
-            implicitWidth: Theme.fontTitle
-            implicitHeight: Theme.fontTitle
+        padding: 0
+        contentItem: Item {
+            Row {
+                id: status
+                anchors.centerIn: parent
+                spacing: 6
+
+                ShellIcon {
+                    anchors.verticalCenter: parent.verticalCenter
+                    name: "cpu"
+                    tint: root.state.cpuPercent >= 90 ? Theme.danger : Theme.text
+                }
+
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: root.state.cpuPercent + "%"
+                    color: root.state.cpuPercent >= 90 ? Theme.danger : Theme.text
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontBody
+                }
+            }
         }
 
         background: Rectangle {
             readonly property bool active: root.coordinator.opened
                 && root.coordinator.activePanelId === "system"
                 && root.coordinator.anchorItem === root
+                && !root.coordinator.hosted
             color: active || button.hovered || button.down ? Theme.surfaceRaised : "transparent"
             border.color: active ? Theme.accent : "transparent"
             border.width: Theme.borderWidth

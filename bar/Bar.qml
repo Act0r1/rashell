@@ -28,6 +28,7 @@ Item {
     required property var coordinator
     required property var osd
     required property var feedback
+    property bool active: true
 
     component ModuleRow: Row {
         id: moduleRow
@@ -106,7 +107,7 @@ Item {
     }
 
     Variants {
-        model: Quickshell.screens
+        model: root.active ? Quickshell.screens : []
 
         delegate: Component {
             PanelWindow {
