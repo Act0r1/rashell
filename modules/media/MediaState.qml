@@ -86,7 +86,7 @@ Scope {
             const music = isMusic(candidate)
             const playing = candidate.playbackState === MprisPlaybackState.Playing
             if (!playing && !(music && candidate.playbackState === MprisPlaybackState.Paused)) continue
-            const score = (music ? 16 : 0) + (playing ? 8 : 0) + metadataScore(candidate)
+            const score = (playing ? 16 : 0) + (music ? 8 : 0) + metadataScore(candidate)
             if (score > selectedScore) {
                 selected = candidate
                 selectedScore = score
