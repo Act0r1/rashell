@@ -277,7 +277,6 @@ Domain adapters update UI only from observed Hyprland/PipeWire state. UI request
 - [Consistency corrections](consistency-review.md)
 - [Low-fidelity prototype validation](low-fidelity-prototype.md)
 - [Implementation handoff](implementation-handoff.md)
-- [Noctalia research](../research/noctalia-architecture-patterns.md)
 - [Omarchy research](../research/omarchy-ui-patterns.md)
 
 ## Issue #1 closing summary

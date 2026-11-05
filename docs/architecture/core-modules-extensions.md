@@ -5,7 +5,7 @@
 
 ### Context
 
-Rashell’s stated direction is a single Hyprland/Quickshell runtime with a multi-monitor bar and focused task panels. Prior decisions favor Noctalia-like seams—shared domain state, a single transient-panel owner, validated configuration—without its marketplace or framework scale.
+Rashell’s stated direction is a single Hyprland/Quickshell runtime with a multi-monitor bar and focused task panels. Prior decisions favor narrow seams—shared domain state, a single transient-panel owner, validated configuration—without a marketplace or framework scale.
 
 The current manifest registry is useful evidence, but not an architecture commitment:
 

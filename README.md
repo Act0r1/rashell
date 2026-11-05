@@ -29,15 +29,15 @@ Most documents under [`docs/architecture`](docs/architecture/) describe the orig
 ## Run and remove
 
 ```bash
-just start       # select and start Rashell, stopping Noctalia
-just stop        # stop Rashell and restore Noctalia V5
-just uninstall   # restore Noctalia and remove the Quickshell symlink
+just start       # link and start Rashell, replacing a running instance
+just stop        # stop Rashell
+just uninstall   # stop Rashell and remove the Quickshell symlink
 just install     # recreate the safe Quickshell symlink
 ```
 
-`just run`, `just noctalia`, and `just remove` are equivalent convenience recipes. The recipes use the compatible user-local Quickshell runtime by default; override it with `RASHELL_QUICKSHELL` when needed.
+`just run` and `just remove` are equivalent convenience recipes. The recipes use the compatible user-local Quickshell runtime by default; override it with `RASHELL_QUICKSHELL` when needed.
 
-Rashell requires Quickshell 0.3.1 or newer, Hyprland, PipeWire, NetworkManager, BlueZ, `curl`, `jq`, `cliphist`, `grim`, `slurp`, `satty`, `wf-recorder`, and `wl-copy`. System-audio recording also requires `pactl`. The weather widget refreshes Celsius conditions from wttr.in every 30 minutes. Click it to open the animated conditions panel and choose a city; leave the city empty for automatic IP-based location. The token and update widgets use the existing local token-meter helper and `checkupdates`.
+Rashell requires Quickshell 0.3.1 or newer, Hyprland, PipeWire, NetworkManager, BlueZ, `curl`, `jq`, `cliphist`, `grim`, `slurp`, `satty`, `wf-recorder`, and `wl-copy`. System-audio recording also requires `pactl`. The weather widget refreshes Celsius conditions from wttr.in every 30 minutes. Click it to open the animated conditions panel and choose a city; leave the city empty for automatic IP-based location. The token widget uses the bundled `scripts/token-meter` helper; the update widget uses `checkupdates`.
 
 ## Configuration
 
@@ -75,5 +75,3 @@ quickshell -c rashell ipc call rashell calendarPanelToggle
 python -m unittest discover -s tests -p 'test_*.py' -v
 tests/smoke.sh
 ```
-
-Noctalia-derived interaction patterns are acknowledged in [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).

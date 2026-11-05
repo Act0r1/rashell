@@ -2,7 +2,6 @@ root := justfile_directory()
 home := env_var("HOME")
 qs := env_var_or_default("RASHELL_QUICKSHELL", home + "/.local/opt/rashell-runtime/quickshell")
 config_link := home + "/.config/quickshell/rashell"
-selector := home + "/.local/state/noctalia-shell-version"
 
 _default:
     @just --list
@@ -26,9 +25,6 @@ install:
 start: install
     #!/usr/bin/env bash
     set -euo pipefail
-    mkdir -p "$(dirname "{{selector}}")"
-    printf 'rashell\n' > "{{selector}}"
-    pkill -x noctalia 2>/dev/null || true
     "{{qs}}" -c rashell kill 2>/dev/null || true
     "{{qs}}" --no-color -c rashell -d
     echo "Rashell started"
@@ -39,17 +35,8 @@ download:
     @"{{qs}}" ipc -c rashell call rashell mediaDownloadToggle
 
 stop:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    "{{qs}}" -c rashell kill 2>/dev/null || true
-    mkdir -p "$(dirname "{{selector}}")"
-    printf 'v5\n' > "{{selector}}"
-    if ! pgrep -x noctalia >/dev/null; then
-        noctalia -d >"${XDG_RUNTIME_DIR:-/tmp}/rashell-noctalia.log" 2>&1
-    fi
-    echo "Rashell stopped; Noctalia V5 started"
-
-noctalia: stop
+    @"{{qs}}" -c rashell kill 2>/dev/null || true
+    @echo "Rashell stopped"
 
 uninstall: stop
     #!/usr/bin/env bash

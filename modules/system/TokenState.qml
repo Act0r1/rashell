@@ -18,7 +18,7 @@ Scope {
     }
 
     function openDetails() {
-        Quickshell.execDetached(["python3", Quickshell.env("HOME") + "/.config/noctalia/token-meter/token-meter.py", "open"])
+        Quickshell.execDetached(["python3", Quickshell.shellDir + "/scripts/token-meter/token-meter.py", "open"])
     }
 
     function compact(value) {
@@ -30,7 +30,7 @@ Scope {
 
     Process {
         id: query
-        command: ["python3", Quickshell.env("HOME") + "/.config/noctalia/token-meter/token-meter.py", "snapshot"]
+        command: ["python3", Quickshell.shellDir + "/scripts/token-meter/token-meter.py", "snapshot"]
         stdout: StdioCollector {
             onStreamFinished: {
                 try {

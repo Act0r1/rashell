@@ -33,7 +33,6 @@ The Omarchy stream mixer remains research context, not accepted Rashell scope.
 
 **Conflict**
 
-- Noctalia research defines a relatively narrow first milestone at `docs/research/noctalia-architecture-patterns.md:274–306`.
 - Omarchy research adds keyboard behavior, IPC, and OSD at `docs/research/omarchy-ui-patterns.md:39–41`.
 - Product and surface documents include action routing, IPC, OSD, feedback toasts, detailed focus restoration, typed actions, and structured results.
 - `docs/architecture/product-boundary.md:152` says the version “delivers” these features even though this is planning.
