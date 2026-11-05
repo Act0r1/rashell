@@ -3,7 +3,7 @@
   "theme": "ayu-dark",
   "wallpaper": "/home/yeager/Pictures/Wallpapers/qs-niri.jpg",
   "captureDirectory": "~/Pictures/Screenshots",
-  "weatherLocation": "Kazan",
+  "weatherLocation": "",
   "notificationDurationSeconds": 8,
   "clipboardHistoryLimit": 50,
   "bar": {
